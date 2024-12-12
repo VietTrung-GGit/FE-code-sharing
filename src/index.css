@@ -3,10 +3,13 @@
 @tailwind utilities; /*outside tailwind features*/
 /*tailwind layers*/
 
+body {
+  @apply font-sans; /* Applies the custom sans-serif font globally */
+}
 
 @layer base{
   *{
-  background-color: #1B2329;
+
   }
 }
 /*custom css
