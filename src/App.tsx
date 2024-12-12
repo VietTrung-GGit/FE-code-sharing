@@ -2,6 +2,7 @@ import React from 'react';
 import LayoutSignin from './components/layoutSignin';
 import Footer from './components/footer';
 import Header from './components/header';
+import LayoutSignup from './components/layoutSignup';
 
 function App() {
     return (
