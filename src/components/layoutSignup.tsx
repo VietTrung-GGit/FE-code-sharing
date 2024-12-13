@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router";
 import axios from "axios";
 
 function LayoutSignup() {
@@ -95,11 +96,11 @@ function LayoutSignup() {
         {message && <p className="text-l text-red-500 m-6">{message}</p>}
         <p className="text-l text-white m-6">
           Already have an account?{" "}
-          <a href="" className="font-bold">
-            Sign in!
-          </a>
+          <Link to="/signin" className="font-bold">
+          Sign in!
+        </Link>
         </p>
-        <button className="w-32 h-10 rounded-xl bg-Accent/Target text-xl text-white m-6">
+        <button className="w-32 h-10 rounded-xl bg-Accent/Target text-xl text-white m-6 hover:bg-white hover:text-Accent/Target">
           Sign in
         </button>
       </form>

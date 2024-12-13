@@ -1,12 +1,10 @@
 import React from "react";
-import LayoutSignin from "./components/layoutSignin";
-import Footer from "./components/footer";
-import Header from "./components/header";
-import LayoutSignup from "./components/layoutSignup";
-import Hero from "./components/hero";
-import Feature from "./components/feature";
+import Footer from "../components/footer";
+import Header from "../components/header";
+import Hero from "../components/hero";
+import Feature from "../components/feature";
 
-function App() {
+function Landing() {
   return (
     <div className="bg-Background/Middle relative min-h-screen flex flex-col">
       {/* Header */}
@@ -15,7 +13,7 @@ function App() {
       {/* Body */}
       <main className="flex-grow relative">
         {/* Negative Margin to Overlap with Header */}
-        <div className="pt-0 px-5 md:px-10 mt-[-4rem] flex justify-center">
+        <div className="px-5 md:px-10 pt-0 mt-[-4rem] flex justify-center">
           <Hero />
         </div>
         <Feature />
@@ -27,4 +25,4 @@ function App() {
   );
 }
 
-export default App;
+export default Landing;

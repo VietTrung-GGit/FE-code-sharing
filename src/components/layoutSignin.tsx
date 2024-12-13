@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+
 function LayoutSignin() {
   return (
     <div className="bg-Background/Bottom bg-[url('assets/particle.svg')] bg-no-repeat bg-center bg-cover text-center w-full mt-0 p-10 relative border-Primary/Dark border-solid box-border border-2 rounded-b-3xl mb-28 sm:p-10 md:p-14 lg:p-16 xl:p-20">
@@ -16,11 +18,11 @@ function LayoutSignin() {
       <br></br>
       <p className="text-l text-white m-6">
         Don't have an account?{" "}
-        <a href="" className="font-bold">
+        <Link to="/signup" className="font-bold">
           Sign up!
-        </a>
+        </Link>
       </p>
-      <button className="w-32 h-10 rounded-xl bg-white text-xl text-Primary/Dark m-6">
+      <button className="w-32 h-10 rounded-xl bg-white text-xl text-Primary/Dark m-6 hover:bg-Primary/Dark hover:text-white">
         Sign in
       </button>
     </div>
