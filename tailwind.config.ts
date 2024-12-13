@@ -20,7 +20,7 @@ export default {
       },
       fontFamily: {
         serif: ["Source Serif Pro", "serif"],
-        mono: ["Courier New", "monospace"],
+        mono: ["Consolas", "monospace"],
       },
     },
   },

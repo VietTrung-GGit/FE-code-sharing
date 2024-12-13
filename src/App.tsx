@@ -4,6 +4,7 @@ import Footer from "./components/footer";
 import Header from "./components/header";
 import LayoutSignup from "./components/layoutSignup";
 import Hero from "./components/hero";
+import Feature from "./components/feature";
 
 function App() {
   return (
@@ -14,9 +15,10 @@ function App() {
       {/* Body */}
       <main className="flex-grow relative">
         {/* Negative Margin to Overlap with Header */}
-        <div className="mt-[-4rem] pt-0 p-10 flex justify-center">
+        <div className="pt-0 px-5 md:px-10 mt-[-4rem] flex justify-center">
           <Hero />
         </div>
+        <Feature />
       </main>
 
       {/*Footer */}
