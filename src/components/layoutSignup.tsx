@@ -101,7 +101,7 @@ function LayoutSignup() {
         </Link>
         </p>
         <button className="w-32 h-10 rounded-xl bg-Accent/Target text-xl text-white m-6 hover:bg-white hover:text-Accent/Target">
-          Sign in
+          Sign up
         </button>
       </form>
     </div>
