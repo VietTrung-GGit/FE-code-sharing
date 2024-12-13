@@ -49,13 +49,13 @@ function LayoutSignup() {
   };
 
   return (
-    <div className="bg-Background/Bottom bg-[url('assets/particle.svg')] bg-no-repeat bg-center bg-cover text-center w-full mt-0 p-16 relative border-Primary/Dark border-solid box-border border-2 rounded-b-3xl mb-28">
+    <div className="bg-Background/Bottom bg-[url('assets/particle.svg')] bg-no-repeat bg-center bg-cover text-center w-full mt-0 p-10 relative border-Primary/Dark border-solid box-border border-2 rounded-b-3xl mb-28 sm:p-10 md:p-14 lg:p-16 xl:p-20">
       <form onSubmit={handleSubmit}>
         <h3 className="text-3xl text-white m-6 pt-10">SIGN UP</h3>
         <input
           type="text"
           placeholder="Username"
-          className="bg-inputbox-Sign rounded-3xl p-3 w-4/12 text-l m-6 "
+          className="bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3"
           name="username"
           value={formData.username}
           onChange={handleChange}
@@ -65,7 +65,7 @@ function LayoutSignup() {
         <input
           type="email"
           placeholder="Email"
-          className="bg-inputbox-Sign rounded-3xl p-3 w-4/12 text-l m-6"
+          className="bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3"
           name="email"
           value={formData.email}
           onChange={handleChange}
@@ -75,7 +75,7 @@ function LayoutSignup() {
         <input
           type="password"
           placeholder="Password"
-          className="bg-inputbox-Sign rounded-3xl p-3 w-4/12 text-l m-6"
+          className="bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3"
           name="password"
           value={formData.password}
           onChange={handleChange}
@@ -85,7 +85,7 @@ function LayoutSignup() {
         <input
           type="password"
           placeholder="Password confirm"
-          className="bg-inputbox-Sign rounded-3xl p-3 w-4/12 text-l m-6"
+          className="bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3"
           name="passwordConfirm"
           value={formData.passwordConfirm}
           onChange={handleChange}
