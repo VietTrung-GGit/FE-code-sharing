@@ -1,3 +1,4 @@
+
 import Logo from "../assets/logo.svg";
 
 function Footer() {
@@ -16,7 +17,7 @@ function Footer() {
             Co
             <span className="text-Accent/Light">Dash</span>
           </div>
-          <p className="text-lg">Contact with us:</p>
+          <p className="text-l">Contact with us:</p>
           <a href="mailto:xxxxxxxxx@gmail.com" className="text-blue-400 ">
             xxxxxxxxx@gmail.com
           </a>
