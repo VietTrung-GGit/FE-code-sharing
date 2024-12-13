@@ -4,9 +4,8 @@
 /*tailwind layers*/
 
 body {
-  @apply font-sans; /* Applies the custom sans-serif font globally */
+  @apply font-serif; /* Applies the custom sans-serif font globally */
 }
-
 
 /*custom css
 *{
@@ -20,4 +19,3 @@ body {
   }
 }
 */
-
