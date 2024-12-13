@@ -15,7 +15,7 @@ function App() {
       <main className="flex-grow relative">
         {/* Negative Margin to Overlap with Header */}
         <div className="mt-[-4rem] pt-0 p-10 flex justify-center">
-          <Hero />
+          <LayoutSignup />
         </div>
       </main>
 
