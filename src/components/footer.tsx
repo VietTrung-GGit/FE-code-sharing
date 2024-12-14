@@ -25,8 +25,9 @@ function Footer() {
 
         {/* Links Section */}
         <div className="text-lg space-y-2 flex flex-col text-right">
-        <Link to="/">
-          <h4 className="text-2xl text-Accent/Target">About us</h4> </Link>
+          <Link to="/">
+            <h4 className="text-2xl text-Accent/Target">About us</h4>{" "}
+          </Link>
           <ul>
             <li>
               <p>Privacy policy</p>

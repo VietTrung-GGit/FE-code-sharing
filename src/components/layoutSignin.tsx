@@ -8,12 +8,14 @@ function LayoutSignin() {
         type="text"
         placeholder="Username/Email"
         className="bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3 "
+        required
       ></input>
       <br></br>
       <input
         type="password"
         placeholder="Password"
         className="bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3"
+        required
       ></input>
       <br></br>
       <p className="text-l text-white m-6">

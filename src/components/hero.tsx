@@ -17,13 +17,15 @@ function Hero() {
           </div>
           <div className="flex items-center justify-center ">
             <Link to="/signin">
-          <button className="w-24 h-8 rounded-xl bg-white text-xl text-Primary/Dark m-3 hover:bg-Primary/Dark hover:text-white">
-              Sign in
-            </button></Link>
+              <button className="w-24 h-8 rounded-xl bg-white text-xl text-Primary/Dark m-3 hover:bg-Primary/Dark hover:text-white">
+                Sign in
+              </button>
+            </Link>
             <Link to="/signup">
-            <button className="w-24 h-8 rounded-xl bg-Accent/Target text-xl text-white m-3 hover:bg-white hover:text-Accent/Target">
-              Sign up
-              </button></Link>
+              <button className="w-24 h-8 rounded-xl bg-Accent/Target text-xl text-white m-3 hover:bg-white hover:text-Accent/Target">
+                Sign up
+              </button>
+            </Link>
           </div>
         </div>
         <img

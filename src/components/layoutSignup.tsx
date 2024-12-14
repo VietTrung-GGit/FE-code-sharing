@@ -32,15 +32,20 @@ function LayoutSignup() {
 
     try {
       // Send data to the backend
-      const response = await axios.post("/auth/signup", {
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-      });
+      const response = await axios.post(
+        "https://623e6db1-9a81-4f97-a6b8-ab9636260fbd.mock.pstmn.io/endpoint",
+        {
+          //url for testing purposes, CORS issue must be dealt with in backend
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+        },
+      );
 
       // Handle successful response
       setMessage("Signup successful! Please check your email to confirm.");
-      console.log(response.data);
+      console.log("Form Data Sent:", formData);
+      console.log("Response:", response.data);
     } catch (error: any) {
       // Handle errors
       setMessage(
@@ -97,11 +102,11 @@ function LayoutSignup() {
         <p className="text-l text-white m-6">
           Already have an account?{" "}
           <Link to="/signin" className="font-bold">
-          Sign in!
-        </Link>
+            Sign in!
+          </Link>
         </p>
         <button className="w-32 h-10 rounded-xl bg-Accent/Target text-xl text-white m-6 hover:bg-white hover:text-Accent/Target">
-          Sign in
+          Sign up
         </button>
       </form>
     </div>
