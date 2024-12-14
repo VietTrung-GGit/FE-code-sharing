@@ -1,5 +1,5 @@
-import { Link } from "react-router";
-import Button from "./button";
+import { Link } from 'react-router';
+import Button from './button';
 
 function Hero() {
   return (
@@ -28,11 +28,7 @@ function Hero() {
             </Link>
           </div>
         </div>
-        <img
-          src="preview.png"
-          alt="App Preview"
-          className="w-3/5 md:w-4/5 h-auto flex"
-        />
+        <img src="preview.png" alt="App Preview" className="w-3/5 md:w-4/5 h-auto flex" />
       </div>
     </div>
   );

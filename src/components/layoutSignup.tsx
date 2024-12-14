@@ -1,14 +1,14 @@
-import React, { useState } from "react";
-import { Link } from "react-router";
-import axios from "axios";
+import React, { useState } from 'react';
+import { Link } from 'react-router';
+import axios from 'axios';
 
 function LayoutSignup() {
   // State to hold form inputs
   const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    passwordConfirm: "",
+    username: '',
+    email: '',
+    password: '',
+    passwordConfirm: '',
   });
 
   // State to display feedback messages
@@ -20,13 +20,41 @@ function LayoutSignup() {
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
+  // Function for validating email format
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Function for validating password strength
+  const isStrongPassword = (password: string) => {
+    return password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password);
+  };
+
   // Handler for form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Basic password validation
+    // **Client-Side Validation**
+    if (!formData.username.trim()) {
+      setMessage('Username is required.');
+      return;
+    }
+
+    if (!isValidEmail(formData.email)) {
+      setMessage('Invalid email format. Example: example@gmail.com.');
+      return;
+    }
+
+    if (!isStrongPassword(formData.password)) {
+      setMessage(
+        'Password must be at least 8 characters long, include a number and an uppercase letter.',
+      );
+      return;
+    }
+
     if (formData.password !== formData.passwordConfirm) {
-      setMessage("Passwords do not match!");
+      setMessage('Password do not match!');
       return;
     }
 
@@ -48,9 +76,7 @@ function LayoutSignup() {
       console.log("Response:", response.data);
     } catch (error: any) {
       // Handle errors
-      setMessage(
-        error.response?.data?.message || "An error occurred during signup.",
-      );
+      setMessage(error.response?.data?.message || 'An error occurred during signup.');
     }
   };
 
@@ -69,7 +95,7 @@ function LayoutSignup() {
         ></input>
         <br></br>
         <input
-          type="email"
+          type="type"
           placeholder="Email"
           className="bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3"
           name="email"
@@ -100,7 +126,7 @@ function LayoutSignup() {
         <br></br>
         {message && <p className="text-l text-red-500 m-6">{message}</p>}
         <p className="text-l text-white m-6">
-          Already have an account?{" "}
+          Already have an account?{' '}
           <Link to="/signin" className="font-bold">
             Sign in!
           </Link>
@@ -112,4 +138,5 @@ function LayoutSignup() {
     </div>
   );
 }
+
 export default LayoutSignup;

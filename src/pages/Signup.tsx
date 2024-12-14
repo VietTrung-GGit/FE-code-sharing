@@ -1,7 +1,7 @@
-import React from "react";
-import Footer from "../components/footer";
-import Header from "../components/header";
-import LayoutSignup from "../components/layoutSignup";
+import React from 'react';
+import Footer from '../components/footer';
+import Header from '../components/header';
+import LayoutSignup from '../components/layoutSignup';
 
 function Signup() {
   return (

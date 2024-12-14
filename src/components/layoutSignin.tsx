@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from 'react-router';
 
 function LayoutSignin() {
   return (
@@ -19,7 +19,7 @@ function LayoutSignin() {
       ></input>
       <br></br>
       <p className="text-l text-white m-6">
-        Don't have an account?{" "}
+        Don't have an account?{' '}
         <Link to="/signup" className="font-bold">
           Sign up!
         </Link>

@@ -1,5 +1,5 @@
-import React from "react";
-import { Link } from "react-router";
+import React from 'react';
+import { Link } from 'react-router';
 
 type ButtonProps = {
   variant: string;
@@ -8,17 +8,17 @@ type ButtonProps = {
 function Button({ variant }: ButtonProps) {
   const Style: { [key: string]: string } = {
     signin:
-      "w-24 h-8 rounded-xl bg-white text-xl text-Primary/Dark m-3 hover:bg-Primary/Dark hover:text-white",
+      'w-24 h-8 rounded-xl bg-white text-xl text-Primary/Dark m-3 hover:bg-Primary/Dark hover:text-white',
     signup:
-      "w-24 h-8 rounded-xl bg-Accent/Target text-xl text-white m-3 hover:bg-white hover:text-Accent/Target",
+      'w-24 h-8 rounded-xl bg-Accent/Target text-xl text-white m-3 hover:bg-white hover:text-Accent/Target',
   };
   const Action: { [key: string]: string } = {
-    signin: "\signin",
-    signup: "\signup",
+    signin: '\signin',
+    signup: '\signup',
   };
   const Text: { [key: string]: string } = {
-    signin: "Sign in",
-    signup: "Sign up",
+    signin: 'Sign in',
+    signup: 'Sign up',
   };
 
   return (
