@@ -1,15 +1,14 @@
-import { StrictMode } from "react";
+import { StrictMode } from 'react';
 import React from 'react';
-import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router";
-import "./index.css";
-import Landing from "./pages/Landing";
-import Signin from "./pages/Signin";
-import Signup from "./pages/Signup";
-import NotFound from "./pages/Notfound";
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter, Routes, Route } from 'react-router';
+import './index.css';
+import Landing from './pages/Landing';
+import Signin from './pages/Signin';
+import Signup from './pages/Signup';
+import NotFound from './pages/Notfound';
 
-
-const root = document.getElementById("root");
+const root = document.getElementById('root');
 
 if (root) {
   ReactDOM.createRoot(root).render(
@@ -22,8 +21,8 @@ if (root) {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-    </StrictMode>
+    </StrictMode>,
   );
 } else {
-  console.error("Root element not found!");
+  console.error('Root element not found!');
 }

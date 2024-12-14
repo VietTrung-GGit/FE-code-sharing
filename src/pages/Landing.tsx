@@ -1,8 +1,8 @@
-import React from "react";
-import Footer from "../components/footer";
-import Header from "../components/header";
-import Hero from "../components/hero";
-import Feature from "../components/feature";
+import React from 'react';
+import Footer from '../components/footer';
+import Header from '../components/header';
+import Hero from '../components/hero';
+import Feature from '../components/feature';
 
 function Landing() {
   return (

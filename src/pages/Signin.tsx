@@ -1,7 +1,7 @@
-import React from "react";
-import LayoutSignin from "../components/layoutSignin";
-import Footer from "../components/footer";
-import Header from "../components/header";
+import React from 'react';
+import LayoutSignin from '../components/layoutSignin';
+import Footer from '../components/footer';
+import Header from '../components/header';
 
 function Signin() {
   return (

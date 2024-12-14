@@ -1,5 +1,5 @@
-import { Link } from "react-router";
-import Logo from "../assets/logo.svg";
+import { Link } from 'react-router';
+import Logo from '../assets/logo.svg';
 
 function Footer() {
   return (
@@ -9,11 +9,7 @@ function Footer() {
         {/* Logo and Name */}
         <div className="flex flex-col">
           <div className="font-mono flex items-center py-4 text-3xl">
-            <img
-              src={Logo}
-              alt="CoDash Logo"
-              className="logo w-10 h-auto pr-2"
-            />
+            <img src={Logo} alt="CoDash Logo" className="logo w-10 h-auto pr-2" />
             Co
             <span className="text-Accent/Light">Dash</span>
           </div>
@@ -25,8 +21,9 @@ function Footer() {
 
         {/* Links Section */}
         <div className="text-lg space-y-2 flex flex-col text-right">
-        <Link to="/">
-          <h4 className="text-2xl text-Accent/Target">About us</h4> </Link>
+          <Link to="/">
+            <h4 className="text-2xl text-Accent/Target">About us</h4>{' '}
+          </Link>
           <ul>
             <li>
               <p>Privacy policy</p>
