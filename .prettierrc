@@ -5,7 +5,7 @@
   "singleQuote": true,
   "trailingComma": "all",
   "bracketSpacing": true,
-  "jsxSingleQuote": false,
+  "jsxSingleQuote": true,
   "arrowParens": "always",
-  "endOfLine": "lf"
+  "endOfLine": "crlf"
 }

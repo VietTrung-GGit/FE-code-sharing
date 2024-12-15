@@ -5,14 +5,14 @@ import LayoutSignup from '../components/layoutSignup';
 
 function Signup() {
   return (
-    <div className="bg-Background/Middle relative min-h-screen flex flex-col">
+    <div className='bg-Background/Middle relative min-h-screen flex flex-col'>
       {/* Header */}
       <Header />
 
       {/* Body */}
-      <main className="flex-grow relative">
+      <main className='flex-grow relative'>
         {/* Negative Margin to Overlap with Header */}
-        <div className="px-5 md:px-10 pt-0 mt-[-4rem] flex justify-center">
+        <div className='px-5 md:px-10 pt-0 mt-[-4rem] flex justify-center'>
           <LayoutSignup />
         </div>
       </main>
