@@ -16,9 +16,10 @@ if (root) {
     <StrictMode>
       <BrowserRouter>
         <Routes>
-          <Route index element={<Home />} /> {/*change back to Landing later*/}
+          <Route index element={<Landing/>} /> {/*change back to Landing later*/}
           <Route path='signin' element={<Signin />} />
           <Route path='signup' element={<Signup />} />
+          <Route path='home' element={<Home />} />
           <Route path='*' element={<NotFound />} />
         </Routes>
       </BrowserRouter>
