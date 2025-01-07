@@ -26,7 +26,7 @@ function CollapseMenu({
       <button
         ref={sidebarButtonRef}
         onClick={onToggleSidebar}
-        className='bg-Background/Bottom border-Primary/Dark border-solid box-border border-2 fixed flex left-0 p-4 mt-8 z-50
+        className='bg-Background/Bottom border-Primary/Dark border-solid box-border border-2 fixed flex left-0 p-4 mt-8 z-40
           transition-all duration-300 ease-in-out md:hidden'
         style={{
           transform: isSidebarOpen ? `translateX(${sidebarDistance}px)` : 'translateX(0)',

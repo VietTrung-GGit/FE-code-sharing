@@ -28,7 +28,7 @@ interface PostData {
   saved: boolean;
 }
 
-function Home() {
+function Saved() {
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'taglist' | null>(null);
 
   // Refs for sidebar, tag list, and buttons
@@ -149,7 +149,7 @@ function Home() {
       <div ref={sentinelRef} style={{ height: "50px" }} />
       {!hasMore && <p>No more posts to load.</p>}
       <div ref={sidebarRef}>
-        <Sidebar isOpen={activeComponent === 'sidebar'} state={0} onClose={() => setActiveComponent(null)} />
+        <Sidebar isOpen={activeComponent === 'sidebar'} state={2} onClose={() => setActiveComponent(null)} />
       </div>
 
       {/* Tag List */}
@@ -170,5 +170,5 @@ function Home() {
   );
 }
 
-export default Home;
+export default Saved;
 

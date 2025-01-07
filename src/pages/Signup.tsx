@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
-import { Link,useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router-dom'; // Ensure to import 'useNavigate' from 'react-router-dom'
 import axios from 'axios';
 import Footer from '../components/footer';
 import Header from '../components/header';
-import LayoutSignup from '../components/layoutSignup';
 
 function Signup() {
-//testing from signn in, delete if necessary
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
-
-   // State to hold form inputs
-   const [formData, setFormData] = useState({
+  // State to hold form inputs
+  const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
@@ -24,6 +21,7 @@ const navigate = useNavigate();
   // Define type or interface for the response
   interface SignupResponse {
     message: string;
+    token?: string; // Add token to the response type
   }
 
   // Handler to manage input changes
@@ -53,117 +51,114 @@ const navigate = useNavigate();
       return;
     }
 
-    if (!isValidEmail(formData.email)) {
+    if (!formData.email.trim() || !isValidEmail(formData.email)) {
       setMessage('Invalid email format. Example: example@gmail.com.');
       return;
     }
 
     if (!isStrongPassword(formData.password)) {
-      setMessage(
-        'Password must be at least 8 characters long, include a number and an uppercase letter.',
-      );
+      setMessage('Password must be at least 8 characters long, include a number and an uppercase letter.');
       return;
     }
 
     if (formData.password !== formData.passwordConfirm) {
-      setMessage('Password do not match!');
+      setMessage('Passwords do not match!');
       return;
     }
 
     try {
       // Send data to the backend
       const response = await axios.post<SignupResponse>(
-        'https://623e6db1-9a81-4f97-a6b8-ab9636260fbd.mock.pstmn.io/endpoint',
+        'https://your-api-endpoint.com/signup', // Replace with your actual endpoint
         {
-          //url for testing purposes, CORS issue must be dealt with in backend
           username: formData.username,
           email: formData.email,
           password: formData.password,
-        },
+        }
       );
 
       // Handle successful response
-      // Validate and display the backend message
-      if (response.data.message) {
-        setMessage(response.data.message);
+      if (response.data.token) {
+        localStorage.setItem('authToken', response.data.token); // Save token in localStorage
+        setMessage('Signup successful!');
+        setTimeout(() => navigate('/home'), 1500); // Redirect to sign-in page after a short delay
       } else {
-        setMessage('Unexpected response from the server. Please try again.');
+        setMessage('Signup successful, but no token sent back.');
       }
-      console.log('Form Data Sent:', formData); //Delete these two for the product
-      console.log('Response:', response.data);
     } catch (error: any) {
       // Handle errors
       setMessage(error.response?.data?.message || 'An error occurred during signup.');
     }
   };
+
   return (
-    <div className='bg-Background/Middle relative min-h-screen flex flex-col'>
+    <div className="bg-Background/Middle relative min-h-screen flex flex-col">
       {/* Header */}
       <Header />
 
       {/* Body */}
-      <main className='flex-grow relative'>
+      <main className="flex-grow relative">
         {/* Negative Margin to Overlap with Header */}
-        <div className='px-5 md:px-10 pt-0 mt-[-4rem] flex justify-center'>
+        <div className="px-5 md:px-10 pt-0 mt-[-4rem] flex justify-center">
           <div className="bg-Background/Bottom bg-[url('assets/particle.svg')] bg-no-repeat bg-center bg-cover text-center w-full mt-0 p-10 relative border-Primary/Dark border-solid box-border border-2 rounded-b-3xl mb-28 sm:p-10 md:p-14 lg:p-16 xl:p-20">
-                <form onSubmit={handleSubmit}>
-                  <h3 className='text-3xl text-white m-6 pt-10'>SIGN UP</h3>
-                  <input
-                    type='text'
-                    placeholder='Username'
-                    className='bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3'
-                    name='username'
-                    value={formData.username}
-                    onChange={handleChange}
-                    required
-                  ></input>
-                  <br></br>
-                  <input
-                    type='type'
-                    placeholder='Email'
-                    className='bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3'
-                    name='email'
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  ></input>
-                  <br></br>
-                  <input
-                    type='password'
-                    placeholder='Password'
-                    className='bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3'
-                    name='password'
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                  ></input>
-                  <br></br>
-                  <input
-                    type='password'
-                    placeholder='Password confirm'
-                    className='bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3'
-                    name='passwordConfirm'
-                    value={formData.passwordConfirm}
-                    onChange={handleChange}
-                    required
-                  ></input>
-                  <br></br>
-                  {message && <p className='text-l text-red-500 m-6'>{message}</p>}
-                  <p className='text-l text-white m-6'>
-                    Already have an account?{' '}
-                    <Link to='/signin' className='font-bold'>
-                      Sign in!
-                    </Link>
-                  </p>
-                  <button className='w-32 h-10 rounded-xl bg-Accent/Target text-xl text-white m-6 hover:bg-white hover:text-Accent/Target'>
-                    Sign up
-                  </button>
-                </form>
-              </div>
+            <form onSubmit={handleSubmit}>
+              <h3 className="text-3xl text-white m-6 pt-10">SIGN UP</h3>
+              <input
+                type="text"
+                placeholder="Username"
+                className="bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                required
+              />
+              <br />
+              <input
+                type="text"
+                placeholder="Email"
+                className="bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+              <br />
+              <input
+                type="password"
+                placeholder="Password"
+                className="bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+              <br />
+              <input
+                type="password"
+                placeholder="Password Confirm"
+                className="bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3"
+                name="passwordConfirm"
+                value={formData.passwordConfirm}
+                onChange={handleChange}
+                required
+              />
+              <br />
+              {message && <p className="text-l text-red-500 m-6">{message}</p>}
+              <p className="text-l text-white m-6">
+                Already have an account?{' '}
+                <Link to="/signin" className="font-bold">
+                  Sign in!
+                </Link>
+              </p>
+              <button className="w-32 h-10 rounded-xl bg-Accent/Target text-xl text-white m-6 hover:bg-white hover:text-Accent/Target">
+                Sign up
+              </button>
+            </form>
+          </div>
         </div>
       </main>
 
-      {/*Footer */}
+      {/* Footer */}
       <Footer />
     </div>
   );

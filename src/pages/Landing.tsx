@@ -2,8 +2,6 @@ import React from 'react';
 import { Link } from 'react-router';
 import Footer from '../components/footer';
 import Header from '../components/header';
-import Hero from '../components/hero';
-import Feature from '../components/feature';
 
 function Landing() {
   return (
