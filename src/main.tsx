@@ -1,50 +1,45 @@
 import { StrictMode } from 'react';
-import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify'; // Import ToastContainer
+import 'react-toastify/dist/ReactToastify.css'; // Import Toastify styles
 import './index.css';
 import Landing from './pages/Landing';
 import Signin from './pages/Signin';
 import Signup from './pages/Signup';
 import NotFound from './pages/Notfound';
-import Home from './pages/Home';
-import Community from './pages/Community';
-import Saved from './pages/Saved';
-import Test from './pages/Test';
+import Feed from './pages/Feed';
 import ProfileCard from './pages/Profile';
-import axios from 'axios';
-
-// Interceptor for handling token expiration globally
-axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      // Handle Unauthorized error (e.g., token expired)
-      localStorage.removeItem('authToken');
-      window.location.href = '/login'; // Redirect to login page
-    }
-    return Promise.reject(error);
-  }
-);
+import PrivateRoute from './components/privateRoute';
 
 const root = document.getElementById('root');
 
 if (root) {
   ReactDOM.createRoot(root).render(
     <StrictMode>
-      <BrowserRouter>
+      <Router>
         <Routes>
-          <Route index element={<Landing/>} /> {/*change back to Landing later*/}
-          <Route path='signin' element={<Signin />} />
-          <Route path='signup' element={<Signup />} />
-          <Route path='home' element={<Home />} />
-          <Route path='community' element={<Community  />} />
-          <Route path='saved' element={<Saved />} />
-          <Route path='test' element={<Test />} />
-          <Route path='profile' element={<ProfileCard />} />
-          <Route path='*' element={<NotFound />} />
+          <Route path='/' element={<Landing />} />
+          <Route path='/signin' element={<Signin />} />
+          <Route path='/signup' element={<Signup />} />
+          <Route element={<PrivateRoute />}>
+            <Route path='/feed/:des' element={<Feed />} />
+            <Route path='/profile' element={<ProfileCard />} />
+          </Route>
+          <Route path='/*' element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
+      </Router>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </StrictMode>,
   );
 } else {

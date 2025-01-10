@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom'; // Ensure to import 'useNavigate' from 'react-router-dom'
-import axios from 'axios';
+import { signup } from '../services/authService';
 import Footer from '../components/footer';
 import Header from '../components/header';
+import { isValidEmail, isStrongPassword } from '../utils/helpers';  // Import validation helper
 
 function Signup() {
   const navigate = useNavigate();
@@ -18,27 +19,10 @@ function Signup() {
   // State to display feedback messages
   const [message, setMessage] = useState<string | null>(null);
 
-  // Define type or interface for the response
-  interface SignupResponse {
-    message: string;
-    token?: string; // Add token to the response type
-  }
-
   // Handler to manage input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
-  };
-
-  // Function for validating email format
-  const isValidEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  // Function for validating password strength
-  const isStrongPassword = (password: string) => {
-    return password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password);
   };
 
   // Handler for form submission
@@ -68,23 +52,9 @@ function Signup() {
 
     try {
       // Send data to the backend
-      const response = await axios.post<SignupResponse>(
-        'https://your-api-endpoint.com/signup', // Replace with your actual endpoint
-        {
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-        }
-      );
-
-      // Handle successful response
-      if (response.data.token) {
-        localStorage.setItem('authToken', response.data.token); // Save token in localStorage
-        setMessage('Signup successful!');
-        setTimeout(() => navigate('/home'), 1500); // Redirect to sign-in page after a short delay
-      } else {
-        setMessage('Signup successful, but no token sent back.');
-      }
+      await signup(formData.username, formData.email, formData.password);
+      setMessage('Signup successful!');
+      setTimeout(() => navigate('/home'), 1500); // Redirect to sign-in page after a short delay
     } catch (error: any) {
       // Handle errors
       setMessage(error.response?.data?.message || 'An error occurred during signup.');

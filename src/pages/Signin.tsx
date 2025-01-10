@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { signin } from '../services/authService';
 import Footer from '../components/footer';
 import Header from '../components/header';
 
@@ -15,12 +15,6 @@ function Signin() {
   const [message, setMessage] = useState<string | null>(null);
 
   const navigate = useNavigate(); // For navigation after login
-
-  // Define the type for the backend response
-  interface SigninResponse {
-    token: string;
-    message: string;
-  }
 
   // Handler to manage input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,22 +39,10 @@ function Signin() {
 
     try {
       // Send data to the backend
-      const response = await axios.post<SigninResponse>(
-        'https://your-api-endpoint.com/signin', // Replace with your actual endpoint
-        {
-          username: formData.username,
-          password: formData.password,
-        }
-      );
+      await signin(formData.username, formData.password);
+      setMessage('Sign in successful!');
+      setTimeout(() => navigate('/home'), 1500); // Redirect to dashboard after a short delay
 
-      // Handle successful response
-      if (response.data.token) {
-        localStorage.setItem('authToken', response.data.token); // Save token in localStorage
-        setMessage('Sign in successful!');
-        setTimeout(() => navigate('/home'), 1500); // Redirect to dashboard after a short delay
-      } else {
-        setMessage('Sign in successful, but no token sent back.');
-      }
     } catch (error: any) {
       // Handle errors
       setMessage(error.response?.data?.message || 'An error occurred during sign-in.');

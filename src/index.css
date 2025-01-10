@@ -1,19 +1,25 @@
-@tailwind base; /*HTML elements*/
-@tailwind components; /*complicated classes like card, button, batch,etc*/
-@tailwind utilities; /*outside tailwind features*/
+@tailwind base;
+/*HTML elements*/
+@tailwind components;
+/*complicated classes like card, button, batch,etc*/
+@tailwind utilities;
+/*outside tailwind features*/
 /*tailwind layers*/
 
 body {
-  @apply font-sans; /* Applies the custom sans-serif font globally */
+  @apply font-sans;
+  /* Applies the custom sans-serif font globally */
 }
 
 /* Override Monaco editor's background color */
 .monaco-editor .monaco-editor-background {
-  background-color: #1B2329 !important; /* pink-100 in Tailwind */
+  background-color: #1B2329 !important;
+  /* pink-100 in Tailwind */
 }
 
 .monaco-editor .margin {
-  background-color: #1B2329 !important; /* Line number margin background */
+  background-color: #1B2329 !important;
+  /* Line number margin background */
 }
 
 /*custom css

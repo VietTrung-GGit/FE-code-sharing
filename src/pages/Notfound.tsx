@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router';
 import Header from '../components/header';
 
@@ -22,3 +21,4 @@ function NotFound() {
 }
 
 export default NotFound;
+
