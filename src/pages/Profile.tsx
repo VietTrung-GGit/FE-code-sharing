@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from '../context/UserContext'; // Import the useUser hook
 import { updateUserPassword, updateUserFullData } from '../services/userService'; // Import update functions
 import { toast } from 'react-toastify';
 import { isValidEmail, isStrongPassword } from '../utils/helpers';
 import CollapseMenu from '../components/collapseMenu';
+import Sidebar from '../components/sidebar';
 
 interface ProfileData {
   username: string;
@@ -20,7 +21,7 @@ interface UserData {
   email: string;
 }
 
-const ProfileCard: React.FC = () => {
+function ProfileCard() {
   const { userId, username, displayname, email, avatarUrl, setUser } = useUser(); // Access user context
   const [profileData, setProfileData] = useState<ProfileData>({
     username: username || '', // Fallback to empty string if null
@@ -139,34 +140,42 @@ const ProfileCard: React.FC = () => {
     setIsEditing(false);
     setIsPasswordMode(false);
   };
+  const [activeComponent, setActiveComponent] = useState<'sidebar' | null>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const sidebarButtonRef = useRef<HTMLButtonElement>(null);
+  const toggleSidebar = () => {
+    setActiveComponent((prev) => (prev === 'sidebar' ? null : 'sidebar'));
+  };
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (!sidebarRef.current?.contains(target) && !sidebarButtonRef.current?.contains(target)) {
+        setActiveComponent(null);
+      }
+    };
 
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   return (
-    <>
+    <div className=' bg-Background/Middle w-screen h-screen'>
       <div ref={sidebarRef}>
         <Sidebar
           isOpen={activeComponent === 'sidebar'}
-          state={type}
+          state='me'
           onClose={() => setActiveComponent(null)}
-        />
-      </div>
-
-      <div ref={tagListRef}>
-        <TagList
-          isOpen={activeComponent === 'taglist'}
-          onClose={() => setActiveComponent(null)}
-          onFilterChange={handleFilterChange}
         />
       </div>
 
       <CollapseMenu
-        isSidebarOpen={activeComponent === 'sidebar'}
-        isTagListOpen={activeComponent === 'taglist'}
         onToggleSidebar={toggleSidebar}
-        onToggleTagList={toggleTagList}
+        isSidebarOpen={activeComponent === 'sidebar'}
+        isTagListVisible={false} // Disable TagList
         sidebarButtonRef={sidebarButtonRef}
-        tagListButtonRef={tagListButtonRef}
       />
-
       <div className='max-w-md mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-lg relative border border-blue-600'>
         <h2 className='text-2xl font-semibold mb-6'>Your Profile</h2>
 
@@ -326,9 +335,8 @@ const ProfileCard: React.FC = () => {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
-};
-
+}
 export default ProfileCard;
 

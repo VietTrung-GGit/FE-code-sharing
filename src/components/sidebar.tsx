@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useUser } from '../context/UserContext';  // Import your user context
-import { useAuth } from "../context/AuthContext";
+import { useUser } from '../context/UserContext'; // Import your user context
+import { useAuth } from '../context/AuthContext';
 import Logo from '../assets/logo.svg';
 import Home from '../assets/home.svg';
 import HomeClicked from '../assets/homeClicked.svg';
@@ -61,7 +61,7 @@ function Sidebar({
         {/* Navigation Buttons */}
 
         <div className='flex flex-col mt-24'>
-          <button className={'m-2'} onClick={() => handleNavigation('/feed')}>
+          <button className={'m-2'} onClick={() => handleNavigation('/feed/me')}>
             <img
               src={state === 'feed' ? HomeClicked : Home} // Dynamically switch image
               alt='Home Button'
@@ -69,7 +69,7 @@ function Sidebar({
             />
           </button>
 
-          <button className={'m-2'} onClick={() => handleNavigation('/community')}>
+          <button className={'m-2'} onClick={() => handleNavigation('/feed/')}>
             <img
               src={state === 'community' ? CodemunityClicked : Codemunity} // Dynamically switch image
               alt='Codemunity Button'
@@ -77,7 +77,7 @@ function Sidebar({
             />
           </button>
 
-          <button className={'m-2'} onClick={() => handleNavigation('/saves')}>
+          <button className={'m-2'} onClick={() => handleNavigation('/feed/stored')}>
             <img
               src={state === 'saves' ? SavesClicked : Saves} // Dynamically switch image
               alt='Saves Button'

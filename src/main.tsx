@@ -11,7 +11,7 @@ import NotFound from './pages/Notfound';
 import Feed from './pages/Feed';
 import ProfileCard from './pages/Profile';
 import ProtectedRoute from './components/privateRoute'; // Import the protected route component
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from './context/AuthContext';
 
 const root = document.getElementById('root');
 
@@ -21,7 +21,7 @@ if (root) {
       <Router>
         <AuthProvider>
           <Routes>
-            <Route path='/' element={<Landing />} />
+            <Route path='/' element={<Feed />} />
             <Route path='/signin' element={<Signin />} />
             <Route path='/signup' element={<Signup />} />
 
@@ -29,17 +29,17 @@ if (root) {
             <Route
               path='/feed/:type'
               element={
-                <ProtectedRoute>
-                  <Feed />
-                </ProtectedRoute>
+                //<ProtectedRoute>
+                <Feed />
+                //</ProtectedRoute>
               }
             />
             <Route
               path='/profile'
               element={
-                <ProtectedRoute>
-                  <ProfileCard />
-                </ProtectedRoute>
+                //<ProtectedRoute>
+                <ProfileCard />
+                //</ProtectedRoute>
               }
             />
 
@@ -48,10 +48,10 @@ if (root) {
           </Routes>
         </AuthProvider>
       </Router>
-      
+
       {/* Toast container */}
       <ToastContainer
-        position="top-right"
+        position='top-right'
         autoClose={4000}
         hideProgressBar={false}
         newestOnTop={false}

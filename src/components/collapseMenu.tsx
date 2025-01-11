@@ -1,23 +1,47 @@
 import React from 'react';
 import Sandwich from '../assets/sandwichicon.svg';
-import Tag from '../assets/tag.svg';
 import Logo from '../assets/logo.svg';
 import Filter from '../assets/filter.svg';
-function CollapseMenu({
+
+// Base properties shared by all cases
+interface BaseProps {
+  onToggleSidebar: () => void;
+  isSidebarOpen: boolean;
+  isTagListVisible?: boolean; // Optional, default to true
+  sidebarButtonRef: React.RefObject<HTMLButtonElement>;
+}
+
+// Additional properties when TagList is visible
+interface TagListProps {
+  onToggleTagList: () => void;
+  isTagListOpen: boolean;
+  tagListButtonRef: React.RefObject<HTMLButtonElement>;
+}
+
+// Union type to differentiate between cases
+type CollapseMenuProps =
+  | (BaseProps & TagListProps) // TagList visible
+  | (BaseProps & { isTagListVisible: false }); // TagList hidden
+
+/*function CollapseMenu({
   onToggleSidebar,
   onToggleTagList,
   isSidebarOpen,
   isTagListOpen,
+  isTagListVisible = true, // New prop to control TagList visibility
   sidebarButtonRef,
   tagListButtonRef,
-}: {
-  onToggleSidebar: () => void;
-  onToggleTagList: () => void;
-  isSidebarOpen: boolean;
-  isTagListOpen: boolean;
-  sidebarButtonRef: React.RefObject<HTMLButtonElement>;
-  tagListButtonRef: React.RefObject<HTMLButtonElement>;
-}) {
+}: CollapseMenuProps) {*/
+function CollapseMenu(props: CollapseMenuProps) {
+  const {
+    onToggleSidebar,
+    isSidebarOpen,
+    isTagListVisible = true, // Default to true for backward compatibility
+    sidebarButtonRef,
+  } = props;
+  // Type guard to check if props include TagListProps
+  const hasTagListProps = (props: CollapseMenuProps): props is BaseProps & TagListProps =>
+    isTagListVisible && 'onToggleTagList' in props;
   // Define the distance the buttons should move (e.g., 20px of the viewport width)
   const sidebarDistance = 258; // px of viewport width
   const tagListDistance = 242; // px of viewport width
@@ -35,14 +59,16 @@ function CollapseMenu({
       {/* Logo */}
       <img src={Logo} alt='CoDash Logo' className='w-10 h-auto' />
 
-      {/* Tag List Toggle Button */}
-      <button
-        ref={tagListButtonRef}
-        onClick={onToggleTagList}
-        className='p-2 transition-all duration-300 ease-in-out'
-      >
-        <img src={Filter} alt='Filter icon' className='w-8' />
-      </button>
+      {/* TagList Toggle Button (conditionally rendered) */}
+      {isTagListVisible && hasTagListProps(props) && (
+        <button
+          ref={props.tagListButtonRef}
+          onClick={props.onToggleTagList}
+          className='p-2 transition-all duration-300 ease-in-out'
+        >
+          <img src={Filter} alt='Filter icon' className='w-8' />
+        </button>
+      )}
     </header>
   );
 }

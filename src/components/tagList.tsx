@@ -192,7 +192,7 @@ function TagList({
         <div className='w-8 inline-block fixed left-6'>
           <img src={Filter} alt='Fliter icon'></img>
         </div>
-        <div className='w-28 -ml-6 inline-block sm:max-xl:-ml-6 xl:max-2xl:-ml-8'>
+        <div className='w-32 -ml-6 inline-block sm:max-xl:-ml-6 xl:max-2xl:-ml-8'>
           <p className='text-left text-Primary/Light text-xl'>Filter by tags:</p>
         </div>
       </div>
