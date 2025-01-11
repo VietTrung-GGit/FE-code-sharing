@@ -12,7 +12,7 @@ import { Post, fetchPosts } from '../services/postService';
 import { useNavigate } from 'react-router-dom';
 
 type PostType = 'stored' | 'me' | undefined;
-
+//type PostType = 'stored' | 'me' | undefined;
 interface Params extends Record<string, string | undefined> {
   type: PostType;
 }
@@ -132,9 +132,9 @@ function Feed() {
       const target = event.target as Node;
       if (
         !sidebarRef.current?.contains(target) &&
-        !tagListRef.current?.contains(target) &&
-        !sidebarButtonRef.current?.contains(target) &&
-        !tagListButtonRef.current?.contains(target)
+        !tagListRef.current?.contains(target) //&&
+        //!sidebarButtonRef.current?.contains(target) &&
+        //!tagListButtonRef.current?.contains(target)
       ) {
         setActiveComponent(null);
       }
@@ -196,10 +196,11 @@ function Feed() {
         />
       </div>
       <CollapseMenu
-        isSidebarOpen={activeComponent === 'sidebar'}
-        isTagListOpen={activeComponent === 'taglist'}
         onToggleSidebar={toggleSidebar}
         onToggleTagList={toggleTagList}
+        isSidebarOpen={activeComponent === 'sidebar'}
+        isTagListOpen={activeComponent === 'taglist'}
+        isTagListVisible={true} // Enable TagList
         sidebarButtonRef={sidebarButtonRef}
         tagListButtonRef={tagListButtonRef}
       />

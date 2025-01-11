@@ -29,12 +29,12 @@ const ButtonShare: React.FC = () => {
   return (
     <div>
       <button
-        className='bg-Background/Bottom text-center mt-0 p-14 w-full h-40 top-0 right-0 relative border-Primary/Dark border-solid box-border border-2 rounded-b-3xl mb-28 flex justify-between 
-      sm:max-lg:p-14 lg:max-xl:p-10 xl:max-2xl:p-12 md:max-lg:ml-[255px] lg:max-xl:ml-[290px] xl:max-2xl:ml-96 sm:max-md:w-full md:max-lg:w-2/3 lg:max-2xl:w-1/2'
+        className='bg-Background/Bottom text-center mt-0 p-14 w-full h-40 top-32 right-0 relative border-Primary/Dark border-solid box-border border-2 mb-28 flex justify-between rounded-3xl lg:rounded-none
+        sm:max-lg:p-14 lg:max-xl:p-10 xl:max-2xl:p-12 md:max-lg:mx-[160px] lg:max-xl:ml-[290px] xl:max-2xl:ml-96 sm:max-md:w-full md:max-lg:w-2/3 lg:max-2xl:w-1/2 sm:max-lg:rounded-3xl lg:max-2xl:rounded-b-3xl lg:max-2xl:top-0'
         onClick={handleCreate}
       >
         {/* Avatar Section */}
-        <div className='-mt-3 -ml-4 sm:max-xl:-mt-3 xl:max-2xl:-mt-2 sm:max-xl:ml-4 xl:max-2xl:ml-6'>
+        <div className='inline-block -ml-2 -mt-4  sm:max-lg:-mt-4 lg:max-2xl:-mt-2 sm:max-md:-ml-2 md:max-2xl:ml-4'>
           <img
             src={avatarUrl || ''}
             alt='Profile Icon'
@@ -43,7 +43,7 @@ const ButtonShare: React.FC = () => {
         </div>
 
         {/* Share Text Section */}
-        <div className='bg-Background/Middle rounded-3xl h-14 w-3/4 py-4 pl-4 -mt-2 sm:max-xl:-mt-2'>
+        <div className='bg-Background/Middle inline-block -mt-2 py-4 pl-4 rounded-3xl h-14 w-4/5 sm:max-md:w-4/5 md:max-2xl:w-3/4 marker:sm:max-lg:-mt-2 lg:max-2xl:mt-0'>
           <p className='text-left text-Primary/Light text-l'>Share your code...</p>
         </div>
       </button>

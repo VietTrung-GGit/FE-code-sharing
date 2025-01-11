@@ -45,13 +45,13 @@ function Sidebar({
   return (
     <div>
       <div
-        className={`top-0 left-0 bg-Background/Bottom text-center w-64 h-full p-1 fixed flex flex-col border-Primary/Dark border-solid box-border border-r-2 z-40
+        className={`top-32 left-0 bg-Background/Bottom text-center w-64 h-full p-1 fixed flex flex-col border-Primary/Dark border-solid box-border border-r-2 border-y-2 rounded-r-3xl rounded-b-3xl z-40
         transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:translate-x-0 sm:static sm:max-md:w-64 md:max-lg:w-60 lg:max-xl:w-64 xl:max-2xl:w-72 sm:max-xl:p-1 xl:max-2xl:p-2 sm:max-2xl:fixed`}
+        lg:translate-x-0 sm:static sm:max-xl:w-64 xl:max-2xl:w-72 sm:max-xl:p-1 xl:max-2xl:p-2 sm:max-2xl:fixed sm:max-lg:rounded-tr-3xl sm:max-lg:rounded-b-3xl sm:max-lg:border-y-2 sm:max-lg:top-32 lg:max-2xl:top-0 lg:rounded-none lg:max-2xl:border-r-2`}
       >
-        <div className='mt-2 flex justify-center'>
-          <img src={Logo} alt='CoDash Logo' className='w-10 h-auto ' />
+        <div className='mt-2 flex justify-center invisible sm:max-lg:invisible lg:max-2xl:visible'>
+          <img src={Logo} alt='CoDash Logo' className='w-10 h-auto' />
         </div>
 
         <div className='flex flex-col mx-12 mt-32 items-center'>
@@ -60,7 +60,7 @@ function Sidebar({
             alt='Profile Icon'
             className='sm:max-lg:h-20 xl:max-2xl:h-24 sm:max-lg:h-20 xl:max-2xl:w-24 rounded-full'
           />
-          <p className='text-white mt-6 sm:max-md:text-lg md:max-lg:text-base lg:max-xl:text-lg xl:max-2xl:text-xl'>
+          <p className='text-white mt-6 text-lg sm:max-xl:text-lg xl:max-2xl:text-xl'>
             {displayname}
           </p>
         </div>
@@ -165,7 +165,6 @@ function Sidebar({
           </button>
         </div>
       </div>
-
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'>

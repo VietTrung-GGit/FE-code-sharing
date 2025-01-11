@@ -12,6 +12,7 @@ import Feed from './pages/Feed';
 import ProfileCard from './pages/Profile';
 import ProtectedRoute from './components/privateRoute'; // Import the protected route component
 import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 
 const root = document.getElementById('root');
 
@@ -56,6 +57,7 @@ if (root) {
       </AuthProvider>
       {/* Toast container */}
       <ToastContainer
+        position='top-right'
         position='top-right'
         autoClose={4000}
         hideProgressBar={false}

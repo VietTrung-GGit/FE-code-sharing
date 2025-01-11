@@ -1,54 +1,77 @@
 import React from 'react';
 import Sandwich from '../assets/sandwichicon.svg';
-import Tag from '../assets/tag.svg';
+import Logo from '../assets/logo.svg';
+import Filter from '../assets/filter.svg';
 
-function CollapseMenu({
+// Base properties shared by all cases
+interface BaseProps {
+  onToggleSidebar: () => void;
+  isSidebarOpen: boolean;
+  isTagListVisible?: boolean; // Optional, default to true
+  sidebarButtonRef: React.RefObject<HTMLButtonElement>;
+}
+
+// Additional properties when TagList is visible
+interface TagListProps {
+  onToggleTagList: () => void;
+  isTagListOpen: boolean;
+  tagListButtonRef: React.RefObject<HTMLButtonElement>;
+}
+
+// Union type to differentiate between cases
+type CollapseMenuProps =
+  | (BaseProps & TagListProps) // TagList visible
+  | (BaseProps & { isTagListVisible: false }); // TagList hidden
+
+/*function CollapseMenu({
   onToggleSidebar,
   onToggleTagList,
   isSidebarOpen,
   isTagListOpen,
+  isTagListVisible = true, // New prop to control TagList visibility
   sidebarButtonRef,
   tagListButtonRef,
-}: {
-  onToggleSidebar: () => void;
-  onToggleTagList: () => void;
-  isSidebarOpen: boolean;
-  isTagListOpen: boolean;
-  sidebarButtonRef: React.RefObject<HTMLButtonElement>;
-  tagListButtonRef: React.RefObject<HTMLButtonElement>;
-}) {
-  // Define the distance the buttons should move (e.g., 20% of the viewport width)
-  const sidebarDistance = 258; // 20% of viewport width
-  const tagListDistance = 242; // 20% of viewport width
+}: CollapseMenuProps) {*/
+function CollapseMenu(props: CollapseMenuProps) {
+  const {
+    onToggleSidebar,
+    isSidebarOpen,
+    isTagListVisible = true, // Default to true for backward compatibility
+    sidebarButtonRef,
+  } = props;
+  // Type guard to check if props include TagListProps
+  const hasTagListProps = (props: CollapseMenuProps): props is BaseProps & TagListProps =>
+    isTagListVisible && 'onToggleTagList' in props;
+  // Define the distance the buttons should move (e.g., 20px of the viewport width)
+  const sidebarDistance = 258; // px of viewport width
+  const tagListDistance = 242; // px of viewport width
   return (
-    <>
+    <header className='fixed top-0 flex justify-between items-center px-4 py-2 z-20 lg:hidden bg-Background/Bottom w-full border-b-Primary/Dark border-b-2'>
       {/* Sidebar Toggle Button */}
       <button
         ref={sidebarButtonRef}
         onClick={onToggleSidebar}
-        className='bg-Background/Bottom border-Primary/Dark border-solid box-border border-2 fixed flex left-0 p-4 mt-8 z-40
-          transition-all duration-300 ease-in-out md:hidden'
-        style={{
-          transform: isSidebarOpen ? `translateX(${sidebarDistance}px)` : 'translateX(0)',
-        }}
+        className='p-2 transition-all duration-300 ease-in-out'
       >
         <img src={Sandwich} alt='Sandwich icon' className='w-6' />
       </button>
 
-      {/* Tag List Toggle Button */}
-      <button
-        ref={tagListButtonRef}
-        onClick={onToggleTagList}
-        className='bg-Background/Bottom border-Primary/Dark border-solid box-border border-2 fixed flex right-0 p-4 mt-8 z-50
-          transition-all duration-300 ease-in-out lg:hidden'
-        style={{
-          transform: isTagListOpen ? `translateX(-${tagListDistance}px)` : 'translateX(0)',
-        }}
-      >
-        <img src={Tag} alt='Tag icon' className='w-6' />
-      </button>
-    </>
+      {/* Logo */}
+      <img src={Logo} alt='CoDash Logo' className='w-10 h-auto' />
+
+      {/* TagList Toggle Button (conditionally rendered) */}
+      {isTagListVisible && hasTagListProps(props) && (
+        <button
+          ref={props.tagListButtonRef}
+          onClick={props.onToggleTagList}
+          className='p-2 transition-all duration-300 ease-in-out'
+        >
+          <img src={Filter} alt='Filter icon' className='w-8' />
+        </button>
+      )}
+    </header>
   );
 }
 
 export default CollapseMenu;
+

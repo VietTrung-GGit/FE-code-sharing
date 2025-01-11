@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { updateUserPassword, updateUserFullData } from '../services/userService'; // Import update functions
 import { toast } from 'react-toastify';
 import { isValidEmail, isStrongPassword } from '../utils/helpers';
+import Sidebar from '../components/sidebar';
+import CollapseMenu from '../components/collapseMenu';
 import { getUserFullData } from '../services/userService';
 
 interface UserDataFull {
@@ -24,12 +26,12 @@ interface ProfileData {
   imageUrl: string;
 }
 
-interface UserData {
-  displayName: string;
-  avatarfile: File; // Changed from avatarUrl to avatarfile
-  username: string;
-  email: string;
-}
+// interface UserData {
+//   displayName: string;
+//   avatarfile: File; // Changed from avatarUrl to avatarfile
+//   username: string;
+//   email: string;
+// }
 
 const ProfileCard: React.FC = () => {
   const [userData, setUserData] = useState<UserDataFull | undefined>();
@@ -132,6 +134,10 @@ const ProfileCard: React.FC = () => {
         oldPassword: passwords.currentPassword,
         newPassword: passwords.newPassword,
       });
+      await updateUserPassword({
+        oldPassword: passwords.currentPassword,
+        newPassword: passwords.newPassword,
+      });
       toast.success('Password updated successfully!');
       setIsPasswordMode(false); // Exit password mode
     } catch (error) {
@@ -182,10 +188,44 @@ const ProfileCard: React.FC = () => {
     setIsEditing(false);
     setIsPasswordMode(false);
   };
+  const [activeComponent, setActiveComponent] = useState<'sidebar' | null>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const sidebarButtonRef = useRef<HTMLButtonElement>(null);
+  const toggleSidebar = () => {
+    setActiveComponent((prev) => (prev === 'sidebar' ? null : 'sidebar'));
+  };
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (!sidebarRef.current?.contains(target) && !sidebarButtonRef.current?.contains(target)) {
+        setActiveComponent(null);
+      }
+    };
 
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   return (
-    <div className='max-w-md mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-lg relative border border-blue-600'>
-      <h2 className='text-2xl font-semibold mb-6'>Your Profile</h2>
+    <div className=' bg-Background/Middle w-screen h-screen'>
+      <div ref={sidebarRef}>
+        <Sidebar
+          isOpen={activeComponent === 'sidebar'}
+          state='me'
+          onClose={() => setActiveComponent(null)}
+        />
+      </div>
+
+      <CollapseMenu
+        onToggleSidebar={toggleSidebar}
+        isSidebarOpen={activeComponent === 'sidebar'}
+        isTagListVisible={false} // Disable TagList
+        sidebarButtonRef={sidebarButtonRef}
+      />
+      <div className='max-w-md mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-lg relative border border-blue-600'>
+        <h2 className='text-2xl font-semibold mb-6'>Your Profile</h2>
 
       {/* Flex Layout for Image and Inputs */}
       <div className='flex'>
@@ -307,44 +347,44 @@ const ProfileCard: React.FC = () => {
         </div>
       </div>
 
-      {/* Buttons at the Bottom */}
-      <div className='flex justify-end mt-6 space-x-4'>
-        {!isEditing && !isPasswordMode && (
-          <button
-            onClick={togglePasswordMode}
-            className='px-4 py-2 rounded-md text-sm font-medium bg-blue-500 text-white hover:bg-blue-400'
-          >
-            Change Password
-          </button>
-        )}
-
-        {isEditing || isPasswordMode ? (
-          <>
+        {/* Buttons at the Bottom */}
+        <div className='flex justify-end mt-6 space-x-4'>
+          {!isEditing && !isPasswordMode && (
             <button
-              onClick={isPasswordMode ? handlePasswordUpdate : handleSave} // Call handleSave or handlePasswordUpdate based on the mode
+              onClick={togglePasswordMode}
               className='px-4 py-2 rounded-md text-sm font-medium bg-blue-500 text-white hover:bg-blue-400'
             >
-              {isPasswordMode ? 'Save Password' : 'Save'}
+              Change Password
             </button>
+          )}
+
+          {isEditing || isPasswordMode ? (
+            <>
+              <button
+                onClick={isPasswordMode ? handlePasswordUpdate : handleSave} // Call handleSave or handlePasswordUpdate based on the mode
+                className='px-4 py-2 rounded-md text-sm font-medium bg-blue-500 text-white hover:bg-blue-400'
+              >
+                {isPasswordMode ? 'Save Password' : 'Save'}
+              </button>
+              <button
+                onClick={handleQuit}
+                className='px-4 py-2 rounded-md text-sm font-medium bg-gray-300 text-gray-900 hover:bg-gray-400'
+              >
+                Quit
+              </button>
+            </>
+          ) : (
             <button
-              onClick={handleQuit}
-              className='px-4 py-2 rounded-md text-sm font-medium bg-gray-300 text-gray-900 hover:bg-gray-400'
+              onClick={toggleEditMode}
+              className='px-4 py-2 rounded-md text-sm font-medium bg-gray-300 text-gray-900 hover:bg-blue-400 hover:text-white'
             >
-              Quit
+              Edit
             </button>
-          </>
-        ) : (
-          <button
-            onClick={toggleEditMode}
-            className='px-4 py-2 rounded-md text-sm font-medium bg-gray-300 text-gray-900 hover:bg-blue-400 hover:text-white'
-          >
-            Edit
-          </button>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
-};
-
+}
 export default ProfileCard;
 
