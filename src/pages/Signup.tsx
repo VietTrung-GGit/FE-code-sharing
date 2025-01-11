@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom'; // Ensure to import 'useNavigate' from 'react-router-dom'
-import { signup } from '../services/authService';
+import { useAuth } from "../context/AuthContext";
 import Footer from '../components/footer';
 import Header from '../components/header';
 import { isValidEmail, isStrongPassword } from '../utils/helpers';  // Import validation helper
 
 function Signup() {
   const navigate = useNavigate();
+  const { signup } = useAuth();
 
   // State to hold form inputs
   const [formData, setFormData] = useState({
@@ -54,7 +55,7 @@ function Signup() {
       // Send data to the backend
       await signup(formData.username, formData.email, formData.password);
       setMessage('Signup successful!');
-      setTimeout(() => navigate('/home'), 1500); // Redirect to sign-in page after a short delay
+      setTimeout(() => navigate('/feed/me'), 1500); // Redirect to sign-in page after a short delay
     } catch (error: any) {
       // Handle errors
       setMessage(error.response?.data?.message || 'An error occurred during signup.');

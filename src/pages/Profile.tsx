@@ -125,7 +125,7 @@ const ProfileCard: React.FC = () => {
         email: profileData.email,
         avatarUrl: avatarFile ? URL.createObjectURL(avatarFile) : '', // Update with avatar file URL
       });
-
+      await updateUserFullData(userData);
       toast.success('Profile updated successfully!');
       setIsEditing(false); // Exit editing mode
     } catch (error) {

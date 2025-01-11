@@ -1,36 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
-import { refreshAccessToken } from '../services/authService';
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-const PrivateRoute: React.FC = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+}
 
-    useEffect(() => {
-        const checkAuthentication = async () => {
-            const token = localStorage.getItem('accessToken');
-            if (token) {
-                try {
-                    // Try refreshing the token to ensure it's valid
-                    await refreshAccessToken();
-                    setIsAuthenticated(true);
-                } catch (error) {
-                    setIsAuthenticated(false);
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('refreshToken');
-                }
-            } else {
-                setIsAuthenticated(false);
-            }
-        };
+const PrivateRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const { isAuthenticated } = useAuth();
 
-        checkAuthentication();
-    }, []);
+  if (!isAuthenticated) {
+    return <Navigate to="/signin" replace />;
+  }
 
-    if (isAuthenticated === null) {
-        return <div>Loading...</div>; // Show a loading spinner or similar while checking authentication
-    }
-
-    return isAuthenticated ? <Outlet /> : <Navigate to="/" />;
+  return <>{children}</>;
 };
 
 export default PrivateRoute;

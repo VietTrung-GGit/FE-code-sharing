@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useUser } from '../context/UserContext';  // Import your user context
-import { logout } from '../services/authService'; // Import the logout function
+import { useAuth } from "../context/AuthContext";
 import Logo from '../assets/logo.svg';
 
 function Sidebar({ isOpen, state, onClose }: { isOpen: boolean; state: string | undefined; onClose: () => void }) {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { displayname, avatarUrl } = useUser();
 
@@ -46,7 +47,7 @@ function Sidebar({ isOpen, state, onClose }: { isOpen: boolean; state: string | 
         <div className="flex flex-col mt-24">
           <button
             className={`m-2 flex items-center space-x-2 ${state === '' ? 'text-green-500' : 'text-white'}`}
-            onClick={() => handleNavigation('/community')}
+            onClick={() => handleNavigation('/feed')}
           >
             <svg
               className={`${state === '' ? 'stroke-green-500' : 'stroke-white'}`}

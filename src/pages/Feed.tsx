@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import { useUser } from '../context/UserContext';
 import { useParams } from 'react-router-dom';
 import { Post, fetchPosts } from '../services/postService';
+import { useNavigate } from 'react-router-dom';
 
 type PostType = 'stored' | 'me' | undefined;
 
@@ -23,6 +24,15 @@ function Feed() {
   const tagListRef = useRef<HTMLDivElement>(null);
   const sidebarButtonRef = useRef<HTMLButtonElement>(null);
   const tagListButtonRef = useRef<HTMLButtonElement>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const validTypes: PostType[] = ['stored', 'me', undefined];
+    if (!validTypes.includes(type)) {
+      toast.error('Invalid feed type!');
+      navigate('/feed'); // Redirect to a default feed page
+    }
+  }, [type, navigate]);
 
   // Tag, search, sorting, and criteria states
   const { userId } = useUser();
@@ -48,10 +58,11 @@ function Feed() {
   // Effect to fetch posts whenever necessary values change
   useEffect(() => {
     const fetchAndUpdatePosts = async () => {
+      if (loading || !hasMore) return; // Prevent fetching if already loading or no more posts
+
       try {
         setLoading(true);
         const postsResponse = await fetchPosts(
-          userId || '',
           page, // Pagination: dynamic page number
           10, // Limit: 10 posts per page
           order,
@@ -60,25 +71,28 @@ function Feed() {
           selectedTags,
           type,
         );
+        if (postsResponse.posts.length === 0) {
+          setHasMore(false); // Stop fetching if no posts are returned
+        }
         setPosts((prevPosts) => [...prevPosts, ...postsResponse.posts]); // Append new posts
-        setHasMore(postsResponse.hasMore); // Assuming this is part of the response
-        setLoading(false);
+        setHasMore(postsResponse.hasMore); // Update the 'hasMore' state based on the response
       } catch (error) {
         console.error('Error fetching posts:', error);
         toast.error('Error fetching posts!');
+      } finally {
         setLoading(false);
       }
     };
 
     fetchAndUpdatePosts();
-  }, [order, criteria, searchTerm, selectedTags, type, page]);
+  }, [order, criteria, searchTerm, selectedTags, type, page]); // Avoid triggering when hasMore is false
 
   // Handle infinite scroll logic
   const observer = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!sentinelRef.current) return;
+    if (!sentinelRef.current || !hasMore || loading) return;
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries;
@@ -101,7 +115,7 @@ function Feed() {
         currentObserver.unobserve(sentinelRef.current);
       }
     };
-  }, [hasMore, loading]);
+  }, [hasMore, loading]); // Trigger only when 'hasMore' and 'loading' change
 
   // Handle click outside to close sidebars and taglist
   useEffect(() => {
