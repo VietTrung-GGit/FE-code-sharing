@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useUser } from '../context/UserContext'; // Import your user context
-import { logout } from '../services/authService'; // Import the logout function
+import { useUser } from '../context/UserContext';  // Import your user context
+import { useAuth } from "../context/AuthContext";
 import Logo from '../assets/logo.svg';
 import Home from '../assets/home.svg';
 import HomeClicked from '../assets/homeClicked.svg';
@@ -22,6 +22,7 @@ function Sidebar({
   onClose: () => void;
 }) {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { displayname, avatarUrl } = useUser();
 
@@ -60,7 +61,7 @@ function Sidebar({
         {/* Navigation Buttons */}
 
         <div className='flex flex-col mt-24'>
-          <button className={'m-2'} onClick={() => handleNavigation('/home')}>
+          <button className={'m-2'} onClick={() => handleNavigation('/feed')}>
             <img
               src={state === 'feed' ? HomeClicked : Home} // Dynamically switch image
               alt='Home Button'

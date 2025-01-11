@@ -1,71 +1,48 @@
-// src/services/authService.ts
+import { axiosInstance } from "../api/axiosInstance";
 
-import axiosInstance from '../api/axiosInstance';
-import { API_ENDPOINTS } from '../api/endpoints';
-import { useUser } from '../context/UserContext';
-
-// Define types for token response and authentication response
-interface AuthResponse {
-    accessToken: string;
-    refreshToken: string;
-}
-
-// Log in and set tokens
-export const signin = async (username: string, password: string) => {
-    try {
-        const response = await axiosInstance.post<AuthResponse>(API_ENDPOINTS.SIGNIN, {
-            username,
-            password,
-        });
-
-        const { accessToken, refreshToken } = response.data;
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken); // Store tokens in localStorage
-    } catch (error) {
-        throw new Error('Login failed. Please check your credentials.');
-    }
+// Login User
+export const loginUser = async (username: string, password: string) => {
+  try {
+    const response = await axiosInstance.post<{refreshToken: string, accessToken: string, message: string}>(`/auth/login`, { username, password }, { withCredentials: true });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || "Login failed";
+  }
 };
 
-// Register and set tokens
-export const signup = async (name: string, email: string, password: string) => {
-    try {
-        const response = await axiosInstance.post<AuthResponse>(API_ENDPOINTS.SIGNUP, {
-            name,
-            email,
-            password,
-        });
-
-        const { accessToken, refreshToken } = response.data;
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken); // Store tokens in localStorage
-    } catch (error) {
-        throw new Error('Registration failed. Please try again.');
-    }
+// Logout User
+export const logoutUser = async () => {
+  try {
+    await axiosInstance.post(`/auth/logout`, {}, { withCredentials: true });
+  } catch (error) {
+    throw error.response?.data || "Logout failed";
+  }
 };
 
-// Log out and remove tokens
-export const logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    window.location.href = '/signin'; // Redirect to the sign-in page
+// Refresh Token
+export const refreshAccessToken = async () => {
+  try {
+    const response = await axiosInstance.post<{ newAccessToken: string }>(
+      `/auth/refresh`,
+      {},
+      { withCredentials: true } // Ensure cookies are sent
+    );
+    alert(response.data.newAccessToken);
+    return response.data.newAccessToken;
+  } catch (error) {
+    throw error.response?.data || "Token refresh failed";
+  }
 };
 
-// Refresh the access token using the refresh token
-export const refreshAccessToken = async (): Promise<string> => {
-    try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (!refreshToken) throw new Error('No refresh token found');
-
-        const response = await axiosInstance.post<AuthResponse>(API_ENDPOINTS.REFRESH_TOKEN, {
-            token: refreshToken,
-        });
-
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', newRefreshToken); // Store new refresh token
-
-        return accessToken;
-    } catch (error) {
-        throw new Error('Token refresh failed. Please log in again.');
-    }
+export const signupUser = async (username: string, email: string, password: string) => {
+  try {
+    const response = await axiosInstance.post(
+      `/auth/signup`,
+      { username, email, password },
+      { withCredentials: true }
+    );
+    return response.data; // Successful sign up message
+  } catch (error) {
+    throw error.response?.data || "Sign up failed";
+  }
 };

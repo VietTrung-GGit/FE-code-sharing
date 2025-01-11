@@ -10,7 +10,8 @@ import Signup from './pages/Signup';
 import NotFound from './pages/Notfound';
 import Feed from './pages/Feed';
 import ProfileCard from './pages/Profile';
-import PrivateRoute from './components/privateRoute';
+import ProtectedRoute from './components/privateRoute'; // Import the protected route component
+import { AuthProvider } from "./context/AuthContext";
 
 const root = document.getElementById('root');
 
@@ -18,20 +19,40 @@ if (root) {
   ReactDOM.createRoot(root).render(
     <StrictMode>
       <Router>
-        <Routes>
-          <Route path='/' element={<Feed />} />
-          <Route path='/signin' element={<Signin />} />
-          <Route path='/signup' element={<Signup />} />
-          <Route element={<PrivateRoute />}>
-            <Route path='/feed/:des' element={<Feed />} />
-            <Route path='/profile' element={<ProfileCard />} />
-          </Route>
-          <Route path='/*' element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path='/' element={<Landing />} />
+            <Route path='/signin' element={<Signin />} />
+            <Route path='/signup' element={<Signup />} />
+
+            {/* Protected routes wrapped with ProtectedRoute */}
+            <Route
+              path='/feed/:type'
+              element={
+                <ProtectedRoute>
+                  <Feed />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path='/profile'
+              element={
+                <ProtectedRoute>
+                  <ProfileCard />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Catch-all route for 404 */}
+            <Route path='/*' element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </Router>
+      
+      {/* Toast container */}
       <ToastContainer
-        position='top-right'
-        autoClose={5000}
+        position="top-right"
+        autoClose={4000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick

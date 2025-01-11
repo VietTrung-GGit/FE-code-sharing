@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signin } from '../services/authService';
+import { useAuth } from "../context/AuthContext";
 import Footer from '../components/footer';
 import Header from '../components/header';
 
 function Signin() {
-  // State to hold form inputs
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -39,9 +39,9 @@ function Signin() {
 
     try {
       // Send data to the backend
-      await signin(formData.username, formData.password);
+      await login(formData.username, formData.password);
       setMessage('Sign in successful!');
-      setTimeout(() => navigate('/home'), 1500); // Redirect to dashboard after a short delay
+      setTimeout(() => navigate('/feed/me'), 1500); // Redirect to dashboard after a short delay
 
     } catch (error: any) {
       // Handle errors

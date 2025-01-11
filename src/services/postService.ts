@@ -85,7 +85,6 @@ export interface PostUpload {
 
 // Fetch posts
 export const fetchPosts = async (
-  userId: string,
   page: number = 1,
   limit: number = 10,
   order: 'ascending' | 'descending' = 'descending',
@@ -96,9 +95,13 @@ export const fetchPosts = async (
 ): Promise<PostResponse> => {
   try {
     const response = await axiosInstance.get<PostResponse>(
-      API_ENDPOINTS.FETCH_POSTS(userId, page, limit, search, tags, order, criteria, type),
+      API_ENDPOINTS.FETCH_POSTS(page, limit, search, tags, order, criteria, type),
     );
-
+    if (!response.data.posts) {
+      console.log('No posts found, stopping further requests.');
+      // Handle case where no posts are found (e.g., stop infinite scroll, set flag)
+      return { ...response.data, posts: [] }; // Return empty posts array
+    }
     const postsWithFiles = await Promise.all(
       response.data.posts.map(async (post) => {
         if (post.files && Array.isArray(post.files)) {
@@ -115,6 +118,7 @@ export const fetchPosts = async (
     throw error;
   }
 };
+
 
 
 
@@ -150,32 +154,32 @@ export const updatePost = async (postId: string, postData: PostUpload) => {
 };
 
 // Delete a post
-export const deletePost = async (postId: string, userId: string | null) => {
-  const response = await axiosInstance.delete(API_ENDPOINTS.DELETE_POST(postId, userId));
+export const deletePost = async (postId: string) => {
+  const response = await axiosInstance.delete(API_ENDPOINTS.DELETE_POST(postId));
   return response.data;
 };
 
 // Like a post
-export const likePost = async (postId: string, userId: string | null) => {
-  const response = await axiosInstance.get(API_ENDPOINTS.LIKE_POST(postId, userId));
+export const likePost = async (postId: string) => {
+  const response = await axiosInstance.get(API_ENDPOINTS.LIKE_POST(postId));
   return response.data;
 };
 
 // Unlike a post
-export const unlikePost = async (postId: string, userId: string | null) => {
-  const response = await axiosInstance.get(API_ENDPOINTS.UNLIKE_POST(postId, userId));
+export const unlikePost = async (postId: string) => {
+  const response = await axiosInstance.get(API_ENDPOINTS.UNLIKE_POST(postId));
   return response.data;
 };
 
 // Store a post
-export const storePost = async (postId: string, userId: string | null) => {
-  const response = await axiosInstance.get(API_ENDPOINTS.STORE_POST(postId, userId));
+export const storePost = async (postId: string) => {
+  const response = await axiosInstance.get(API_ENDPOINTS.STORE_POST(postId));
   return response.data;
 };
 
 // Unstore a post
-export const unstorePost = async (postId: string, userId: string | null) => {
-  const response = await axiosInstance.get(API_ENDPOINTS.UNSTORE_POST(postId, userId));
+export const unstorePost = async (postId: string) => {
+  const response = await axiosInstance.get(API_ENDPOINTS.UNSTORE_POST(postId));
   return response.data;
 };
 

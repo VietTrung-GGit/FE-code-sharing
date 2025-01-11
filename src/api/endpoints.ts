@@ -2,8 +2,8 @@
 export const API_ENDPOINTS = {
     //Auth_related
     SIGNIN: '/auth/login',
-    SIGNUP: '/auth/register',
-    REFRESH_TOKEN: '/auth/refresh-token',
+    SIGNUP: '/auth/signup',
+    REFRESH_TOKEN: '/auth/refresh',
 
     //USer_related
 
@@ -11,11 +11,11 @@ export const API_ENDPOINTS = {
     USER_PASSWORD_UPDATE: '/user/updatePassword',
 
     //Post_related
-    POST_DETAILS: (postId: string, userId: string) => `/posts/${postId}/${userId}`,
+    POST_DETAILS: (postId: string) => `/posts/${postId}`,
 
-    FETCH_POSTS: (userId: string, page: number = 1, limit: number = 10, search: string = '', tags: string[] = [], order: 'ascending' | 'descending' = 'ascending', criteria: 'date' | 'likes' | 'comments' = 'date', type: 'me' | 'stored' | '' = '') => {
+    FETCH_POSTS: (page: number = 1, limit: number = 10, search: string = '', tags: string[] = [], order: 'ascending' | 'descending' = 'ascending', criteria: 'date' | 'likes' | 'comments' = 'date', type: 'me' | 'stored' | undefined = undefined) => {
         const queryParams = new URLSearchParams();
-        if (type) queryParams.append('type', type);
+        if (type != undefined) queryParams.append('type', type);
         queryParams.append('page', String(page));
         queryParams.append('limit', String(limit));
         queryParams.append('order', order);
@@ -23,7 +23,7 @@ export const API_ENDPOINTS = {
         if (search) queryParams.append('search', search);
         if (tags.length > 0) queryParams.append('tags', tags.join(','));
 
-        return `/me/${userId}/posts?${queryParams.toString()}`;
+        return `/me?${queryParams.toString()}`;
     },
 
 
@@ -43,27 +43,27 @@ export const API_ENDPOINTS = {
     },
 
     // Delete a post by post ID
-    DELETE_POST: (postId: string, userId: string | null) => {
-        return `/post/delete/${postId}/${userId}`;
+    DELETE_POST: (postId: string) => {
+        return `/post/delete/${postId}`;
     },
 
     // Like a post by post ID
-    LIKE_POST: (postId: string, userId: string | null) => {
+    LIKE_POST: (postId: string) => {
         return `/post/like/${postId}`;
     },
 
     // Unlike a post by post ID
-    UNLIKE_POST: (postId: string, userId: string | null) => {
+    UNLIKE_POST: (postId: string) => {
         return `/post/unlike/${postId}`;
     },
 
     // Store a post by post ID
-    STORE_POST: (postId: string, userId: string | null) => {
+    STORE_POST: (postId: string) => {
         return `/post/store/${postId}`;
     },
 
     // Unstore a post by post ID
-    UNSTORE_POST: (postId: string, userId: string | null) => {
+    UNSTORE_POST: (postId: string) => {
         return `/post/unstored/${postId}`;
     },
 
