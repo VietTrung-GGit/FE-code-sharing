@@ -124,6 +124,8 @@ export const fetchPosts = async (
   }
 };
 
+
+
 export const fetchPostDetail = async (postId: string): Promise<Post> => {
   try {
     // Fetch post details
@@ -154,7 +156,7 @@ export const createPost = async (postData: PostUpload): Promise<string> => {
   // Append files as blobs (title and content will be included as files)
   postData.code_files.forEach((file) => {
     const blob = new Blob([file.fileUrl], { type: 'text/plain' }); // Create a Blob from the file content
-    formData.append('files', blob, file.fileName); // Append the file with its name
+    formData.append('code_files', blob, file.fileName); // Append the file with its name
   });
 
   // Send the request using the FormData object
@@ -179,7 +181,7 @@ export const updatePost = async (postId: string, postData: PostUpload): Promise<
   // Append files as blobs (title and content will be included as files)
   postData.code_files.forEach((file) => {
     const blob = new Blob([file.fileUrl], { type: 'text/plain' }); // Create a Blob from the file content
-    formData.append('files', blob, file.fileName); // Append the file with its name
+    formData.append('code_files', blob, file.fileName); // Append the file with its name
   });
 
   // Send the request using the FormData object

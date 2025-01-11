@@ -537,6 +537,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                           value={comment.code}
                           theme='vs-dark'
                           options={{
+                            readOnly:true,
                             minimap: { enabled: false },
                             fontSize: 14,
                             wordWrap: 'on',

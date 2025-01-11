@@ -31,9 +31,12 @@ export const API_ENDPOINTS = {
     queryParams.append('criteria', criteria);
     if (search) queryParams.append('search', search);
     if (tags.length > 0) queryParams.append('tags', tags.join(','));
-
+    if (!type){
+      return `/community?${queryParams.toString()}`;
+    }
     return `/me?${queryParams.toString()}`;
   },
+ 
 
   // Fetch post details by post ID
   FETCH_POST_DETAIL: (postId: string) => {
