@@ -1,7 +1,8 @@
 import React from 'react';
 import Sandwich from '../assets/sandwichicon.svg';
 import Tag from '../assets/tag.svg';
-
+import Logo from '../assets/logo.svg';
+import Filter from '../assets/filter.svg';
 function CollapseMenu({
   onToggleSidebar,
   onToggleTagList,
@@ -17,38 +18,34 @@ function CollapseMenu({
   sidebarButtonRef: React.RefObject<HTMLButtonElement>;
   tagListButtonRef: React.RefObject<HTMLButtonElement>;
 }) {
-  // Define the distance the buttons should move (e.g., 20% of the viewport width)
-  const sidebarDistance = 258; // 20% of viewport width
-  const tagListDistance = 242; // 20% of viewport width
+  // Define the distance the buttons should move (e.g., 20px of the viewport width)
+  const sidebarDistance = 258; // px of viewport width
+  const tagListDistance = 242; // px of viewport width
   return (
-    <>
+    <header className='fixed top-0 flex justify-between items-center px-4 py-2 z-20 lg:hidden bg-Background/Bottom w-full border-b-Primary/Dark border-b-2'>
       {/* Sidebar Toggle Button */}
       <button
         ref={sidebarButtonRef}
         onClick={onToggleSidebar}
-        className='bg-Background/Bottom border-Primary/Dark border-solid box-border border-2 fixed flex left-0 p-4 mt-8 z-40
-          transition-all duration-300 ease-in-out md:hidden'
-        style={{
-          transform: isSidebarOpen ? `translateX(${sidebarDistance}px)` : 'translateX(0)',
-        }}
+        className='p-2 transition-all duration-300 ease-in-out'
       >
         <img src={Sandwich} alt='Sandwich icon' className='w-6' />
       </button>
+
+      {/* Logo */}
+      <img src={Logo} alt='CoDash Logo' className='w-10 h-auto' />
 
       {/* Tag List Toggle Button */}
       <button
         ref={tagListButtonRef}
         onClick={onToggleTagList}
-        className='bg-Background/Bottom border-Primary/Dark border-solid box-border border-2 fixed flex right-0 p-4 mt-8 z-50
-          transition-all duration-300 ease-in-out lg:hidden'
-        style={{
-          transform: isTagListOpen ? `translateX(-${tagListDistance}px)` : 'translateX(0)',
-        }}
+        className='p-2 transition-all duration-300 ease-in-out'
       >
-        <img src={Tag} alt='Tag icon' className='w-6' />
+        <img src={Filter} alt='Filter icon' className='w-8' />
       </button>
-    </>
+    </header>
   );
 }
 
 export default CollapseMenu;
+

@@ -11,6 +11,11 @@ import Comments from '../assets/comments.svg';
 import CommentsClicked from '../assets/commentsClicked.svg';
 import { tags } from '../services/postService';
 
+interface Tag {
+  id: string;
+  name: string;
+}
+
 function TagList({
   isOpen,
   onClose,
@@ -29,6 +34,41 @@ function TagList({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeButton, setActiveButton] = useState<'descending' | 'ascending' | null>('descending');
   const [methodButton, setMethodButton] = useState<'likes' | 'date' | 'comments' | null>('date');
+
+  const [order, setOrder] = useState<'ascending' | 'descending'>('descending');
+  const [criteria, setCriteria] = useState<'date' | 'likes' | 'comments'>('date');
+
+  const handleOrderStateClick = (
+    newOrder: 'ascending' | 'descending',
+    criteria: 'date' | 'likes' | 'comments',
+  ) => {
+    setActiveButton(newOrder);
+    setOrder(newOrder);
+  };
+  const handleCriteriaMethodChange = (newCriteria: 'date' | 'likes' | 'comments') => {
+    setCriteria(newCriteria);
+
+    setMethodButton(newCriteria);
+  };
+
+  const tags: Tag[] = [
+    { id: 'python', name: 'Python' },
+    { id: 'javascript', name: 'Javascript' },
+    { id: 'java', name: 'Java' },
+    { id: 'c#', name: 'C#' },
+    { id: 'c++', name: 'C++' },
+    { id: 'php', name: 'PHP' },
+    { id: 'css', name: 'CSS' },
+    { id: 'bash/shell', name: 'Bash/Shell' },
+    { id: 'html', name: 'HTML' },
+    { id: 'sql', name: 'SQL' },
+    { id: 'c', name: 'C' },
+    { id: 'typescript', name: 'Typescript' },
+    { id: 'go', name: 'Go' },
+    { id: 'rust', name: 'Rust' },
+    { id: 'kotlin', name: 'Kotlin' },
+    { id: 'powershell', name: 'Powershell' },
+  ];
 
   const handleButtonClick = (tag: string) => {
     setSelectedTags((prev) =>
@@ -52,10 +92,10 @@ function TagList({
 
   return (
     <div
-      className={`top-0 right-0 bg-Background/Bottom text-center w-60 h-3/4 pt-4 pl-4 min-h-[600px] rounded-b-3xl mt-8 fixed border-Primary/Dark border-solid box-border border-2 z-30
+      className={`top-32 right-0 bg-Background/Bottom text-center w-64 h-3/4 pt-4 pl-4 min-h-[500px] overflow-y-scroll rounded-l-3xl fixed border-Primary/Dark border-solid box-border border-2 z-40
       transition-transform duration-300 ease-in-out
       ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-      lg:translate-x-0 sm:static sm:max-xl:w-60 xl:max-2xl:w-64 sm:max-xl:pl-4 xl:max-2xl:pl-6 lg:max-2xl:mr-6 sm:max-2xl:fixed sm:max-lg:rounded-b-3xl lg:max-2xl:rounded-3xl`}
+      lg:translate-x-0 sm:static  sm:max-xl:pl-4 xl:max-2xl:pl-6 lg:max-2xl:mr-6 sm:max-2xl:fixed sm:max-lg:rounded-l-3xl lg:max-2xl:rounded-3xl sm:max-lg:top-32 lg:max-2xl:top-8`}
     >
       <div className='mb-4 mt-2'>
         <div className='w-8 inline-block fixed left-6'>
@@ -71,10 +111,16 @@ function TagList({
         </div>
       </div>
 
+      {/*ASC/DESC BUTTONS*/}
       <div className='mb-4'>
         <button
           className='w-[140px]'
-          onClick={() => setActiveButton(activeButton === 'ascending' ? 'descending' : 'ascending')}
+          onClick={() =>
+            handleOrderStateClick(
+              activeButton === 'ascending' ? 'descending' : 'ascending',
+              criteria,
+            )
+          }
         >
           <div className='w-8 inline-block fixed left-6'>
             <img
@@ -90,11 +136,9 @@ function TagList({
         </button>
       </div>
 
+      {/*date*/}
       <div className='mb-4'>
-        <button
-          className='w-[140px]'
-          onClick={() => setMethodButton(methodButton === 'date' ? null : 'date')}
-        >
+        <button className='w-[140px]' onClick={() => handleCriteriaMethodChange('date')}>
           <div className='w-8 inline-block fixed left-16'>
             <img src={methodButton === 'date' ? DateClicked : Date} alt='Date icon'></img>
           </div>
@@ -108,11 +152,9 @@ function TagList({
         </button>
       </div>
 
+      {/*likes*/}
       <div className='mb-4'>
-        <button
-          className='w-[140px]'
-          onClick={() => setMethodButton(methodButton === 'likes' ? null : 'likes')}
-        >
+        <button className='w-[140px]' onClick={() => handleCriteriaMethodChange('likes')}>
           <div className='w-8 inline-block fixed left-16'>
             <img src={methodButton === 'likes' ? LikesClicked : Likes} alt='Likes icon'></img>
           </div>
@@ -126,11 +168,9 @@ function TagList({
         </button>
       </div>
 
+      {/*comments*/}
       <div className='mb-4'>
-        <button
-          className='w-[140px]'
-          onClick={() => setMethodButton(methodButton === 'comments' ? null : 'comments')}
-        >
+        <button className='w-[140px]' onClick={() => handleCriteriaMethodChange('comments')}>
           <div className='w-8 inline-block fixed left-16'>
             <img
               src={methodButton === 'comments' ? CommentsClicked : Comments}
@@ -147,28 +187,32 @@ function TagList({
         </button>
       </div>
 
+      {/*filter by tags*/}
       <div className='mb-4'>
         <div className='w-8 inline-block fixed left-6'>
-          <img src={Filter} alt='Filter icon'></img>
+          <img src={Filter} alt='Fliter icon'></img>
         </div>
-        <div className='w-32 -ml-6 inline-block sm:max-xl:-ml-6 xl:max-2xl:-ml-8'>
+        <div className='w-28 -ml-6 inline-block sm:max-xl:-ml-6 xl:max-2xl:-ml-8'>
           <p className='text-left text-Primary/Light text-xl'>Filter by tags:</p>
         </div>
       </div>
 
+      {/*tags*/}
       <div className='text-left'>
         {tags.map((tag) => (
-          <button key={tag} className='w-24 my-2 mr-2' onClick={() => handleButtonClick(tag)}>
+          <button key={tag.id} className='w-24 my-2 mr-2' onClick={() => handleButtonClick(tag.id)}>
             <div className='flex flex-col'>
               <div
-                className={`${selectedTags.includes(tag) ? 'bg-Primary/Dark' : 'bg-Primary/Light'
-                  } rounded-3xl p-1`}
+                className={`${
+                  selectedTags.includes(tag.id) ? 'bg-Primary/Dark' : 'bg-Primary/Light'
+                } rounded-3xl p-1`}
               >
                 <p
-                  className={`${selectedTags.includes(tag) ? 'text-Primary/Light' : 'text-Primary/Dark'
-                    }`}
+                  className={`${
+                    selectedTags.includes(tag.id) ? 'text-Primary/Light' : 'text-Primary/Dark'
+                  }`}
                 >
-                  {tag}
+                  {tag.name}
                 </p>
               </div>
             </div>

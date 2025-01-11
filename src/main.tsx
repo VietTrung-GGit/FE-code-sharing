@@ -19,7 +19,7 @@ if (root) {
     <StrictMode>
       <Router>
         <Routes>
-          <Route path='/' element={<Landing />} />
+          <Route path='/' element={<Feed />} />
           <Route path='/signin' element={<Signin />} />
           <Route path='/signup' element={<Signup />} />
           <Route element={<PrivateRoute />}>
@@ -30,7 +30,7 @@ if (root) {
         </Routes>
       </Router>
       <ToastContainer
-        position="top-right"
+        position='top-right'
         autoClose={5000}
         hideProgressBar={false}
         newestOnTop={false}
@@ -45,3 +45,4 @@ if (root) {
 } else {
   console.error('Root element not found!');
 }
+
