@@ -2,11 +2,11 @@ import axios from 'axios';
 
 // Create an Axios instance
 export const axiosInstance = axios.create({
-  baseURL: 'https://nj9qlj-4000.csb.app',
+  baseURL: 'http://localhost:4000',
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true ,
+  withCredentials: true,
 });
 
 // Add request interceptor to attach the access token
@@ -22,7 +22,7 @@ axiosInstance.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Function to handle refreshing the access token
@@ -40,7 +40,7 @@ export const refreshAccessToken = async (): Promise<string> => {
       {},
       {
         withCredentials: true, // Send cookies with the request
-      }
+      },
     );
 
     const { newAccessToken } = response.data;
@@ -58,15 +58,14 @@ export const refreshAccessToken = async (): Promise<string> => {
   }
 };
 
-
 // Add response interceptor to handle 401 errors and refresh the token
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // If the request fails with a 401, attempt to refresh the token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // If the request fails with a 403, attempt to refresh the token
+    if (error.response?.status === 403 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
@@ -81,7 +80,8 @@ axiosInstance.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;
+

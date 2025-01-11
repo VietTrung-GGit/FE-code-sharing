@@ -47,7 +47,8 @@ function TagList({
   };
 
   useEffect(() => {
-    handleFiltersChange(); // Trigger filter change whenever state changes
+    handleFiltersChange();
+    // Trigger filter change whenever state changes
   }, [selectedTags, searchQuery, activeButton, methodButton]);
 
   return (
@@ -161,12 +162,14 @@ function TagList({
           <button key={tag} className='w-24 my-2 mr-2' onClick={() => handleButtonClick(tag)}>
             <div className='flex flex-col'>
               <div
-                className={`${selectedTags.includes(tag) ? 'bg-Primary/Dark' : 'bg-Primary/Light'
-                  } rounded-3xl p-1`}
+                className={`${
+                  selectedTags.includes(tag) ? 'bg-Primary/Dark' : 'bg-Primary/Light'
+                } rounded-3xl p-1`}
               >
                 <p
-                  className={`${selectedTags.includes(tag) ? 'text-Primary/Light' : 'text-Primary/Dark'
-                    }`}
+                  className={`${
+                    selectedTags.includes(tag) ? 'text-Primary/Light' : 'text-Primary/Dark'
+                  }`}
                 >
                   {tag}
                 </p>

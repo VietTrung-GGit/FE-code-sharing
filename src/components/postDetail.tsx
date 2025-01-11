@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
-import { useUser } from '../context/UserContext'; // Import your user context
 import { formatNumber, formatDate } from '../utils/helpers';
+import { getUserFullData } from '../services/userService';
 import { toast } from 'react-toastify';
 import {
   Post,
@@ -24,6 +24,14 @@ interface PostDetailProps {
   propsaved?: boolean;
   commentDelete?: (down: boolean) => void;
 }
+interface CommentUpload {
+  _id: string;
+  code: string;
+  text: string;
+  authorname: string;
+  avatar: string;
+  postId: string;
+}
 
 const PostDetail: React.FC<PostDetailProps> = ({
   proppost,
@@ -43,7 +51,22 @@ const PostDetail: React.FC<PostDetailProps> = ({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const { userId, avatarUrl, displayname } = useUser();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [displayname, setDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userData = await getUserFullData();
+        setAvatarUrl(userData.avatar);
+        setDisplayName(userData.displayname);
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const observer = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -79,20 +102,22 @@ const PostDetail: React.FC<PostDetailProps> = ({
   }, [fetchComment]);
 
   // Infinite scroll logic using IntersectionObserver
+  // Inside useEffect for intersection observer
   useEffect(() => {
     if (!sentinelRef.current) return;
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries;
       if (entry.isIntersecting && hasMore && !loading) {
-        fetchComment();
+        console.log('Fetching comments...');
+        fetchComment(); // Only call if loading is false and hasMore is true
       }
     };
 
     observer.current = new IntersectionObserver(observerCallback, {
       root: null,
-      rootMargin: '0px',
-      threshold: 1.0,
+      rootMargin: '100px', // Increase rootMargin to trigger a bit earlier
+      threshold: 0.9, // Trigger when 90% of the sentinel element is visible
     });
 
     const currentObserver = observer.current;
@@ -103,7 +128,8 @@ const PostDetail: React.FC<PostDetailProps> = ({
         currentObserver.unobserve(sentinelRef.current);
       }
     };
-  }, [fetchComments, hasMore, loading]);
+  }, [hasMore, loading, fetchComment]); // Only rerun when hasMore or loading changes
+
   const handleLike = async () => {
     if (!post) return;
     // Step 1: Immediate Optimistic UI Update using middlepost
@@ -118,9 +144,9 @@ const PostDetail: React.FC<PostDetailProps> = ({
     }
     try {
       if (newHasLiked) {
-        likePost(post._id, userId);
+        likePost(post._id);
       } else {
-        unlikePost(post._id, userId);
+        unlikePost(post._id);
       }
     } catch (error) {
       console.error('Error while liking the post:', error);
@@ -143,9 +169,9 @@ const PostDetail: React.FC<PostDetailProps> = ({
     }
     try {
       if (newHasSaved) {
-        storePost(post._id, userId);
+        storePost(post._id);
       } else {
-        unstorePost(post._id, userId);
+        unstorePost(post._id);
       }
     } catch (error) {
       console.error('Error while saving the post:', error);
@@ -190,30 +216,38 @@ const PostDetail: React.FC<PostDetailProps> = ({
         });
         // Add the postId to the request payload or URL
 
-        const savedComment: Comment = {
+        const savedComment: CommentUpload = {
           _id: responseComments || '',
           code: newCommentCode,
           text: newCommentText,
           authorname: displayname || '',
           avatar: avatarUrl || '',
-          author: userId || '',
           postId: post._id,
-          createdAt: formatDate(new Date().toISOString()),
-          updatedAt: formatDate(new Date().toISOString()),
-          __v: 0,
-          isAuthor: true,
         };
         console.log('Comment posted successfully:');
         handleCommentChange(false);
         commentDelete(false);
+        const displayedComment: Comment = {
+          _id: responseComments,
+          code: newCommentText,
+          text: newCommentText,
+          authorname: displayname || '',
+          avatar: avatarUrl || '',
+          author: '0',
+          postId: post._id,
+          createdAt: formatDate(new Date().toLocaleTimeString()),
+          updatedAt: formatDate(new Date().toLocaleTimeString()),
+          __v: 0,
+          isAuthor: true,
+        };
         setComments((prevComments) => {
           if (prevComments) {
             return [
-              savedComment, // Add the new comment at the top
+              displayedComment, // Add the new comment at the top
               ...prevComments,
             ];
           }
-          return [savedComment]; // Initialize with the new comment if prevComments is null
+          return [displayedComment]; // Initialize with the new comment if prevComments is null
         });
         setNewCommentText('');
         setNewCommentCode('');
@@ -325,9 +359,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                 </span>
               ))
             ) : (
-              <span className='bg-gray-500 text-white text-sm px-2 rounded-3xl w-20 py-1'>
-                No Tags
-              </span>
+              <span></span>
             )}
           </div>
         </div>
@@ -431,7 +463,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                         <p className='text-sm text-Accent/Light'>{formatDate(comment.updatedAt)}</p>
                       </div>
                     </div>
-                    {comment.author === userId && (
+                    {comment.isAuthor && (
                       <div className='flex space-x-2'>
                         {editingComment === index ? (
                           <>

@@ -11,47 +11,52 @@ import NotFound from './pages/Notfound';
 import Feed from './pages/Feed';
 import ProfileCard from './pages/Profile';
 import ProtectedRoute from './components/privateRoute'; // Import the protected route component
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from './context/AuthContext';
 
 const root = document.getElementById('root');
 
 if (root) {
   ReactDOM.createRoot(root).render(
-    <StrictMode>
-      <Router>
-        <AuthProvider>
-          <Routes>
-            <Route path='/' element={<Landing />} />
-            <Route path='/signin' element={<Signin />} />
-            <Route path='/signup' element={<Signup />} />
+    <Router>
+      <AuthProvider>
+        <Routes>
+          <Route path='/' element={<Landing />} />
+          <Route path='/signin' element={<Signin />} />
+          <Route path='/signup' element={<Signup />} />
 
-            {/* Protected routes wrapped with ProtectedRoute */}
-            <Route
-              path='/feed/:type'
-              element={
-                <ProtectedRoute>
-                  <Feed />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path='/profile'
-              element={
-                <ProtectedRoute>
-                  <ProfileCard />
-                </ProtectedRoute>
-              }
-            />
+          {/* Protected routes wrapped with ProtectedRoute */}
+          <Route
+            path='/feed'
+            element={
+              <ProtectedRoute>
+                <Feed />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/feed/:type'
+            element={
+              <ProtectedRoute>
+                <Feed />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/profile'
+            element={
+              <ProtectedRoute>
+                <ProfileCard />
+              </ProtectedRoute>
+            }
+          />
 
-            {/* Catch-all route for 404 */}
-            <Route path='/*' element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </Router>
-      
+          {/* Catch-all route for 404 */}
+          <Route path='/*' element={<NotFound />} />
+        </Routes>
+      </AuthProvider>
       {/* Toast container */}
       <ToastContainer
-        position="top-right"
+        position='top-right'
         autoClose={4000}
         hideProgressBar={false}
         newestOnTop={false}
@@ -61,8 +66,9 @@ if (root) {
         draggable
         pauseOnHover
       />
-    </StrictMode>,
+    </Router>,
   );
 } else {
   console.error('Root element not found!');
 }
+

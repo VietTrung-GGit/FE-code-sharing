@@ -2,19 +2,23 @@ import React, { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import PostDetail from '../components/postDetail';
 import PostCreate from '../components/postCreate';
-import { useUser } from '../context/UserContext';  // Import your user context
 import { formatNumber, formatDate } from '../utils/helpers';
 import { toast } from 'react-toastify';
-import { Post, likePost, unlikePost, storePost, unstorePost, deletePost, fetchPostDetail } from '../services/postService';
-
-
+import {
+  Post,
+  likePost,
+  unlikePost,
+  storePost,
+  unstorePost,
+  deletePost,
+  fetchPostDetail,
+} from '../services/postService';
 
 interface PostBriefProps {
   postData: Post;
 }
 
 const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
-  const { userId } = useUser();
   const [post, setPost] = useState<Post | null>(null);
   const [activeTab, setActiveTab] = useState<number>(0);
   const [showPostDetail, setShowPostDetail] = useState<boolean>(false); // New state for modal visibility
@@ -30,7 +34,6 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
     setHasSaved(postData.Stored);
   }, [postData]);
 
-
   const handleLike = async (mini: boolean) => {
     if (!post) return;
 
@@ -43,15 +46,17 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
     setPost({ ...post, totalLikes: newLikes });
     if (!mini) {
       try {
-        if (newHasLiked) { likePost(post._id, userId); }
-        else { unlikePost(post._id, userId); }
+        if (newHasLiked) {
+          likePost(post._id);
+        } else {
+          unlikePost(post._id);
+        }
       } catch (error) {
         toast.error('Error liking post!');
         console.error('Error while liking the post:', error);
 
         setHasLiked(hasLiked);
         setPost({ ...post, likes: post.likes, Liked: post.Liked });
-
       }
     }
 
@@ -60,19 +65,17 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
 
   const handleMoreClick = async () => {
     try {
-
       const newData: Post = await fetchPostDetail(postData._id);
 
       // Perform your logic with the fetched data
-      console.log("Fetched Post Detail:", newData);
+      console.log('Fetched Post Detail:', newData);
 
       setShowPostDetail(true);
     } catch (error) {
       toast.error('Error fetching post details!');
-      console.error("Error fetching post details:", error);
+      console.error('Error fetching post details:', error);
     }
   };
-
 
   const handleEdit = () => {
     setShowPostCreate(true);
@@ -101,14 +104,16 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
     setHasSaved(newHasSaved);
     if (!mini) {
       try {
-        if (newHasSaved) { storePost(post._id, userId); }
-        else { unstorePost(post._id, userId); }
+        if (newHasSaved) {
+          storePost(post._id);
+        } else {
+          unstorePost(post._id);
+        }
       } catch (error) {
         toast.error('Error saving post!');
         console.error('Error while saving the post:', error);
 
         setHasSaved(hasSaved); // Undo the `hasSaved` change
-
       }
     }
   };
@@ -121,8 +126,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
     if (confirmDelete) {
       setVisible(false);
       try {
-        deletePost(post._id, userId);
-
+        deletePost(post._id);
       } catch (error) {
         setVisible(true);
         toast.error('Error deleting post!');
@@ -133,7 +137,6 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
 
   const truncatedText =
     (post?.content.length || 0) > 400 ? post?.content.slice(0, 400) + '...' : post?.content;
-
 
   if (!post) return <div>Loading...</div>;
 
@@ -173,9 +176,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
                   </span>
                 ))
               ) : (
-                <span className='bg-gray-500 text-white text-sm px-2 rounded-3xl w-20 py-1'>
-                  No Tags
-                </span>
+                <span></span>
               )}
             </div>
           </div>
@@ -234,26 +235,25 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
             />
           </div>
 
-          {/* Buttons for Edit/Delete */}
-          {post.isAuthor && (
-            <div className='flex space-x-4 mt-4 justify-start'>
-              <button
-                onClick={handleEdit}
-                className='w-24 h-8 bg-blue-500 text-white rounded-lg hover:bg-blue-600'
-              >
-                Edit
-              </button>
-              <button
-                onClick={handleDelete}
-                className='w-24 h-8 bg-red-500 text-white rounded-lg hover:bg-red-600'
-              >
-                Delete
-              </button>
-            </div>
-          )}
-
           {/* Buttons */}
           <div className='flex justify-end space-x-4 mt-4'>
+            {post.isAuthor && (
+              <div>
+                <button
+                  onClick={handleEdit}
+                  className='w-24 h-8 bg-Accent/Light text-Background/Bottom rounded-lg hover:bg-blue-600'
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className='w-24 h-8 bg-red-500 text-white rounded-lg hover:bg-red-600'
+                >
+                  Delete
+                </button>
+              </div>
+            )}
+
             <button
               onClick={handleMoreClick}
               className='w-20 h-8 bg-white text-Primary/Dark inline-flex items-center justify-center py-2 px-4 rounded-lg'
@@ -352,3 +352,4 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
 };
 
 export default PostBrief;
+

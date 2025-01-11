@@ -1,8 +1,21 @@
-import React, { useState } from 'react';
-import { useUser } from '../context/UserContext';  // Import the useUser hook
+import React, { useState, useEffect } from 'react';
 import { updateUserPassword, updateUserFullData } from '../services/userService'; // Import update functions
 import { toast } from 'react-toastify';
 import { isValidEmail, isStrongPassword } from '../utils/helpers';
+import { getUserFullData } from '../services/userService';
+
+interface UserDataFull {
+  displayname: string;
+  avatar: string;
+  username: string;
+  email: string;
+}
+
+interface UserDataUpdate {
+  displayname: string;
+  username: string;
+  email: string;
+}
 
 interface ProfileData {
   username: string;
@@ -11,23 +24,56 @@ interface ProfileData {
   imageUrl: string;
 }
 
-
 interface UserData {
-  id: string;
   displayName: string;
-  avatarfile: File;  // Changed from avatarUrl to avatarfile
+  avatarfile: File; // Changed from avatarUrl to avatarfile
   username: string;
   email: string;
 }
 
 const ProfileCard: React.FC = () => {
-  const { userId, username, displayname, email, avatarUrl, setUser } = useUser();  // Access user context
+  const [userData, setUserData] = useState<UserDataFull | undefined>();
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = await getUserFullData();
+        setUserData(user);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
   const [profileData, setProfileData] = useState<ProfileData>({
-    username: username || '',  // Fallback to empty string if null
-    displayName: displayname || '',  // Fallback to empty string if null
-    email: email || '',  // Fallback to empty string if null
-    imageUrl: avatarUrl || 'https://via.placeholder.com/80',  // Placeholder image URL
+    username: '', // Fallback to empty string if null
+    displayName: '', // Fallback to empty string if null
+    email: '', // Fallback to empty string if null
+    imageUrl: 'https://via.placeholder.com/80', // Placeholder image URL
   });
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = await getUserFullData();
+        setUserData(user);
+
+        // Update profile data with fetched user data
+        setProfileData({
+          username: user.username,
+          displayName: user.displayname,
+          email: user.email,
+          imageUrl: user.avatar, // Convert File to object URL
+        });
+      } catch (err) {
+        console.error('Failed to fetch user data:', err);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
   const [isEditing, setIsEditing] = useState(false);
   const [isPasswordMode, setIsPasswordMode] = useState(false);
   const [passwords, setPasswords] = useState({
@@ -69,8 +115,6 @@ const ProfileCard: React.FC = () => {
   };
 
   const handlePasswordUpdate = async () => {
-
-
     if (passwords.newPassword !== passwords.confirmNewPassword) {
       toast.error('New password and confirm password do not match!');
       return;
@@ -84,7 +128,10 @@ const ProfileCard: React.FC = () => {
     }
 
     try {
-      await updateUserPassword({ oldPassword: passwords.currentPassword, newPassword: passwords.newPassword });
+      await updateUserPassword({
+        oldPassword: passwords.currentPassword,
+        newPassword: passwords.newPassword,
+      });
       toast.success('Password updated successfully!');
       setIsPasswordMode(false); // Exit password mode
     } catch (error) {
@@ -101,10 +148,8 @@ const ProfileCard: React.FC = () => {
     const previousProfileData = { ...profileData }; // Backup the current profile data
     try {
       // Prepare the updated UserData object
-      const userData: UserData = {
-        id: userId || '',  // Ensure userId is not null, or handle it as needed
-        displayName: profileData.displayName,
-        avatarfile: avatarFile as File,  // Use the selected avatar file
+      const userData: UserDataUpdate = {
+        displayname: profileData.displayName,
         username: profileData.username,
         email: profileData.email,
       };
@@ -118,14 +163,13 @@ const ProfileCard: React.FC = () => {
       });
 
       // Also update the user context
-      setUser({
-        userId: userId || '',
+      setUserData({
         username: profileData.username || '',
         displayname: profileData.displayName,
         email: profileData.email,
-        avatarUrl: avatarFile ? URL.createObjectURL(avatarFile) : '', // Update with avatar file URL
+        avatar: avatarFile ? URL.createObjectURL(avatarFile) : '', // Update with avatar file URL
       });
-      await updateUserFullData(userData);
+      await updateUserFullData(userData, avatarFile as File);
       toast.success('Profile updated successfully!');
       setIsEditing(false); // Exit editing mode
     } catch (error) {
@@ -133,7 +177,6 @@ const ProfileCard: React.FC = () => {
       toast.error('Failed to update profile. Please try again.');
     }
   };
-
 
   const handleQuit = () => {
     setIsEditing(false);
@@ -144,7 +187,6 @@ const ProfileCard: React.FC = () => {
     <div className='max-w-md mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-lg relative border border-blue-600'>
       <h2 className='text-2xl font-semibold mb-6'>Your Profile</h2>
 
-
       {/* Flex Layout for Image and Inputs */}
       <div className='flex'>
         {/* Profile Image */}
@@ -153,8 +195,9 @@ const ProfileCard: React.FC = () => {
             <img
               src={profileData.imageUrl}
               alt='Profile'
-              className={`w-24 h-24 rounded-full border-2 object-cover ${!isEditing ? 'cursor-default' : 'cursor-pointer hover:brightness-75'
-                }`}
+              className={`w-24 h-24 rounded-full border-2 object-cover ${
+                !isEditing ? 'cursor-default' : 'cursor-pointer hover:brightness-75'
+              }`}
               onClick={() => isEditing && document.getElementById('imageUpload')?.click()}
             />
             {isEditing && (
@@ -223,8 +266,9 @@ const ProfileCard: React.FC = () => {
                   id='username'
                   value={profileData.username}
                   onChange={handleInputChange}
-                  className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border ${isEditing ? 'border-blue-500' : 'border-gray-700'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border ${
+                    isEditing ? 'border-blue-500' : 'border-gray-700'
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   readOnly={!isEditing}
                 />
               </div>
@@ -237,8 +281,9 @@ const ProfileCard: React.FC = () => {
                   id='displayName'
                   value={profileData.displayName}
                   onChange={handleInputChange}
-                  className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border ${isEditing ? 'border-blue-500' : 'border-gray-700'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border ${
+                    isEditing ? 'border-blue-500' : 'border-gray-700'
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   readOnly={!isEditing}
                 />
               </div>
@@ -251,8 +296,9 @@ const ProfileCard: React.FC = () => {
                   id='email'
                   value={profileData.email}
                   onChange={handleInputChange}
-                  className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border ${isEditing ? 'border-blue-500' : 'border-gray-700'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border ${
+                    isEditing ? 'border-blue-500' : 'border-gray-700'
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   readOnly={!isEditing}
                 />
               </div>
@@ -301,3 +347,4 @@ const ProfileCard: React.FC = () => {
 };
 
 export default ProfileCard;
+

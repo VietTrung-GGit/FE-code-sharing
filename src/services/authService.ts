@@ -1,12 +1,16 @@
-import { axiosInstance } from "../api/axiosInstance";
+import { axiosInstance } from '../api/axiosInstance';
 
 // Login User
 export const loginUser = async (username: string, password: string) => {
   try {
-    const response = await axiosInstance.post<{refreshToken: string, accessToken: string, message: string}>(`/auth/login`, { username, password }, { withCredentials: true });
+    const response = await axiosInstance.post<{
+      refreshToken: string;
+      accessToken: string;
+      message: string;
+    }>(`/auth/login`, { username, password }, { withCredentials: true });
     return response.data;
   } catch (error) {
-    throw error.response?.data || "Login failed";
+    throw error.response?.data || 'Login failed';
   }
 };
 
@@ -15,7 +19,7 @@ export const logoutUser = async () => {
   try {
     await axiosInstance.post(`/auth/logout`, {}, { withCredentials: true });
   } catch (error) {
-    throw error.response?.data || "Logout failed";
+    throw error.response?.data || 'Logout failed';
   }
 };
 
@@ -25,12 +29,11 @@ export const refreshAccessToken = async () => {
     const response = await axiosInstance.post<{ newAccessToken: string }>(
       `/auth/refresh`,
       {},
-      { withCredentials: true } // Ensure cookies are sent
+      { withCredentials: true }, // Ensure cookies are sent
     );
-    alert(response.data.newAccessToken);
     return response.data.newAccessToken;
   } catch (error) {
-    throw error.response?.data || "Token refresh failed";
+    throw error.response?.data || 'Token refresh failed';
   }
 };
 
@@ -39,10 +42,11 @@ export const signupUser = async (username: string, email: string, password: stri
     const response = await axiosInstance.post(
       `/auth/signup`,
       { username, email, password },
-      { withCredentials: true }
+      //    { withCredentials: true },
     );
     return response.data; // Successful sign up message
   } catch (error) {
-    throw error.response?.data || "Sign up failed";
+    throw error.response?.data || 'Sign up failed';
   }
 };
+

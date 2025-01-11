@@ -1,11 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PostCreate from '../components/postCreate';
-import { useUser } from '../context/UserContext';  // Import your user context
+import { getUserFullData } from '../services/userService';
 
 const ButtonShare: React.FC = () => {
-  const { avatarUrl } = useUser()
   const [showPostCreate, setShowPostCreate] = useState<boolean>(false); // New state for modal visibility
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userData = await getUserFullData();
+        setAvatarUrl(userData.avatar);
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
   const handleCreate = () => {
     setShowPostCreate(true);
   };
@@ -24,9 +36,9 @@ const ButtonShare: React.FC = () => {
         {/* Avatar Section */}
         <div className='-mt-3 -ml-4 sm:max-xl:-mt-3 xl:max-2xl:-mt-2 sm:max-xl:ml-4 xl:max-2xl:ml-6'>
           <img
-            src={avatarUrl}
+            src={avatarUrl || ''}
             alt='Profile Icon'
-            className='sm:max-2xl:w-20 rounded-full object-cover'
+            className='sm:max-2xl:w-20 sm:max-2xl:h-20 rounded-full object-cover'
           />
         </div>
 
@@ -56,3 +68,4 @@ const ButtonShare: React.FC = () => {
 };
 
 export default ButtonShare;
+

@@ -1,25 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { useDropzone, Accept } from 'react-dropzone';
 import Editor from '@monaco-editor/react';
-import { useUser } from '../context/UserContext';
 import { formatDate } from '../utils/helpers';
 import { toast } from 'react-toastify';
-import { tags, Post, createPost, PostFile, convertPostFilesToFile, PostUpload, updatePost } from '../services/postService';
+import {
+  tags,
+  Post,
+  createPost,
+  PostFile,
+  convertPostFilesToFile,
+  PostUpload,
+  updatePost,
+} from '../services/postService';
+import { getUserFullData } from '../services/userService';
 
 interface PostCreateProps {
   postData?: Post; // Optional prop to enable edit mode
   closeModal: () => void;
 }
 
-
-const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propcloseModal, }) => {
+const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propcloseModal }) => {
   const [files, setFiles] = useState<PostFile[]>([]); // Changed to PostFile[]
   const [activeTab, setActiveTab] = useState<number>(0);
   const [editingTab, setEditingTab] = useState<number | null>(null);
   const [content, setContent] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const { avatarUrl, displayname } = useUser();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [displayname, setDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userData = await getUserFullData();
+        setAvatarUrl(userData.avatar);
+        setDisplayName(userData.displayname);
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const MAX_FILES = 6;
 
@@ -27,7 +49,6 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
     'text/javascript': ['.js', '.jsx'],
     'text/x-markdown': ['.md', '.markdown'],
   };
-
 
   // Initialize form for edit mode if postData exists
   useEffect(() => {
@@ -38,7 +59,6 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
       setSelectedTags(postData.tags || []);
     }
   }, [postData]);
-
 
   const onDrop = (acceptedFiles: File[]) => {
     if (files.length >= MAX_FILES) return;
@@ -90,8 +110,6 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
     setEditingTab(null); // Close the edit tab for renaming
   };
 
-
-
   const deleteFile = (index: number) => {
     setFiles((prevFiles) => {
       const updatedFiles = prevFiles.filter((_, i) => i !== index);
@@ -101,32 +119,39 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
   };
 
   const handleTagSelect = (tag: string) => {
-    setSelectedTags((prevSelected) =>
-      prevSelected.includes(tag)
-        ? prevSelected.filter((selectedTag) => selectedTag !== tag) // Remove if already selected
-        : [...prevSelected, tag] // Add tag if not already selected
+    setSelectedTags(
+      (prevSelected) =>
+        prevSelected.includes(tag)
+          ? prevSelected.filter((selectedTag) => selectedTag !== tag) // Remove if already selected
+          : [...prevSelected, tag], // Add tag if not already selected
     );
   };
 
   const handleSubmit = async () => {
     try {
-      const uploadedPost: PostUpload = {
-        title: title,
-        content: content,
+      const postUploadData: PostUpload = {
+        title,
+        content,
         tags: selectedTags,
-        code_files: convertPostFilesToFile(files),
+        code_files: files.map((file) => ({
+          fileName: file.fileName,
+          fileUrl: file.fileUrl, // The file content will be the content of the file
+        })),
       };
-      if (postData) { updatePost(postData._id, uploadedPost); }
-      else { createPost(uploadedPost); }
+
+      if (postData) {
+        await updatePost(postData._id, postUploadData); // If postData has _id, call updatePost
+      } else {
+        await createPost(postUploadData); // Otherwise, call createPost
+      }
+
       propcloseModal();
-      toast.success('Success posting!');
+      toast.success('Post submitted successfully!');
     } catch (error) {
       console.error('Error submitting post:', error);
       toast.error('Error submitting post!');
     }
   };
-
-
 
   return (
     <div className='w-full h-[95vh] flex flex-col  text-white bg-Background/Bottom my-10 relative border-Primary/Dark border-solid box-border border-2 rounded-3xl p-5 md:p-7 lg:p-8 xl-10'>
@@ -141,9 +166,7 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
           <div>
             <p className='font-bold text-lg'>{displayname || 'Loading...'}</p>
             {postData && (
-              <span className="text-xs text-white">
-                {formatDate(postData.createdAt)}
-              </span>
+              <span className='text-xs text-white'>{formatDate(postData.createdAt)}</span>
             )}
             <span className='text-sm text-Accent/Light'>. Update: Now</span>
           </div>
@@ -199,10 +222,11 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
         <div className='flex gap-3 mb-3'>
           <div
             {...getRootProps()}
-            className={`flex-1 border-2 ${files.length >= MAX_FILES
-              ? 'border-gray-300 bg-Background/Middle cursor-not-allowed '
-              : 'border-dashed border-white bg-Accent/Target cursor-pointer'
-              } p-2 rounded text-center flex items-center justify-between`}
+            className={`flex-1 border-2 ${
+              files.length >= MAX_FILES
+                ? 'border-gray-300 bg-Background/Middle cursor-not-allowed '
+                : 'border-dashed border-white bg-Accent/Target cursor-pointer'
+            } p-2 rounded text-center flex items-center justify-between`}
           >
             <input {...getInputProps()} />
             {files.length >= MAX_FILES ? (
@@ -227,8 +251,9 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
           {files.map((file, index) => (
             <div
               key={index}
-              className={`text-Primary/Light font-bold max-w-[150px] truncate px-2 py-1 cursor-pointer ${activeTab === index ? 'border-b-4 border-Primary/Dark' : ''
-                }`}
+              className={`text-Primary/Light font-bold max-w-[150px] truncate px-2 py-1 cursor-pointer ${
+                activeTab === index ? 'border-b-4 border-Primary/Dark' : ''
+              }`}
               onClick={() => setActiveTab(index)}
             >
               <div className='flex items-center w-full'>
@@ -309,21 +334,19 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
       <div className='w-32'>
         <p className='text-left text-Primary/Light text-xl'>Choose tags:</p>
       </div>
-      <div className="text-left">
+      <div className='text-left'>
         {tags.map((tag) => (
-          <button
-            key={tag}
-            className="w-24 my-2 mr-2"
-            onClick={() => handleTagSelect(tag)}
-          >
-            <div className="flex flex-col">
+          <button key={tag} className='w-24 my-2 mr-2' onClick={() => handleTagSelect(tag)}>
+            <div className='flex flex-col'>
               <div
-                className={`${selectedTags.includes(tag) ? 'bg-Primary/Dark' : 'bg-Primary/Light'
-                  } rounded-3xl p-1`}
+                className={`${
+                  selectedTags.includes(tag) ? 'bg-Primary/Dark' : 'bg-Primary/Light'
+                } rounded-3xl p-1`}
               >
                 <p
-                  className={`${selectedTags.includes(tag) ? 'text-Primary/Light' : 'text-Primary/Dark'
-                    }`}
+                  className={`${
+                    selectedTags.includes(tag) ? 'text-Primary/Light' : 'text-Primary/Dark'
+                  }`}
                 >
                   {tag}
                 </p>
@@ -342,14 +365,13 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
           >
             Submit
           </button>
-        </div></div>
+        </div>
+      </div>
     </div>
-
   );
 };
 
 export default PostCreate;
-
 
 // Function to determine editor language
 function getEditorLanguage(fileName: string): string {
@@ -357,9 +379,11 @@ function getEditorLanguage(fileName: string): string {
   switch (extension) {
     case 'js':
     case 'jsx':
-      return 'javascript'; case 'txt':
+      return 'javascript';
+    case 'txt':
       return 'markdown';
     default:
       return 'plaintext';
   }
 }
+

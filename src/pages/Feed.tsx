@@ -31,6 +31,11 @@ function Feed() {
     if (!validTypes.includes(type)) {
       toast.error('Invalid feed type!');
       navigate('/feed'); // Redirect to a default feed page
+    } else {
+      // Reset state when type changes
+      setPage(1);
+      setPosts([]);
+      setHasMore(true);
     }
   }, [type, navigate]);
 
@@ -58,53 +63,57 @@ function Feed() {
   // Effect to fetch posts whenever necessary values change
   useEffect(() => {
     const fetchAndUpdatePosts = async () => {
-      if (loading || !hasMore) return; // Prevent fetching if already loading or no more posts
+      if (loading || !hasMore) return;
+
+      setLoading(true);
 
       try {
-        setLoading(true);
         const postsResponse = await fetchPosts(
-          page, // Pagination: dynamic page number
+          page,
           10, // Limit: 10 posts per page
           order,
           criteria,
           searchTerm,
           selectedTags,
-          type,
+          type, // Include type as a filter
         );
-        if (postsResponse.posts.length === 0) {
+
+        if (!postsResponse.posts || postsResponse.posts.length === 0) {
           setHasMore(false); // Stop fetching if no posts are returned
+        } else {
+          setPosts((prevPosts) => [...prevPosts, ...postsResponse.posts]);
+          setHasMore(postsResponse.hasMore);
         }
-        setPosts((prevPosts) => [...prevPosts, ...postsResponse.posts]); // Append new posts
-        setHasMore(postsResponse.hasMore); // Update the 'hasMore' state based on the response
       } catch (error) {
         console.error('Error fetching posts:', error);
-        toast.error('Error fetching posts!');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAndUpdatePosts();
-  }, [order, criteria, searchTerm, selectedTags, type, page]); // Avoid triggering when hasMore is false
+    if (hasMore && !loading) {
+      fetchAndUpdatePosts();
+    }
+  }, [page, order, criteria, searchTerm, selectedTags, type, hasMore, loading]);
 
   // Handle infinite scroll logic
   const observer = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!sentinelRef.current || !hasMore || loading) return;
+    if (!sentinelRef.current || loading || !hasMore) return;
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries;
       if (entry.isIntersecting && hasMore && !loading) {
-        setPage((prevPage) => prevPage + 1); // Increment page for infinite scroll
+        setPage((prevPage) => prevPage + 1); // Increment the page
       }
     };
 
     observer.current = new IntersectionObserver(observerCallback, {
       root: null,
       rootMargin: '0px',
-      threshold: 1.0,
+      threshold: 0.5,
     });
 
     const currentObserver = observer.current;
@@ -115,7 +124,7 @@ function Feed() {
         currentObserver.unobserve(sentinelRef.current);
       }
     };
-  }, [hasMore, loading]); // Trigger only when 'hasMore' and 'loading' change
+  }, [hasMore, loading]);
 
   // Handle click outside to close sidebars and taglist
   useEffect(() => {
@@ -151,14 +160,13 @@ function Feed() {
     setCriteria(filters.sortBy as 'date' | 'likes' | 'comments');
     setPage(1); // Reset to page 1 when filters change
     setPosts([]); // Clear the posts before refetching
+    setHasMore(true); // Reset 'hasMore' to true
   };
 
   return (
     <div className='bg-Background/Middle relative min-h-screen flex flex-col'>
       <ButtonShare />
-
       <NothingPost />
-
       <div id='posts-container'>
         {posts.map((post) => (
           <div key={post._id} className='post'>
@@ -166,7 +174,11 @@ function Feed() {
           </div>
         ))}
       </div>
-      {loading && <p>Loading...</p>}
+      {loading && (
+        <div className='flex items-center justify-center'>
+          <p>Loading page...</p>
+        </div>
+      )}
       <div ref={sentinelRef} style={{ height: '50px' }} />
       {!hasMore && <p>No more posts to load.</p>}
       <div ref={sidebarRef}>
@@ -176,7 +188,6 @@ function Feed() {
           onClose={() => setActiveComponent(null)}
         />
       </div>
-
       <div ref={tagListRef}>
         <TagList
           isOpen={activeComponent === 'taglist'}
@@ -184,7 +195,6 @@ function Feed() {
           onFilterChange={handleFilterChange}
         />
       </div>
-
       <CollapseMenu
         isSidebarOpen={activeComponent === 'sidebar'}
         isTagListOpen={activeComponent === 'taglist'}
@@ -198,3 +208,4 @@ function Feed() {
 }
 
 export default Feed;
+

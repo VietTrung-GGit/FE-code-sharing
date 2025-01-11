@@ -1,6 +1,8 @@
 import axiosInstance from '../api/axiosInstance';
 import { API_ENDPOINTS } from '../api/endpoints';
 import { getMimeTypeForExtension } from '../utils/helpers';
+import { toast } from 'react-toastify';
+import axios from 'axios';
 
 export interface PostFile {
   fileUrl: string;
@@ -80,7 +82,7 @@ export interface PostUpload {
   title: string;
   content: string;
   tags: string[];
-  code_files: File[];
+  code_files: PostFile[];
 }
 
 // Fetch posts
@@ -97,30 +99,30 @@ export const fetchPosts = async (
     const response = await axiosInstance.get<PostResponse>(
       API_ENDPOINTS.FETCH_POSTS(page, limit, search, tags, order, criteria, type),
     );
+
     if (!response.data.posts) {
       console.log('No posts found, stopping further requests.');
       // Handle case where no posts are found (e.g., stop infinite scroll, set flag)
       return { ...response.data, posts: [] }; // Return empty posts array
     }
+
     const postsWithFiles = await Promise.all(
       response.data.posts.map(async (post) => {
         if (post.files && Array.isArray(post.files)) {
           // Fetch file content for each post's files
+
           post.files = await fetchFileContent(post.files);
         }
         return post;
-      })
+      }),
     );
 
     return { ...response.data, posts: postsWithFiles };
   } catch (error) {
-    console.error("Error fetching posts:", error);
+    console.error('Error fetching posts:', error);
     throw error;
   }
 };
-
-
-
 
 export const fetchPostDetail = async (postId: string): Promise<Post> => {
   try {
@@ -135,24 +137,60 @@ export const fetchPostDetail = async (postId: string): Promise<Post> => {
 
     return postDetail;
   } catch (error) {
-    console.error("Error fetching post details:", error);
+    console.error('Error fetching post details:', error);
     throw error;
   }
 };
 
-
 // Create a new post
 export const createPost = async (postData: PostUpload): Promise<string> => {
-  const response = await axiosInstance.post<string>(API_ENDPOINTS.CREATE_POST(), postData);
+  const formData = new FormData();
+
+  // Append title, content, and tags
+  formData.append('title', postData.title);
+  formData.append('content', postData.content);
+  postData.tags.forEach((tag) => formData.append('tags[]', tag)); // Send tags as an array
+
+  // Append files as blobs (title and content will be included as files)
+  postData.code_files.forEach((file) => {
+    const blob = new Blob([file.fileUrl], { type: 'text/plain' }); // Create a Blob from the file content
+    formData.append('files', blob, file.fileName); // Append the file with its name
+  });
+
+  // Send the request using the FormData object
+  const response = await axiosInstance.post<string>(API_ENDPOINTS.CREATE_POST(), formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
   return response.data;
 };
 
 // Update an existing post
-export const updatePost = async (postId: string, postData: PostUpload) => {
-  const response = await axiosInstance.put(API_ENDPOINTS.UPDATE_POST(postId), postData);
+export const updatePost = async (postId: string, postData: PostUpload): Promise<string> => {
+  const formData = new FormData();
+
+  // Append title, content, and tags
+  formData.append('title', postData.title);
+  formData.append('content', postData.content);
+  postData.tags.forEach((tag) => formData.append('tags[]', tag)); // Send tags as an array
+
+  // Append files as blobs (title and content will be included as files)
+  postData.code_files.forEach((file) => {
+    const blob = new Blob([file.fileUrl], { type: 'text/plain' }); // Create a Blob from the file content
+    formData.append('files', blob, file.fileName); // Append the file with its name
+  });
+
+  // Send the request using the FormData object
+  const response = await axiosInstance.put<string>(API_ENDPOINTS.UPDATE_POST(postId), formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
   return response.data;
 };
-
 // Delete a post
 export const deletePost = async (postId: string) => {
   const response = await axiosInstance.delete(API_ENDPOINTS.DELETE_POST(postId));
@@ -184,8 +222,14 @@ export const unstorePost = async (postId: string) => {
 };
 
 // Create a comment on a post
-export const createComment = async (postId: string, commentData: CommentRequest): Promise<string> => {
-  const response = await axiosInstance.post<string>(API_ENDPOINTS.CREATE_COMMENT(postId), commentData);
+export const createComment = async (
+  postId: string,
+  commentData: CommentRequest,
+): Promise<string> => {
+  const response = await axiosInstance.post<string>(
+    API_ENDPOINTS.CREATE_COMMENT(postId),
+    commentData,
+  );
   return response.data;
 };
 
@@ -203,7 +247,11 @@ export const fetchComments = async (
 };
 
 // Edit a comment on a post
-export const updateComment = async (postId: string, commentId: string, commentData: CommentRequest) => {
+export const updateComment = async (
+  postId: string,
+  commentId: string,
+  commentData: CommentRequest,
+) => {
   const response = await axiosInstance.put(
     API_ENDPOINTS.UPDATE_COMMENT(postId, commentId),
     commentData,
@@ -220,25 +268,33 @@ export const deleteComment = async (postId: string, commentId: string) => {
 const fetchFileContent = async (files: PostFile[]): Promise<PostFile[]> => {
   try {
     const fileFetchPromises = files.map(async (file) => {
-      const fileResponse = await axios.get<string>(file.fileUrl, { responseType: 'text' });
+      console.log(`Fetching file: ${file.fileUrl}`); // Log file URL to debug
+      try {
+        // Change responseType to 'text' to handle text content
+        const fileResponse = await axios.get(file.fileUrl, { responseType: 'text' });
 
-      if (fileResponse.status !== 200) {
-        throw new Error(`Failed to fetch file ${file.fileName}. Status: ${fileResponse.status}`);
+        if (fileResponse.status !== 200) {
+          throw new Error(`Failed to fetch file ${file.fileName}. Status: ${fileResponse.status}`);
+        }
+
+        console.log(`Fetched content for file: ${file.fileName}`); // Log after successful fetch
+
+        const content = fileResponse.data; // The content will be a string
+        return { ...file, fileUrl: content }; // Now fileUrl contains the actual content
+      } catch (error) {
+        console.error(`Error fetching file ${file.fileName}:`, error); // Catch individual file errors
+        throw error; // Re-throw to ensure we get higher-level error handling if needed
       }
-
-      const content = fileResponse.data; // `data` is typed as string
-      return { ...file, fileUrl: content }; // Now fileUrl is of type string
     });
 
-    // Wait for all file content fetches to complete
-    return await Promise.all(fileFetchPromises);
+    const fetchedFiles = await Promise.all(fileFetchPromises);
+    console.log('All files fetched:', fetchedFiles); // Log the final result
+    return fetchedFiles;
   } catch (fileError) {
-    console.error("Error fetching file contents:", fileError);
-    throw fileError;
+    console.error('Error fetching file contents:', fileError); // Catch outer-level errors
+    throw fileError; // Re-throw for higher-level error handling
   }
 };
-
-
 
 // Function to convert PostFile to File with the correct MIME type
 export const convertPostFilesToFile = (postFiles: PostFile[]): File[] => {
@@ -258,3 +314,4 @@ export const convertPostFilesToFile = (postFiles: PostFile[]): File[] => {
     return fileWithTitle;
   });
 };
+
