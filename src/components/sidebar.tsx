@@ -58,7 +58,7 @@ function Sidebar({
           <img
             src={avatarUrl || ''}
             alt='Profile Icon'
-            className='sm:max-lg:h-20 xl:max-2xl:h-24 sm:max-lg:h-20 xl:max-2xl:w-24 rounded-full'
+            className='sm:max-lg:h-20 xl:max-2xl:h-24 xl:max-2xl:w-24 rounded-full'
           />
           <p className='text-white mt-6 text-lg sm:max-xl:text-lg xl:max-2xl:text-xl'>
             {displayname}

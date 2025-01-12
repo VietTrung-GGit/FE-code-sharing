@@ -165,7 +165,7 @@ function Feed() {
 
   return (
     <div className='bg-Background/Middle relative min-h-screen flex flex-col'>
-      <ButtonShare />
+      {type != undefined && <ButtonShare />}
       <NothingPost />
       <div id='posts-container'>
         {posts.map((post) => (
