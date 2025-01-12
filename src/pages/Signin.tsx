@@ -40,7 +40,6 @@ function Signin() {
     try {
       // Send data to the backend
       await login(formData.username, formData.password);
-      setMessage('Sign in successful!');
       setTimeout(() => navigate('/feed/me'), 1500); // Redirect to dashboard after a short delay
     } catch (error: any) {
       // Handle errors

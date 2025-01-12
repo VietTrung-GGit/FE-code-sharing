@@ -51,9 +51,36 @@ const PostDetail: React.FC<PostDetailProps> = ({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(
+    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+  );
   const [displayname, setDisplayName] = useState<string | null>(null);
+  const downloadTextFile = (content: string, title: string): void => {
+    // Create a Blob with the content as text and the type 'text/plain'
+    const blob = new Blob([content], { type: 'text/plain' });
 
+    // Create a link element to trigger the download
+    const link = document.createElement('a');
+
+    // Create an object URL for the Blob
+    const url = URL.createObjectURL(blob);
+
+    // Set the download attribute to the desired file title
+    link.href = url;
+    link.download = title;
+
+    // Append the link to the body (it needs to be part of the DOM to trigger the download)
+    document.body.appendChild(link);
+
+    // Simulate a click on the link to start the download
+    link.click();
+
+    // Remove the link from the DOM after the download
+    document.body.removeChild(link);
+
+    // Revoke the object URL to free up memory
+    URL.revokeObjectURL(url);
+  };
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -78,7 +105,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
     setLoading(true);
 
     try {
-      const responseComments = await fetchComments(post._id, page, 10, 'descending');
+      const responseComments = await fetchComments(post._id, page, 5, 'descending');
 
       // Ensure newComments is always an array
       const newComments = Array.isArray(responseComments.comments) ? responseComments.comments : [];
@@ -235,8 +262,9 @@ const PostDetail: React.FC<PostDetailProps> = ({
           avatar: avatarUrl || '',
           author: '0',
           postId: post._id,
-          createdAt: formatDate(new Date().toLocaleTimeString()),
-          updatedAt: formatDate(new Date().toLocaleTimeString()),
+          createdAt: 'Recently', // Pass formatted date string
+          updatedAt: 'Recently', // Pass formatted date string
+          editedAt: 'Recently',
           __v: 0,
           isAuthor: true,
         };
@@ -252,6 +280,8 @@ const PostDetail: React.FC<PostDetailProps> = ({
         setNewCommentText('');
         setNewCommentCode('');
       } catch (error) {
+        commentDelete(true);
+        handleCommentChange(true);
         toast.error('Failed to post comment!');
         console.error('Failed to post comment:', error);
         throw error;
@@ -285,8 +315,8 @@ const PostDetail: React.FC<PostDetailProps> = ({
       try {
         // Send API request to update the comment
         await updateComment(post._id, comments[index]._id, {
-          text: editedText,
-          code: editedCode,
+          text: editedText || '',
+          code: editedCode || '',
         });
 
         // Update the comment content in the UI after successful response
@@ -308,14 +338,14 @@ const PostDetail: React.FC<PostDetailProps> = ({
     const removedComment = comments[index]; // Save the comment in case of rollback
     setComments((prevComments) => prevComments?.filter((_, i) => i !== index) ?? []);
     handleCommentChange(true);
-
+    commentDelete(true);
     try {
       // Call API to delete the comment
       await deleteComment(post._id, commentId);
     } catch (error) {
       console.error('Failed to delete comment:', error);
       toast.error('Failed deleting comment!');
-
+      commentDelete(false);
       // Revert optimistic UI update in case of an error
       setComments((prevComments) => {
         const updatedComments = prevComments ? [...prevComments] : [];
@@ -383,6 +413,16 @@ const PostDetail: React.FC<PostDetailProps> = ({
               onClick={() => setActiveTab(index)}
             >
               {file.fileName || 'Untitled'}
+              <div>
+                <button
+                  onClick={() => {
+                    //alert(file.fileUrl);
+                    downloadTextFile(file.fileUrl, file.fileName);
+                  }}
+                >
+                  Download File
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -492,7 +532,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                             </button>
                             <button
                               className='text-sm text-Accent/Light hover:text-white'
-                              onClick={() => handleDelete(comment.author, index)}
+                              onClick={() => handleDelete(comment._id, index)}
                             >
                               Delete
                             </button>
@@ -517,6 +557,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                         value={editedCode}
                         theme='vs-dark'
                         options={{
+                          readOnly: false,
                           minimap: { enabled: false },
                           fontSize: 14,
                           wordWrap: 'on',
@@ -537,7 +578,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                           value={comment.code}
                           theme='vs-dark'
                           options={{
-                            readOnly:true,
+                            readOnly: true,
                             minimap: { enabled: false },
                             fontSize: 14,
                             wordWrap: 'on',
@@ -566,7 +607,10 @@ const PostDetail: React.FC<PostDetailProps> = ({
         <div className='bg-Background/Light pt-3 px-2'>
           <div className='flex justify-center gap-4'>
             <img
-              src='https://via.placeholder.com/50'
+              src={
+                avatarUrl ||
+                'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+              }
               alt='Avatar'
               className='w-8 h-8 rounded-full object-cover'
             />

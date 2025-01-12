@@ -46,18 +46,24 @@ function CollapseMenu(props: CollapseMenuProps) {
   const sidebarDistance = 258; // px of viewport width
   const tagListDistance = 242; // px of viewport width
   return (
-    <header className='fixed top-0 flex justify-between items-center px-4 py-2 z-20 lg:hidden bg-Background/Bottom w-full border-b-Primary/Dark border-b-2'>
+    <header
+      className={`fixed top-0 flex ${isTagListVisible ? 'justify-between' : 'justify-center'} items-center px-4 py-2 z-20 lg:hidden bg-Background/Bottom w-full h-[60px] border-b-Primary/Dark border-b-2`}
+    >
       {/* Sidebar Toggle Button */}
       <button
         ref={sidebarButtonRef}
         onClick={onToggleSidebar}
-        className='p-2 transition-all duration-300 ease-in-out'
+        className={`p-2 transition-all duration-300 ease-in-out' ${isTagListVisible ? '' : 'fixed flex left-4'}`}
       >
         <img src={Sandwich} alt='Sandwich icon' className='w-6' />
       </button>
 
       {/* Logo */}
-      <img src={Logo} alt='CoDash Logo' className='w-10 h-auto' />
+      <img
+        src={Logo}
+        alt='CoDash Logo'
+        className={`w-10 h-auto ${isTagListVisible ? '' : 'fixed flex'}`}
+      />
 
       {/* TagList Toggle Button (conditionally rendered) */}
       {isTagListVisible && hasTagListProps(props) && (

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an Axios instance
 export const axiosInstance = axios.create({
-  baseURL: 'http://localhost:4000',
+  baseURL: 'https://5kxjpw-4000.csb.app',
   headers: {
     'Content-Type': 'application/json',
   },

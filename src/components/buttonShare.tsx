@@ -4,7 +4,9 @@ import { getUserFullData } from '../services/userService';
 
 const ButtonShare: React.FC = () => {
   const [showPostCreate, setShowPostCreate] = useState<boolean>(false); // New state for modal visibility
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(
+    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+  );
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -38,7 +40,7 @@ const ButtonShare: React.FC = () => {
           <img
             src={avatarUrl || ''}
             alt='Profile Icon'
-            className='sm:max-2xl:w-20 sm:max-2xl:h-20 rounded-full object-cover'
+            className='w-[70px] sm:max-2xl:w-20 rounded-full object-cover'
           />
         </div>
 

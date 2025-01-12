@@ -49,10 +49,11 @@ const ProfileCard: React.FC = () => {
   }, []);
 
   const [profileData, setProfileData] = useState<ProfileData>({
-    username: '', // Fallback to empty string if null
-    displayName: '', // Fallback to empty string if null
-    email: '', // Fallback to empty string if null
-    imageUrl: 'https://via.placeholder.com/80', // Placeholder image URL
+    username: 'Username', // Fallback to empty string if null
+    displayName: 'Displayname', // Fallback to empty string if null
+    email: 'Email', // Fallback to empty string if null
+    imageUrl:
+      'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541', // Placeholder image URL
   });
 
   useEffect(() => {
@@ -87,6 +88,13 @@ const ProfileCard: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
+    if (id === 'displayName') {
+      // Limit displayName to 50 characters
+      if (value.length > 30) {
+        setProfileData((prev) => ({ ...prev, [id]: value.slice(0, 30) }));
+        return;
+      }
+    }
     if (isPasswordMode) {
       setPasswords((prev) => ({ ...prev, [id]: value }));
     } else {
@@ -333,6 +341,10 @@ const ProfileCard: React.FC = () => {
                     } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     readOnly={!isEditing}
                   />
+
+                  <p className={`text-sm text-red-600 ${isEditing ? '' : 'hidden'}`}>
+                    {30 - profileData.displayName.length} characters remaining
+                  </p>
                 </div>
                 <div>
                   <label htmlFor='email' className='block text-sm font-medium'>

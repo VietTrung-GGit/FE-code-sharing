@@ -143,6 +143,7 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
         await updatePost(postData._id, postUploadData); // If postData has _id, call updatePost
       } else {
         await createPost(postUploadData); // Otherwise, call createPost
+        window.location.reload();
       }
 
       propcloseModal();
@@ -294,14 +295,14 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
           ))}
 
           {/* New File Button */}
-          {files.length < MAX_FILES && (
+          {/* {files.length < MAX_FILES && (
             <button
               onClick={addNewFile}
               className='flex-shrink-0 px-2 py-1 bg-Primary/Dark text-white border-b-4 border-Primary/Dark'
             >
               +
             </button>
-          )}
+          )} */}
         </div>
 
         {/* Editor */}

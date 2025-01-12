@@ -36,6 +36,7 @@ export interface Post {
   totalComments: number;
   createdAt: string;
   updatedAt: string;
+  editedAt: string;
   __v: number;
   Stored: boolean;
   Liked: boolean;
@@ -52,6 +53,7 @@ export interface Comment {
   postId: string;
   createdAt: string;
   updatedAt: string;
+  editedAt: string;
   __v: number;
   isAuthor: boolean;
 }
@@ -123,8 +125,6 @@ export const fetchPosts = async (
     throw error;
   }
 };
-
-
 
 export const fetchPostDetail = async (postId: string): Promise<Post> => {
   try {
@@ -228,11 +228,11 @@ export const createComment = async (
   postId: string,
   commentData: CommentRequest,
 ): Promise<string> => {
-  const response = await axiosInstance.post<string>(
+  const response = await axiosInstance.post<{ message: string; commentId: string }>(
     API_ENDPOINTS.CREATE_COMMENT(postId),
     commentData,
   );
-  return response.data;
+  return response.data.commentId;
 };
 
 // Fetch comments for a post

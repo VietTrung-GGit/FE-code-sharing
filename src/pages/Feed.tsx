@@ -29,7 +29,7 @@ function Feed() {
   useEffect(() => {
     const validTypes: PostType[] = ['stored', 'me', undefined];
     if (!validTypes.includes(type)) {
-      toast.error('Invalid feed type!');
+      toast.error('Invalid page!');
       navigate('/feed'); // Redirect to a default feed page
     } else {
       // Reset state when type changes
@@ -65,12 +65,12 @@ function Feed() {
     const fetchAndUpdatePosts = async () => {
       if (loading || !hasMore) return;
 
-      setLoading(true);
+      setLoading(true); // Set loading to true to prevent multiple requests
 
       try {
         const postsResponse = await fetchPosts(
           page,
-          10, // Limit: 10 posts per page
+          6, // Limit: 10 posts per page
           order,
           criteria,
           searchTerm,
@@ -87,14 +87,12 @@ function Feed() {
       } catch (error) {
         console.error('Error fetching posts:', error);
       } finally {
-        setLoading(false);
+        setLoading(false); // Reset loading state after request completes
       }
     };
 
-    if (hasMore && !loading) {
-      fetchAndUpdatePosts();
-    }
-  }, [page, order, criteria, searchTerm, selectedTags, type, hasMore, loading]);
+    fetchAndUpdatePosts();
+  }, [page, order, criteria, searchTerm, selectedTags, type, hasMore]);
 
   // Handle infinite scroll logic
   const observer = useRef<IntersectionObserver | null>(null);
@@ -106,14 +104,14 @@ function Feed() {
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries;
       if (entry.isIntersecting && hasMore && !loading) {
-        setPage((prevPage) => prevPage + 1); // Increment the page
+        setPage((prevPage) => prevPage + 1); // Increment the page number when the sentinel is visible
       }
     };
 
     observer.current = new IntersectionObserver(observerCallback, {
       root: null,
       rootMargin: '0px',
-      threshold: 0.5,
+      threshold: 0.25, // Trigger when 50% of the sentinel is visible
     });
 
     const currentObserver = observer.current;
@@ -124,7 +122,7 @@ function Feed() {
         currentObserver.unobserve(sentinelRef.current);
       }
     };
-  }, [hasMore, loading]);
+  }, [hasMore, loading]); // Re-run when `hasMore` or `loading` changes
 
   // Handle click outside to close sidebars and taglist
   useEffect(() => {
@@ -165,7 +163,7 @@ function Feed() {
 
   return (
     <div className='bg-Background/Middle relative min-h-screen flex flex-col'>
-      {type != undefined && <ButtonShare />}
+      {type != 'stored' && <ButtonShare />}
       <NothingPost />
       <div id='posts-container'>
         {posts.map((post) => (
@@ -175,7 +173,7 @@ function Feed() {
         ))}
       </div>
       {loading && (
-        <div className='flex items-center justify-center'>
+        <div className='flex items-center justify-center text-white'>
           <p>Loading page...</p>
         </div>
       )}

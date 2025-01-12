@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../assets/logo.svg';
 import { getUserFullData } from '../services/userService';
@@ -16,9 +16,11 @@ function Sidebar({
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(
+    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+  );
   const [displayname, setDisplayName] = useState<string | null>(null);
-
+  const modalRef = useRef<HTMLDivElement>(null); // Ref for the modal content
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -32,6 +34,22 @@ function Sidebar({
 
     fetchUserData();
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setShowLogoutModal(false); // Close modal if clicked outside
+      }
+    };
+
+    if (showLogoutModal) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showLogoutModal]);
 
   const handleNavigation = (destination: string) => {
     navigate(destination);
@@ -58,9 +76,9 @@ function Sidebar({
           <img
             src={avatarUrl || ''}
             alt='Profile Icon'
-            className='sm:max-lg:h-20 xl:max-2xl:h-24 xl:max-2xl:w-24 rounded-full'
+            className='h-20 sm:max-xl:h-20 sm:max-xl:w-20 xl:max-2xl:h-24 xl:max-2xl:w-24 rounded-full'
           />
-          <p className='text-white mt-6 text-lg sm:max-xl:text-lg xl:max-2xl:text-xl'>
+          <p className='text-white mt-6 text-lg sm:max-xl:text-lg xl:max-2xl:text-xl w-56 break-words'>
             {displayname}
           </p>
         </div>
@@ -158,7 +176,7 @@ function Sidebar({
         {/* Logout Button */}
         <div className='mt-auto'>
           <button
-            className='m-2 flex items-center space-x-2 text-Primary/Dark'
+            className='m-2 flex items-center space-x-2 text-white'
             onClick={() => setShowLogoutModal(true)}
           >
             <span>Log out</span>
@@ -168,8 +186,13 @@ function Sidebar({
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'>
-          <div className='bg-Background/Bottom p-8 rounded-lg max-w-sm w-full'>
-            <h3 className='text-xl font-semibold mb-4'>Are you sure you want to log out?</h3>
+          <div
+            className='bg-Background/Bottom p-8 rounded-lg max-w-sm w-full border-2 border-Primary/Dark'
+            ref={modalRef}
+          >
+            <h3 className='text-xl font-semibold mb-4 text-white'>
+              Are you sure you want to log out?
+            </h3>
             <div className='flex justify-between'>
               <button className='bg-Accent/Light text-black px-4 py-2 rounded' onClick={closeModal}>
                 Cancel

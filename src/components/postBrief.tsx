@@ -156,9 +156,9 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
                 <p className='font-bold text-lg'>{post ? post.authorname : ''}</p>
                 <p className='text-sm text-Accent/Light'>
                   {post ? formatDate(post.createdAt) : 'Loading...'}&nbsp;
-                  {post && post.updatedAt && post.createdAt !== post.updatedAt && (
+                  {post && post.editedAt && post.createdAt !== post.editedAt && (
                     <span className='text-xs text-white'>
-                      (Edited: {formatDate(post.updatedAt)})
+                      (Edited: {formatDate(post.editedAt)})
                     </span>
                   )}
                 </p>

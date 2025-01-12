@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { loginUser, logoutUser, refreshAccessToken, signupUser } from '../services/authService';
+import { toast } from 'react-toastify';
 
 // Define the context type
 interface AuthContextType {
@@ -60,9 +61,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const data = await loginUser(username, password);
       setIsAuthenticated(true);
+      toast.success('Sign in successfully');
       localStorage.setItem('accessToken', data.accessToken);
     } catch (error) {
       console.error('Login failed:', error);
+      toast.error(error);
     }
   };
 
