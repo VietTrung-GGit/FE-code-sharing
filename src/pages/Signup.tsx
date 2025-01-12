@@ -69,7 +69,7 @@ function Signup() {
       {/* Body */}
       <main className='flex-grow relative'>
         {/* Negative Margin to Overlap with Header */}
-        <div className='px-5 md:px-10 pt-0 mt-[-4rem] flex justify-center'>
+        <div className='px-3 lg:px-10 pt-0 mt-[-4rem] flex justify-center'>
           <div className="bg-Background/Bottom bg-[url('assets/particle.svg')] bg-no-repeat bg-center bg-cover text-center w-full mt-0 p-10 relative border-Primary/Dark border-solid box-border border-2 rounded-b-3xl mb-28 sm:p-10 md:p-14 lg:p-16 xl:p-20">
             <form onSubmit={handleSubmit}>
               <h3 className='text-3xl text-white m-6 pt-10'>SIGN UP</h3>
@@ -110,7 +110,7 @@ function Signup() {
                 onChange={handleChange}
               />
               <br />
-              <p className='text-l text-white m-6'>
+              <p className='text-l text-white m-6 mx-2'>
                 Already have an account?{' '}
                 <Link to='/signin' className='font-bold'>
                   Sign in!

@@ -95,6 +95,10 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
     setPost({ ...post, totalComments: newCommentCount });
   };
 
+  const refreshPost = (propost: Post) => {
+    setPost(propost);
+  };
+
   const handleSave = async (mini: boolean) => {
     if (!post) return;
 
@@ -251,15 +255,15 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
                   <svg className='w-6 h-6 stroke-current stroke-2' viewBox='0 0 24 24'>
                     <path
                       d='M20,16v4a2,2,0,0,1-2,2H4a2,2,0,0,1-2-2V6A2,2,0,0,1,4,4H8'
-                      stroke-linecap='round'
-                      stroke-linejoin='round'
-                      stroke-width='2'
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth='2'
                     />
                     <polygon
                       points='12.5 15.8 22 6.2 17.8 2 8.3 11.5 8 16 12.5 15.8'
-                      stroke-linecap='round'
-                      stroke-linejoin='round'
-                      stroke-width='2'
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth='2'
                     />
                   </svg>
                 </button>
@@ -268,33 +272,33 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
                   <svg className='w-7 h-7 stroke-current stroke-2' viewBox='0 0 24 24'>
                     <path
                       d='M10 12V17'
-                      stroke-width='2'
-                      stroke-linecap='round'
-                      stroke-linejoin='round'
+                      strokeWidth='2'
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
                     />
                     <path
                       d='M14 12V17'
-                      stroke-width='2'
-                      stroke-linecap='round'
-                      stroke-linejoin='round'
+                      strokeWidth='2'
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
                     />
                     <path
                       d='M4 7H20'
-                      stroke-width='2'
-                      stroke-linecap='round'
-                      stroke-linejoin='round'
+                      strokeWidth='2'
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
                     />
                     <path
                       d='M6 10V18C6 19.6569 7.34315 21 9 21H15C16.6569 21 18 19.6569 18 18V10'
-                      stroke-width='2'
-                      stroke-linecap='round'
-                      stroke-linejoin='round'
+                      strokeWidth='2'
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
                     />
                     <path
                       d='M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5V7H9V5Z'
-                      stroke-width='2'
-                      stroke-linecap='round'
-                      stroke-linejoin='round'
+                      strokeWidth='2'
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
                     />
                   </svg>
                 </button>
@@ -362,11 +366,11 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
       {/* PostDetail Modal */}
       {showPostDetail && (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex z-50'>
-          {/* Left Spacer Section */}
-          <div className='w-1/10 flex items-start justify-start'></div>
+          {/* Left Spacer Section (taking up 10% of the width) */}
+          <div className='sm:w-1/10 md:w-1/5 flex items-start justify-start'></div>
 
           {/* Center Section (PostDetail) */}
-          <div className='flex-grow w-4/5 md:w-1/2 mx-auto flex items-center justify-center'>
+          <div className='sm:w-4/5 md:w-3/5 mx-auto flex items-center justify-center'>
             <PostDetail
               proppost={post}
               toggleLike={handleLikeClick}
@@ -378,7 +382,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
           </div>
 
           {/* Right Section (Close Button) */}
-          <div className='w-1/10 flex items-start justify-end'>
+          <div className='sm:w-1/10 md:w-1/5  flex items-start justify-start'>
             <button onClick={handleCloseModal1} className='text-3xl text-white'>
               ×
             </button>
@@ -388,15 +392,14 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
 
       {showPostCreate && (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex z-50'>
-          <div className='w-1/10 flex items-start justify-start'> </div>
+          <div className='sm:w-1/10 md:w-1/5 flex items-start justify-start'></div>
 
-          <div className='flex-grow sm:w-4/5 md:w-1/2 mx-auto flex items-center'>
-            {' '}
-            <PostCreate postData={post} closeModal={handleCloseModal2} />{' '}
+          <div className='sm:w-4/5 md:w-3/5 mx-auto flex items-center justify-center'>
+            <PostCreate postData={post} closeModal={handleCloseModal2} refresh={refreshPost} />
           </div>
-          <div className='w-1/10 flex items-end justify-end'>
-            {' '}
-            <button onClick={handleCloseModal2} className='mr-auto mt-4 text-3xl text-white'>
+
+          <div className='sm:w-1/10 md:w-1/5  flex items-start justify-start'>
+            <button onClick={handleCloseModal2} className='text-3xl text-white'>
               ×
             </button>
           </div>

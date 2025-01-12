@@ -169,22 +169,16 @@ function TagList({
 
       {/*tags*/}
       {/*tags*/}
-      <div className='flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-Primary/Dark scrollbar-track-Background/Middle'>
+      <div className='flex-1 overflow-y-auto scrollbar scrollbar-thin scrollbar-thumb-Primary/Dark scrollbar-track-Background/Middle'>
         {tags.map((tag) => (
           <button key={tag} className='w-24 my-2 mr-2' onClick={() => handleButtonClick(tag)}>
             <div className='flex flex-col'>
               <div
                 className={`${
-                  selectedTags.includes(tag) ? 'bg-Primary/Dark' : 'bg-Primary/Light'
+                  selectedTags.includes(tag) ? 'bg-Primary/Light' : 'bg-white'
                 } rounded-3xl p-1`}
               >
-                <p
-                  className={`${
-                    selectedTags.includes(tag) ? 'text-Primary/Light' : 'text-Primary/Dark'
-                  }`}
-                >
-                  {tag}
-                </p>
+                <p className='text-Primary/Dark'>{tag}</p>
               </div>
             </div>
           </button>

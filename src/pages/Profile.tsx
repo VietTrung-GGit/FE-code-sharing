@@ -239,15 +239,15 @@ const ProfileCard: React.FC = () => {
         isTagListVisible={false} // Disable TagList
         sidebarButtonRef={sidebarButtonRef}
       />
-      <div className='flex items-center'>
-        <div className='max-w-md mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-lg relative border border-blue-600'>
+      <div className='h-4/5 flex items-center'>
+        <div className='w-4/5 lg:w-2/5 mx-auto p-10 bg-Background/Bottom text-white rounded-xl shadow-lg relative border-2 border-Primary/Dark'>
           <h2 className='text-2xl font-semibold mb-6'>Your Profile</h2>
 
           {/* Flex Layout for Image and Inputs */}
           <div className='flex'>
             {/* Profile Image */}
             <div className='flex-shrink-0 flex items-center'>
-              <div className='relative'>
+              <div className='relative mr-2'>
                 <img
                   src={profileData.imageUrl}
                   alt='Profile'
@@ -282,7 +282,7 @@ const ProfileCard: React.FC = () => {
                       id='currentPassword'
                       value={passwords.currentPassword}
                       onChange={handleInputChange}
-                      className='w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      className='w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 '
                     />
                   </div>
                   <div>
@@ -294,7 +294,7 @@ const ProfileCard: React.FC = () => {
                       id='newPassword'
                       value={passwords.newPassword}
                       onChange={handleInputChange}
-                      className='w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      className='w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 '
                     />
                   </div>
                   <div>
@@ -306,7 +306,7 @@ const ProfileCard: React.FC = () => {
                       id='confirmNewPassword'
                       value={passwords.confirmNewPassword}
                       onChange={handleInputChange}
-                      className='w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      className='w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 '
                     />
                   </div>
                 </>
@@ -314,7 +314,10 @@ const ProfileCard: React.FC = () => {
                 <>
                   {/* Profile Inputs (username, display name, email) */}
                   <div>
-                    <label htmlFor='username' className='block text-sm font-medium'>
+                    <label
+                      htmlFor='username'
+                      className='block text-sm font-medium text-Primary/Light'
+                    >
                       Username
                     </label>
                     <input
@@ -323,14 +326,17 @@ const ProfileCard: React.FC = () => {
                       value={profileData.username}
                       maxLength={30}
                       onChange={handleInputChange}
-                      className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border ${
-                        isEditing ? 'border-blue-500' : 'border-gray-700'
-                      } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md focus:outline-none ${
+                        isEditing && 'focus:border focus:ring-2 focus:border-Primary/Dark'
+                      }`}
                       readOnly={!isEditing}
                     />
                   </div>
                   <div>
-                    <label htmlFor='displayName' className='block text-sm font-medium'>
+                    <label
+                      htmlFor='displayName'
+                      className='block text-sm font-medium text-Primary/Light'
+                    >
                       Display name
                     </label>
                     <input
@@ -339,14 +345,14 @@ const ProfileCard: React.FC = () => {
                       maxLength={30}
                       value={profileData.displayName}
                       onChange={handleInputChange}
-                      className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border ${
-                        isEditing ? 'border-blue-500' : 'border-gray-700'
-                      } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md focus:outline-none ${
+                        isEditing && 'focus:border focus:ring-2 focus:border-Primary/Dark'
+                      }`}
                       readOnly={!isEditing}
                     />
                   </div>
                   <div>
-                    <label htmlFor='email' className='block text-sm font-medium'>
+                    <label htmlFor='email' className='block text-sm font-medium text-Primary/Light'>
                       Email
                     </label>
                     <input
@@ -354,9 +360,9 @@ const ProfileCard: React.FC = () => {
                       id='email'
                       value={profileData.email}
                       onChange={handleInputChange}
-                      className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border ${
-                        isEditing ? 'border-blue-500' : 'border-gray-700'
-                      } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md focus:outline-none ${
+                        isEditing && 'focus:border focus:ring-2 focus:border-Primary/Dark'
+                      }`}
                       readOnly={!isEditing}
                     />
                   </div>
@@ -370,7 +376,7 @@ const ProfileCard: React.FC = () => {
             {!isEditing && !isPasswordMode && (
               <button
                 onClick={togglePasswordMode}
-                className='px-4 py-2 rounded-md text-sm font-medium bg-blue-500 text-white hover:bg-blue-400'
+                className='w-30 px-4 py-2 rounded-md text-sm font-medium bg-gray-300 text-Background/Bottom hover:bg-Primary/Dark hover:text-white'
               >
                 Change Password
               </button>
@@ -380,9 +386,9 @@ const ProfileCard: React.FC = () => {
               <>
                 <button
                   onClick={isPasswordMode ? handlePasswordUpdate : handleSave} // Call handleSave or handlePasswordUpdate based on the mode
-                  className='px-4 py-2 rounded-md text-sm font-medium bg-blue-500 text-white hover:bg-blue-400'
+                  className='px-4 py-2 rounded-md text-sm font-medium hover:bg-Accent/Target hover:text-white text-Accent/Target bg-white'
                 >
-                  {isPasswordMode ? 'Save Password' : 'Save'}
+                  Save
                 </button>
                 <button
                   onClick={handleQuit}
@@ -394,7 +400,7 @@ const ProfileCard: React.FC = () => {
             ) : (
               <button
                 onClick={toggleEditMode}
-                className='px-4 py-2 rounded-md text-sm font-medium bg-gray-300 text-gray-900 hover:bg-blue-400 hover:text-white'
+                className='w-20 px-4 py-2 rounded-md text-sm font-medium bg-Accent/Target text-white hover:bg-white hover:text-Accent/Target'
               >
                 Edit
               </button>

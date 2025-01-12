@@ -3,7 +3,7 @@ import Logo from '../assets/logo.svg';
 
 function Footer() {
   return (
-    <footer className="bg-Background/Bottom bg-[url('assets/particle.svg')] bg-no-repeat bg-center bg-cover text-white px-10 py-2 mt-auto z-20 border-Primary/Dark border-solid box-border border-t-2 divide-y-2 divide-Primary/Dark">
+    <footer className="bg-Background/Bottom bg-[url('assets/particle.svg')] bg-no-repeat bg-center bg-cover text-white px-3 py-2 lg:px-10 mt-auto z-20 border-Primary/Dark border-solid box-border border-t-2 divide-y-2 divide-Primary/Dark">
       {/* Main Footer Section */}
       <div className='flex justify-between items-center mb-5'>
         {/* Logo and Name */}
@@ -44,3 +44,4 @@ function Footer() {
 }
 
 export default Footer;
+

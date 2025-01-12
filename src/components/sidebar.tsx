@@ -63,7 +63,7 @@ function Sidebar({
   return (
     <div>
       <div
-        className={`top-14 left-0 bg-Background/Bottom text-center w-64 h-full p-1 fixed flex flex-col border-Primary/Dark border-solid box-border border-r-2 border-y-2 z-40
+        className={`border-t-0 border-b-0 top-14 left-0 bg-Background/Bottom text-center w-64 h-full p-1 fixed flex flex-col border-Primary/Dark border-solid box-border border-r-2 border-y-2 z-40
         transition-transform duration-300 ease-in-out 
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 sm:static sm:max-xl:w-64 xl:max-2xl:w-72 sm:max-xl:p-1 xl:max-2xl:p-2 sm:max-2xl:fixed sm:max-lg:top-[58px] lg:max-2xl:top-0`}
@@ -84,7 +84,7 @@ function Sidebar({
         </div>
 
         {/* Navigation Buttons */}
-        <div className='flex flex-col mt-16 flex-grow'>
+        <div className='flex flex-col mt-16 ml-5 flex-grow'>
           <button
             className={`m-2 flex items-center space-x-2 ${state === undefined ? 'text-green-500' : 'text-white'}`}
             onClick={() => handleNavigation('/feed')}
@@ -174,9 +174,10 @@ function Sidebar({
         </div>
 
         {/* Logout Button */}
-        <div className='mb-14 sm:max-lg:mb-14 lg:max-2xl:mb-0'>
+        {/* Logout Button */}
+        <div className='mb-14 sm:max-lg:mb-14 lg:max-2xl:mb-0 flex justify-center'>
           <button
-            className='m-2 flex items-center space-x-2 text-white'
+            className='m-2 flex items-center space-x-2 text-Primary/Light'
             onClick={() => setShowLogoutModal(true)}
           >
             <span>Log out</span>

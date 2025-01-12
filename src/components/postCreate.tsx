@@ -19,9 +19,14 @@ import { getUserFullData } from '../services/userService';
 interface PostCreateProps {
   postData?: Post; // Optional prop to enable edit mode
   closeModal: () => void;
+  refresh?: (proppost: Post) => void;
 }
 
-const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propcloseModal }) => {
+const PostCreate: React.FC<PostCreateProps> = ({
+  postData,
+  closeModal: propcloseModal,
+  refresh = () => {},
+}) => {
   const [files, setFiles] = useState<PostFile[]>([]); // Changed to PostFile[]
   const [activeTab, setActiveTab] = useState<number>(0);
   const [editingTab, setEditingTab] = useState<number | null>(null);
@@ -141,6 +146,14 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
 
       if (postData) {
         await updatePost(postData._id, postUploadData); // If postData has _id, call updatePost
+        refresh({
+          ...postData,
+          title,
+          content,
+          tags: selectedTags,
+          files,
+          editedAt: 'Recently',
+        });
       } else {
         await createPost(postUploadData); // Otherwise, call createPost
         window.location.reload();
@@ -338,28 +351,30 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
       </div>
 
       <div className='w-32'>
-        <p className='text-left text-Primary/Light text-xl'>Choose tags:</p>
+        <p className='text-left text-Primary/Light text-lg'>Choose tags:</p>
       </div>
-      <div className='text-left'>
-        {tags.map((tag) => (
-          <button key={tag} className='w-24 my-2 mr-2' onClick={() => handleTagSelect(tag)}>
-            <div className='flex flex-col'>
-              <div
-                className={`${
-                  selectedTags.includes(tag) ? 'bg-Primary/Dark' : 'bg-Primary/Light'
-                } rounded-3xl p-1`}
-              >
-                <p
+      <div className='text-left text-md'>
+        <div className='flex flex-wrap justify-between'>
+          {tags.map((tag) => (
+            <button key={tag} className='w-24 my-2' onClick={() => handleTagSelect(tag)}>
+              <div className='flex flex-col'>
+                <div
                   className={`${
-                    selectedTags.includes(tag) ? 'text-Primary/Light' : 'text-Primary/Dark'
-                  }`}
+                    selectedTags.includes(tag) ? 'bg-Primary/Dark' : 'bg-Primary/Light'
+                  } rounded-3xl p-1`}
                 >
-                  {tag}
-                </p>
+                  <p
+                    className={`${
+                      selectedTags.includes(tag) ? 'text-Primary/Light' : 'text-Primary/Dark'
+                    }`}
+                  >
+                    {tag}
+                  </p>
+                </div>
               </div>
-            </div>
-          </button>
-        ))}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Submit Button */}

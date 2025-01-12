@@ -17,6 +17,8 @@ export default {
         'Accent/Dark': '#0D442B',
         'Accent/Light': '#BBF7D0',
         'Accent/Target': '#22C55E',
+        scrollbar: '#555', // Thumb color
+        'scrollbar-track': '#222', // Track color
       },
       fontFamily: {
         serif: ['Source Serif Pro', 'serif'],
@@ -24,5 +26,26 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addComponents }) {
+      addComponents({
+        '.scrollbar': {
+          '::-webkit-scrollbar': {
+            width: '12px',
+          },
+          '::-webkit-scrollbar-thumb': {
+            backgroundColor: '#555',
+            borderRadius: '10px',
+          },
+          '::-webkit-scrollbar-track': {
+            backgroundColor: '#222',
+          },
+          '::-webkit-scrollbar-horizontal': {
+            height: '12px',
+          },
+        },
+      });
+    },
+  ],
 };
+
