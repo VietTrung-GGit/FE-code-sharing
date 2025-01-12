@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+import tailwindScrollbar from "tailwind-scrollbar";
+
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
@@ -17,35 +19,17 @@ export default {
         'Accent/Dark': '#0D442B',
         'Accent/Light': '#BBF7D0',
         'Accent/Target': '#22C55E',
-        scrollbar: '#555', // Thumb color
-        'scrollbar-track': '#222', // Track color
       },
+              scrollbar: {
+          DEFAULT: "#2e2e2e", 
+          hover: "#444444",    
+        },
       fontFamily: {
         serif: ['Source Serif Pro', 'serif'],
         mono: ['Consolas', 'monospace'],
       },
     },
   },
-  plugins: [
-    function ({ addComponents }) {
-      addComponents({
-        '.scrollbar': {
-          '::-webkit-scrollbar': {
-            width: '12px',
-          },
-          '::-webkit-scrollbar-thumb': {
-            backgroundColor: '#555',
-            borderRadius: '10px',
-          },
-          '::-webkit-scrollbar-track': {
-            backgroundColor: '#222',
-          },
-          '::-webkit-scrollbar-horizontal': {
-            height: '12px',
-          },
-        },
-      });
-    },
-  ],
+  plugins: [tailwindScrollbar],
 };
 

@@ -36,20 +36,17 @@ const ButtonShare: React.FC = () => {
         onClick={handleCreate}
       >
         {/* Avatar Section */}
-        <div className='inline-block flex justify-between items-center w-full'>
-          {/* Avatar Section */}
-          <div className='-ml-2 sm:max-md:-ml-2 md:max-2xl:ml-4'>
-            <img
-              src={avatarUrl || ''}
-              alt='Profile Icon'
-              className='w-16 h-16 object-cover rounded-full aspect-square'
-            />
-          </div>
+        <div className='inline-block -ml-2 -mt-4  sm:max-lg:-mt-4 lg:max-2xl:-mt-2 sm:max-md:-ml-2 md:max-2xl:ml-4'>
+          <img
+            src={avatarUrl || ''}
+            alt='Profile Icon'
+            className='w-16 h-16 sm:max-2xl:w-16 rounded-full object-cover'
+          />
+        </div>
 
-          {/* Share Text Section */}
-          <div className='bg-Background/Middle py-4 px-4 rounded-3xl h-14 w-full ml-2'>
-            <p className='text-Primary/Light text-l'>Share your code...</p>
-          </div>
+        {/* Share Text Section */}
+        <div className='bg-Background/Middle inline-block -mt-2 py-4 pl-4 rounded-3xl h-14 w-4/5 sm:max-md:w-4/5 md:max-2xl:w-3/4 marker:sm:max-lg:-mt-2 lg:max-2xl:mt-0'>
+          <p className='text-left text-Primary/Light text-l'>Share your code...</p>
         </div>
       </button>
       {showPostCreate && (
@@ -72,4 +69,3 @@ const ButtonShare: React.FC = () => {
 };
 
 export default ButtonShare;
-

@@ -5,7 +5,9 @@
 @tailwind utilities;
 /*outside tailwind features*/
 /*tailwind layers*/
-
+html {
+  @apply scrollbar;
+}
 body {
   @apply font-sans;
   /* Applies the custom sans-serif font globally */
@@ -30,6 +32,29 @@ body {
   border-radius: 10px; /* Rounded corners */
 }
 
+/* Scrollbar Styling */
+.scrollbar {
+  scrollbar-width: thin; 
+  scrollbar-color: #36424D #1B2329; /* Thumb color and track color */
+}
+
+/* Webkit-based browsers (Chrome, Safari, Edge) */
+.scrollbar::-webkit-scrollbar {
+  width: 4px;  /* Scrollbar width */
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background-color: #444444;  /* Lighter gray thumb */
+  border-radius: 4px; /* Slightly rounded corners */
+}
+
+.scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #555555;  
+}
+
+.scrollbar::-webkit-scrollbar-track {
+  background-color: #2e2e2e; 
+}
 /*custom css
 *{
   font-style: italic;

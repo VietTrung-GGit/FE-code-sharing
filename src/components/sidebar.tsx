@@ -63,7 +63,7 @@ function Sidebar({
   return (
     <div>
       <div
-        className={`border-t-0 border-b-0 top-14 left-0 bg-Background/Bottom text-center w-64 h-full p-1 fixed flex flex-col border-Primary/Dark border-solid box-border border-r-2 border-y-2 z-40
+        className={`border-t-0 border-b-0 top-14 left-0 bg-Background/Bottom text-center w-56 lg:w-60 xl:64 h-full p-1 fixed flex flex-col border-Primary/Dark border-solid box-border border-r-2 border-y-2 z-40
         transition-transform duration-300 ease-in-out 
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 sm:static sm:max-xl:w-64 xl:max-2xl:w-72 sm:max-xl:p-1 xl:max-2xl:p-2 sm:max-2xl:fixed sm:max-lg:top-[58px] lg:max-2xl:top-0`}

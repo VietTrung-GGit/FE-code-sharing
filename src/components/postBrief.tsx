@@ -147,7 +147,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
   return (
     <div className='flex justify-center items-center relative'>
       {visible && (
-        <div className='bg-Background/Bottom text-white sm:w-4/5 md:w-1/2 my-10 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+        <div className='bg-Background/Bottom text-white w-4/5 lg:w-1/2 my-10 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
           {/* Avatar and Tags */}
           <div className='flex items-center justify-between mb-4'>
             <div className='flex items-center gap-4'>
