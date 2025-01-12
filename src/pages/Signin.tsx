@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-
+import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import Footer from '../components/footer';
 import Header from '../components/header';
+import LoadingSpinner from '../components/loadingSpinner';
 
 function Signin() {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ function Signin() {
   });
 
   // State to display feedback messages
-  const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false); // Loading state
 
   // Handler to manage input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,14 +29,16 @@ function Signin() {
 
     // **Client-Side Validation**
     if (!formData.username.trim()) {
-      setMessage('Username is required.');
+      toast.error('Username is required.');
       return;
     }
 
     if (!formData.password.trim()) {
-      setMessage('Password is required.');
+      toast.error('Password is required.');
       return;
     }
+
+    setLoading(true); // Start loading
 
     try {
       // Send data to the backend
@@ -43,7 +46,9 @@ function Signin() {
       setTimeout(() => navigate('/feed/me'), 1500); // Redirect to dashboard after a short delay
     } catch (error: any) {
       // Handle errors
-      setMessage(error.response?.data?.message || 'An error occurred during sign-in.');
+      toast.error(error.response?.data?.message || 'An error occurred during sign-in.');
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -62,33 +67,34 @@ function Signin() {
               <input
                 type='text'
                 placeholder='Username'
-                className='bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3'
+                className='bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3 transition-all duration-300 ease-in-out focus:outline-none focus:ring-3 focus:ring-primary focus:ring-offset-2'
                 name='username'
                 value={formData.username}
                 onChange={handleChange}
-                required
               />
               <br />
               <input
                 type='password'
                 placeholder='Password'
-                className='bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3'
+                className='bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3 transition-all duration-300 ease-in-out focus:outline-none focus:ring-3 focus:ring-primary focus:ring-offset-2'
                 name='password'
                 value={formData.password}
                 onChange={handleChange}
-                required
               />
               <br />
-              {message && <p className='text-l text-red-500 m-6'>{message}</p>}
               <p className='text-l text-white m-6'>
                 Don't have an account?{' '}
                 <Link to='/signup' className='font-bold'>
                   Sign up!
                 </Link>
               </p>
-              <button className='w-32 h-10 rounded-xl bg-white text-xl text-Primary/Dark m-6 hover:bg-Primary/Dark hover:text-white'>
-                Sign in
-              </button>
+              {loading ? (
+                <LoadingSpinner /> // Show loading spinner when submitting
+              ) : (
+                <button className='w-32 h-10 rounded-xl bg-white text-xl text-Primary/Dark m-6 hover:bg-Primary/Dark hover:text-white'>
+                  Sign in
+                </button>
+              )}
             </form>
           </div>
         </div>

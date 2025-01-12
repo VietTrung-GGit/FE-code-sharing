@@ -10,14 +10,22 @@ export interface PostFile {
 }
 
 export const tags = [
-  'Technology1',
-  'Technology2',
-  'Technology3',
-  'Technology4',
-  'Technology5',
-  'Technology6',
-  'Technology7',
-  'Technology8',
+  'Python',
+  'Javascript',
+  'Java',
+  'C#',
+  'C++',
+  'PHP',
+  'CSS',
+  'Bash/Shell',
+  'HTML',
+  'SQL',
+  'C',
+  'Typescript',
+  'Go',
+  'Rust',
+  'Kotlin',
+  'Powershell',
 ];
 
 export interface Post {

@@ -11,8 +11,8 @@ function NotFound() {
       <main className='flex-grow flex justify-center items-center text-center text-white  text-2xl'>
         <div>
           <p>Oops! Did you get lost?</p>
-          <Link to='/' className='text-Accent/Light hover:text-Accent/Target'>
-            Go back to Landing page
+          <Link to='/feed/me' className='text-Accent/Light hover:text-Accent/Target'>
+            Go back to Home
           </Link>
         </div>
       </main>

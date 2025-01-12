@@ -61,7 +61,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const data = await loginUser(username, password);
       setIsAuthenticated(true);
-      toast.success('Sign in successfully');
       localStorage.setItem('accessToken', data.accessToken);
     } catch (error) {
       console.error('Login failed:', error);

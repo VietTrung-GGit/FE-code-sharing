@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Footer from '../components/footer';
 import Header from '../components/header';
 import { isValidEmail, isStrongPassword } from '../utils/helpers'; // Import validation helper
+import { toast } from 'react-toastify';
 
 function Signup() {
   const navigate = useNavigate();
@@ -15,9 +16,6 @@ function Signup() {
     password: '',
     passwordConfirm: '',
   });
-
-  // State to display feedback messages
-  const [message, setMessage] = useState<string | null>(null);
 
   // Handler to manage input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,35 +29,35 @@ function Signup() {
 
     // **Client-Side Validation**
     if (!formData.username.trim()) {
-      setMessage('Username is required.');
+      toast.error('Username is required.');
       return;
     }
 
     if (!formData.email.trim() || !isValidEmail(formData.email)) {
-      setMessage('Invalid email format. Example: example@gmail.com.');
+      toast.error('Invalid email format. Example: example@gmail.com.');
       return;
     }
 
     if (!isStrongPassword(formData.password)) {
-      setMessage(
+      toast.error(
         'Password must be at least 8 characters long, include a number and an uppercase letter.',
       );
       return;
     }
 
     if (formData.password !== formData.passwordConfirm) {
-      setMessage('Passwords do not match!');
+      toast.error('Passwords do not match!');
       return;
     }
 
     try {
       // Send data to the backend
       await signup(formData.username, formData.email, formData.password);
-      setMessage('Signup successful!');
+      toast.success('Sign up successful!');
       setTimeout(() => navigate('/feed/me'), 1500); // Redirect to sign-in page after a short delay
     } catch (error: any) {
       // Handle errors
-      setMessage(error.response?.data?.message || 'An error occurred during signup.');
+      toast.error(error.response?.data?.message || 'An error occurred during signup.');
     }
   };
 
@@ -82,7 +80,7 @@ function Signup() {
                 name='username'
                 value={formData.username}
                 onChange={handleChange}
-                required
+                maxLength={30}
               />
               <br />
               <input
@@ -92,7 +90,6 @@ function Signup() {
                 name='email'
                 value={formData.email}
                 onChange={handleChange}
-                required
               />
               <br />
               <input
@@ -102,7 +99,6 @@ function Signup() {
                 name='password'
                 value={formData.password}
                 onChange={handleChange}
-                required
               />
               <br />
               <input
@@ -112,10 +108,8 @@ function Signup() {
                 name='passwordConfirm'
                 value={formData.passwordConfirm}
                 onChange={handleChange}
-                required
               />
               <br />
-              {message && <p className='text-l text-red-500 m-6'>{message}</p>}
               <p className='text-l text-white m-6'>
                 Already have an account?{' '}
                 <Link to='/signin' className='font-bold'>

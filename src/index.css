@@ -13,13 +13,21 @@ body {
 
 /* Override Monaco editor's background color */
 .monaco-editor .monaco-editor-background {
-  background-color: #1B2329 !important;
+  background-color: #1b2329 !important;
   /* pink-100 in Tailwind */
 }
 
 .monaco-editor .margin {
-  background-color: #1B2329 !important;
+  background-color: #1b2329 !important;
   /* Line number margin background */
+}
+
+/* Custom Toast Styles */
+.Toastify__toast {
+  background-color: #0f151a; /* Dark background */
+  color: white; /* White text */
+  font-size: 16px; /* Larger font size */
+  border-radius: 10px; /* Rounded corners */
 }
 
 /*custom css
@@ -34,3 +42,4 @@ body {
   }
 }
 */
+

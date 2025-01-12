@@ -1,3 +1,5 @@
+import { useDropzone, Accept } from 'react-dropzone';
+
 export const formatNumber = (num: number): string => {
   if (num >= 1e9) {
     return (num / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
@@ -70,5 +72,67 @@ export const getMimeTypeForExtension = (extension: string): string | undefined =
   };
 
   return mimeTypes[extension.toLowerCase()] || 'application/octet-stream'; // Default to a generic binary MIME type if not found
+};
+
+export const getEditorLanguage = (fileName: string): string => {
+  const extension = fileName.split('.').pop()?.toLowerCase();
+
+  if (!extension || extension === '') {
+    return 'markdown'; // Handle files without extension or empty extensions
+  }
+
+  switch (extension) {
+    case 'js':
+    case 'jsx':
+      return 'javascript';
+    case 'ts':
+    case 'tsx':
+      return 'typescript';
+    case 'html':
+      return 'html';
+    case 'css':
+      return 'css';
+    case 'py':
+      return 'python';
+    case 'java':
+      return 'java';
+    case 'cs':
+      return 'c#';
+    case 'cpp':
+      return 'c++';
+    case 'php':
+      return 'php';
+    case 'sh':
+      return 'bash/shell';
+    case 'sql':
+      return 'sql';
+    case 'go':
+      return 'go';
+    case 'rs':
+      return 'rust';
+    case 'kt':
+      return 'kotlin';
+    case 'ps1':
+      return 'powershell';
+    default:
+      return 'markdown';
+  }
+};
+
+export const acceptTypes: Accept = {
+  'text/javascript': ['.js', '.jsx'],
+  'text/x-markdown': ['.md', '.markdown'],
+  'application/python': ['.py'],
+  'application/java': ['.java'],
+  'text/x-csharp': ['.cs'],
+  'text/x-c++': ['.cpp'],
+  'application/php': ['.php'],
+  'application/shellscript': ['.sh'],
+  'text/html': ['.html'],
+  'application/sql': ['.sql'],
+  'text/go': ['.go'],
+  'text/rust': ['.rs'],
+  'text/kotlin': ['.kt'],
+  'application/powershell': ['.ps1'],
 };
 

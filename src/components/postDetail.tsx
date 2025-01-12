@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
-import { formatNumber, formatDate } from '../utils/helpers';
+import { formatNumber, formatDate, getEditorLanguage } from '../utils/helpers';
 import { getUserFullData } from '../services/userService';
 import { toast } from 'react-toastify';
 import {
@@ -210,24 +210,6 @@ const PostDetail: React.FC<PostDetailProps> = ({
     }
   };
 
-  const getEditorLanguage = (fileName: string): string => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    switch (extension) {
-      case 'js':
-      case 'jsx':
-        return 'javascript';
-      case 'ts':
-      case 'tsx':
-        return 'typescript';
-      case 'html':
-        return 'html';
-      case 'css':
-        return 'css';
-      default:
-        return 'plaintext';
-    }
-  };
-
   const handleCommentChange = (deleted: boolean) => {
     if (!post) return;
     const newCommentCount = deleted ? post.totalComments - 1 : post.totalComments + 1;
@@ -371,9 +353,14 @@ const PostDetail: React.FC<PostDetailProps> = ({
               <p className='font-bold text-lg'>{post ? post.authorname : ''}</p>
               <p className='text-sm text-Accent/Light'>
                 {post ? formatDate(post.createdAt) : 'Loading...'}&nbsp;
-                {post && post.updatedAt && post.createdAt !== post.updatedAt && (
-                  <span className='text-xs text-white'>(Edited: {formatDate(post.updatedAt)})</span>
-                )}
+                {post &&
+                  post.editedAt &&
+                  Math.abs(new Date(post.createdAt).getTime() - new Date(post.editedAt).getTime()) >
+                    100 && (
+                    <span className='text-xs text-white'>
+                      (Edited: {formatDate(post.editedAt)})
+                    </span>
+                  )}
               </p>
               {/* Check if `updatedAt` is different from `createdAt` */}
             </div>
@@ -404,16 +391,14 @@ const PostDetail: React.FC<PostDetailProps> = ({
 
         {/* Tabs */}
         <div className='flex overflow-x-auto'>
-          {post?.files.map((file, index) => (
-            <div
-              key={index}
-              className={`flex-shrink-0 text-Primary/Light font-bold max-w-[150px] truncate px-2 py-1 cursor-pointer ${
-                activeTab === index ? 'border-b-4 border-Primary/Dark' : ''
-              }`}
-              onClick={() => setActiveTab(index)}
-            >
-              {file.fileName || 'Untitled'}
-              <div>
+          {post.files.length > 0 ? (
+            post.files.map((file, index) => (
+              <div
+                key={index}
+                className={`flex-shrink-0 text-Primary/Light font-bold max-w-[150px] truncate px-2 py-1 cursor-pointer ${activeTab === index ? 'border-b-4 border-Primary/Dark' : ''}`}
+                onClick={() => setActiveTab(index)}
+              >
+                {file.fileName || 'Untitled'}
                 <button
                   onClick={() => {
                     //alert(file.fileUrl);
@@ -423,17 +408,54 @@ const PostDetail: React.FC<PostDetailProps> = ({
                   Download File
                 </button>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <span className='text-Primary/Light'>No files available</span>
+          )}
         </div>
+        {/* <div className='flex overflow-x-auto'>
+          {post?.files?.length === 0 ? (
+            <div className='text-center text-gray-500'>No files available</div>
+          ) : (
+            post?.files.map((file, index) => (
+              <div
+                key={index}
+                className={`flex-shrink-0 text-Primary/Light font-bold max-w-[150px] truncate px-2 py-1 cursor-pointer ${
+                  activeTab === index ? 'border-b-4 border-Primary/Dark' : ''
+                }`}
+                onClick={() => setActiveTab(index)}
+              >
+                {file.fileName || 'Untitled'}
+                <div>
+                  <button
+                    onClick={() => {
+                      //alert(file.fileUrl);
+                      downloadTextFile(file.fileUrl, file.fileName);
+                    }}
+                  >
+                    Download File
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div> */}
 
         {/* Code Editor for the selected file */}
         <div className='mb-4'>
           <Editor
             height='30vh'
             width='100%'
-            language={getEditorLanguage(post ? post.files[activeTab]?.fileName : '')}
-            value={post ? post.files[activeTab]?.fileUrl : ''}
+            language={
+              post && post.files[activeTab]?.fileName
+                ? getEditorLanguage(post.files[activeTab]?.fileName)
+                : 'markdown'
+            }
+            value={
+              post && post.files[activeTab]?.fileUrl
+                ? post.files[activeTab]?.fileUrl
+                : 'No content available'
+            }
             theme='vs-dark'
             options={{
               minimap: { enabled: false },
@@ -445,6 +467,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
             }}
           />
         </div>
+
         {/* Buttons */}
         <div className='flex justify-end space-x-4 mt-4'>
           <div className='flex justify-end'>
@@ -463,7 +486,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
 
             <svg
               onClick={handleSave}
-              className={`w-8 h-8 ml-2 stroke-current fill-current ${hasSaved ? 'text-Accent/Target' : 'text-Accent/Light'}`}
+              className={`cursor-pointer w-8 h-8 ml-2 stroke-current fill-current ${hasSaved ? 'text-Accent/Target' : 'text-Accent/Light'}`}
               viewBox='0 0 24 24'
             >
               <path
@@ -501,6 +524,12 @@ const PostDetail: React.FC<PostDetailProps> = ({
                       <div>
                         <p className='font-bold'>{comment.authorname}</p>
                         <p className='text-sm text-Accent/Light'>{formatDate(comment.updatedAt)}</p>
+                        {post ? formatDate(comment.createdAt) : 'Loading...'}&nbsp;
+                        {post && post.editedAt && post.createdAt !== comment.editedAt && (
+                          <span className='text-xs text-white'>
+                            (Edited: {formatDate(comment.editedAt)})
+                          </span>
+                        )}
                       </div>
                     </div>
                     {comment.isAuthor && (

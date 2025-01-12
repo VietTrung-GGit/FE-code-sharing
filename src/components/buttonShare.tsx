@@ -31,7 +31,7 @@ const ButtonShare: React.FC = () => {
   return (
     <div>
       <button
-        className='bg-Background/Bottom text-center mt-0 p-14 w-full h-40 top-32 right-0 relative border-Primary/Dark border-solid box-border border-2 mb-28 flex justify-between rounded-3xl lg:rounded-none
+        className='bg-Background/Bottom text-center mt-0 p-14 w-full h-40 top-32 right-0 relative border-Primary/Dark border-solid box-border border-2 mb-10 flex justify-between rounded-3xl lg:rounded-none
         sm:max-lg:p-14 lg:max-xl:p-10 xl:max-2xl:p-12 md:max-lg:mx-[160px] lg:max-xl:ml-[290px] xl:max-2xl:ml-96 sm:max-md:w-full md:max-lg:w-2/3 lg:max-2xl:w-1/2 sm:max-lg:rounded-3xl lg:max-2xl:rounded-b-3xl lg:max-2xl:top-0'
         onClick={handleCreate}
       >
@@ -40,7 +40,7 @@ const ButtonShare: React.FC = () => {
           <img
             src={avatarUrl || ''}
             alt='Profile Icon'
-            className='w-[70px] sm:max-2xl:w-20 rounded-full object-cover'
+            className='w-16 h-16 sm:max-2xl:w-16 rounded-full object-cover'
           />
         </div>
 

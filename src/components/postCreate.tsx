@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useDropzone, Accept } from 'react-dropzone';
 import Editor from '@monaco-editor/react';
-import { formatDate } from '../utils/helpers';
+import { formatDate, getEditorLanguage, acceptTypes } from '../utils/helpers';
 import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import '../index.css';
 import {
   tags,
   Post,
@@ -26,7 +28,9 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
   const [content, setContent] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(
+    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+  );
   const [displayname, setDisplayName] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,11 +48,6 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
   }, []);
 
   const MAX_FILES = 6;
-
-  const acceptTypes: Accept = {
-    'text/javascript': ['.js', '.jsx'],
-    'text/x-markdown': ['.md', '.markdown'],
-  };
 
   // Initialize form for edit mode if postData exists
   useEffect(() => {
@@ -96,7 +95,7 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
   const updateFileContent = (newContent: string) => {
     setFiles((prevFiles) =>
       prevFiles.map((file, index) =>
-        index === activeTab ? { ...file, content: newContent } : file,
+        index === activeTab ? { ...file, fileUrl: newContent } : file,
       ),
     );
   };
@@ -129,6 +128,7 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
 
   const handleSubmit = async () => {
     try {
+      console.log(files);
       const postUploadData: PostUpload = {
         title,
         content,
@@ -160,16 +160,21 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
         {/* Avatar, Name, and Date */}
         <div className='flex items-center gap-4 mb-4'>
           <img
-            src={avatarUrl || 'https://via.placeholder.com/50'} // Placeholder if no avatar
+            src={
+              avatarUrl ||
+              'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+            } // Placeolder if no avatar
             alt='Avatar'
             className='w-12 h-12 rounded-full object-cover'
           />
           <div>
             <p className='font-bold text-lg'>{displayname || 'Loading...'}</p>
             {postData && (
-              <span className='text-xs text-white'>{formatDate(postData.createdAt)}</span>
+              <span className='text-xs text-white'>
+                {formatDate(postData.createdAt)}. Updating:&nbsp;
+              </span>
             )}
-            <span className='text-sm text-Accent/Light'>. Update: Now</span>
+            <span className='text-sm text-Accent/Light'>Now</span>
           </div>
         </div>
 
@@ -295,14 +300,14 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
           ))}
 
           {/* New File Button */}
-          {/* {files.length < MAX_FILES && (
+          {files.length < MAX_FILES && (
             <button
               onClick={addNewFile}
               className='flex-shrink-0 px-2 py-1 bg-Primary/Dark text-white border-b-4 border-Primary/Dark'
             >
               +
             </button>
-          )} */}
+          )}
         </div>
 
         {/* Editor */}
@@ -373,18 +378,4 @@ const PostCreate: React.FC<PostCreateProps> = ({ postData, closeModal: propclose
 };
 
 export default PostCreate;
-
-// Function to determine editor language
-function getEditorLanguage(fileName: string): string {
-  const extension = fileName.split('.').pop()?.toLowerCase();
-  switch (extension) {
-    case 'js':
-    case 'jsx':
-      return 'javascript';
-    case 'txt':
-      return 'markdown';
-    default:
-      return 'plaintext';
-  }
-}
 

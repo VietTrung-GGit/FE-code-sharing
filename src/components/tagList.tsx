@@ -11,7 +11,6 @@ import Comments from '../assets/comments.svg';
 import CommentsClicked from '../assets/commentsClicked.svg';
 import { tags } from '../services/postService';
 
-
 function TagList({
   isOpen,
   onFilterChange,
@@ -33,9 +32,7 @@ function TagList({
   const [order, setOrder] = useState<'ascending' | 'descending'>('descending');
   const [criteria, setCriteria] = useState<'date' | 'likes' | 'comments'>('date');
 
-  const handleOrderStateClick = (
-    newOrder: 'ascending' | 'descending',
-  ) => {
+  const handleOrderStateClick = (newOrder: 'ascending' | 'descending') => {
     setActiveButton(newOrder);
     setOrder(newOrder);
   };
@@ -44,7 +41,6 @@ function TagList({
 
     setMethodButton(newCriteria);
   };
-
 
   const handleButtonClick = (tag: string) => {
     setSelectedTags((prev) =>
@@ -69,10 +65,10 @@ function TagList({
 
   return (
     <div
-      className={`top-32 right-0 bg-Background/Bottom text-center w-64 h-3/4 pt-4 pl-4 min-h-[500px] overflow-y-scroll rounded-l-3xl fixed border-Primary/Dark border-solid box-border border-2 z-40
-      transition-transform duration-300 ease-in-out
-      ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-      lg:translate-x-0 sm:static  sm:max-xl:pl-4 xl:max-2xl:pl-6 lg:max-2xl:mr-6 sm:max-2xl:fixed sm:max-lg:rounded-l-3xl lg:max-2xl:rounded-3xl sm:max-lg:top-32 lg:max-2xl:top-8`}
+      className={`flex flex-col top-28 right-0 bg-Background/Bottom text-center w-64 h-3/4 pt-4 pl-4 min-h-[500px] rounded-l-3xl fixed border-Primary/Dark border-solid box-border border-2 z-40
+    transition-transform duration-300 ease-in-out
+    ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+    lg:translate-x-0 sm:static sm:max-xl:pl-4 xl:max-2xl:pl-6 lg:max-2xl:mr-6 sm:max-2xl:fixed sm:max-lg:rounded-l-3xl lg:max-2xl:rounded-3xl sm:max-lg:top-28 lg:max-2xl:top-8`}
     >
       <div className='mb-4 mt-2'>
         <div className='w-8 inline-block fixed left-6'>
@@ -80,7 +76,7 @@ function TagList({
         </div>
         <div className='ml-2 sm:max-xl:ml-2 xl:max-2xl:-ml-2'>
           <input
-            className='rounded-3xl text-left bg-Background/Middle text-Primary/Light text-xl placeholder-Primary/Light w-40 pl-2 sm:max-xl:pl-2 xl:max-2xl:pl-3'
+            className='rounded-3xl text-left bg-Background/Middle text-Primary/Light text-lg placeholder-Primary/Light w-40 pl-2 sm:max-xl:pl-2 xl:max-2xl:pl-3'
             placeholder='Search...'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -93,9 +89,7 @@ function TagList({
         <button
           className='w-[140px]'
           onClick={() =>
-            handleOrderStateClick(
-              activeButton === 'ascending' ? 'descending' : 'ascending',
-            )
+            handleOrderStateClick(activeButton === 'ascending' ? 'descending' : 'ascending')
           }
         >
           <div className='w-8 inline-block fixed left-6'>
@@ -105,7 +99,7 @@ function TagList({
             ></img>
           </div>
           <div className='w-28 -ml-6 inline-block sm:max-xl:-ml-6 xl:max-2xl:-ml-8'>
-            <p className='text-left text-Primary/Light text-xl'>
+            <p className='text-left text-Primary/Light text-lg'>
               {activeButton === 'descending' ? 'Descending' : 'Ascending'}
             </p>
           </div>
@@ -120,7 +114,7 @@ function TagList({
           </div>
           <div className='inline-block -ml-2'>
             <p
-              className={`text-left text-xl ${methodButton === 'date' ? 'text-Primary/Dark' : 'text-Primary/Light'}`}
+              className={`text-left text-lg ${methodButton === 'date' ? 'text-Primary/Dark' : 'text-Primary/Light'}`}
             >
               Date
             </p>
@@ -136,7 +130,7 @@ function TagList({
           </div>
           <div className='inline-block ml-0'>
             <p
-              className={`text-left text-xl ${methodButton === 'likes' ? 'text-Primary/Dark' : 'text-Primary/Light'}`}
+              className={`text-left text-lg ${methodButton === 'likes' ? 'text-Primary/Dark' : 'text-Primary/Light'}`}
             >
               Likes
             </p>
@@ -155,7 +149,7 @@ function TagList({
           </div>
           <div className='inline-block ml-8'>
             <p
-              className={`text-left text-xl ${methodButton === 'comments' ? 'text-Primary/Dark' : 'text-Primary/Light'}`}
+              className={`text-left text-lg ${methodButton === 'comments' ? 'text-Primary/Dark' : 'text-Primary/Light'}`}
             >
               Comments
             </p>
@@ -169,12 +163,13 @@ function TagList({
           <img src={Filter} alt='Fliter icon'></img>
         </div>
         <div className='w-32 -ml-6 inline-block sm:max-xl:-ml-6 xl:max-2xl:-ml-8'>
-          <p className='text-left text-Primary/Light text-xl'>Filter by tags:</p>
+          <p className='text-left text-Primary/Light text-lg'>Filter by tags:</p>
         </div>
       </div>
 
       {/*tags*/}
-      <div className='text-left'>
+      {/*tags*/}
+      <div className='flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-Primary/Dark scrollbar-track-Background/Middle'>
         {tags.map((tag) => (
           <button key={tag} className='w-24 my-2 mr-2' onClick={() => handleButtonClick(tag)}>
             <div className='flex flex-col'>

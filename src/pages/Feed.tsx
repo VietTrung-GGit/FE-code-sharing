@@ -10,7 +10,7 @@ import { useUser } from '../context/UserContext';
 import { useParams } from 'react-router-dom';
 import { Post, fetchPosts } from '../services/postService';
 import { useNavigate } from 'react-router-dom';
-
+import LoadingSpinner from '../components/loadingSpinner';
 type PostType = 'stored' | 'me' | undefined;
 //type PostType = 'stored' | 'me' | undefined;
 interface Params extends Record<string, string | undefined> {
@@ -110,8 +110,8 @@ function Feed() {
 
     observer.current = new IntersectionObserver(observerCallback, {
       root: null,
-      rootMargin: '0px',
-      threshold: 0.25, // Trigger when 50% of the sentinel is visible
+      rootMargin: '300px',
+      threshold: 0, // Trigger sentinel is visible
     });
 
     const currentObserver = observer.current;
@@ -130,9 +130,9 @@ function Feed() {
       const target = event.target as Node;
       if (
         !sidebarRef.current?.contains(target) &&
-        !tagListRef.current?.contains(target) //&&
-        //!sidebarButtonRef.current?.contains(target) &&
-        //!tagListButtonRef.current?.contains(target)
+        !tagListRef.current?.contains(target) &&
+        !sidebarButtonRef.current?.contains(target) &&
+        !tagListButtonRef.current?.contains(target)
       ) {
         setActiveComponent(null);
       }
@@ -164,7 +164,8 @@ function Feed() {
   return (
     <div className='bg-Background/Middle relative min-h-screen flex flex-col'>
       {type != 'stored' && <ButtonShare />}
-      <NothingPost />
+      {posts.length === 0 ? <NothingPost state={type} /> : null}
+
       <div id='posts-container'>
         {posts.map((post) => (
           <div key={post._id} className='post'>
@@ -172,13 +173,9 @@ function Feed() {
           </div>
         ))}
       </div>
-      {loading && (
-        <div className='flex items-center justify-center text-white'>
-          <p>Loading page...</p>
-        </div>
-      )}
+      {loading && <LoadingSpinner />}
       <div ref={sentinelRef} style={{ height: '50px' }} />
-      {!hasMore && <p>No more posts to load.</p>}
+      {!hasMore}
       <div ref={sidebarRef}>
         <Sidebar
           isOpen={activeComponent === 'sidebar'}
