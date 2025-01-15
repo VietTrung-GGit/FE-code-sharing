@@ -79,6 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (username: string, email: string, password: string) => {
     try {
       await signupUser(username, email, password);
+      toast.success('Sign up successful!');
       await login(username, password);
     } catch (error) {
       console.error('Sign up failed:', error);

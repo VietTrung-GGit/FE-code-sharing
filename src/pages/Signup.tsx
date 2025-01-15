@@ -62,7 +62,7 @@ function Signup() {
     try {
       // Send data to the backend
       await signup(formData.username, formData.email, formData.password);
-      toast.success('Sign up successful!');
+     
       setTimeout(() => navigate('/feed/me'), 1500); // Redirect to sign-in page after a short delay
     } catch (error: any) {
       // Handle errors
