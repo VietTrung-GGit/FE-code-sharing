@@ -7,12 +7,12 @@ import { useNavigate } from 'react-router-dom';
 function Landing() {
   const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   const token = localStorage.getItem('accessToken'); // Replace with your token logic
-  //   if (token) {
-  //     navigate('/feed'); // Redirect to the Home page
-  //   }
-  // }, [navigate]);
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken'); // Replace with your token logic
+    if (token) {
+      navigate('/feed'); // Redirect to the Home page
+    }
+  }, [navigate]);
 
   return (
     <div className='bg-Background/Middle relative min-h-screen flex flex-col'>

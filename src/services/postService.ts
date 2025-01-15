@@ -163,7 +163,8 @@ export const createPost = async (postData: PostUpload): Promise<string> => {
 
   // Append files as blobs (title and content will be included as files)
   postData.code_files.forEach((file) => {
-    const blob = new Blob([file.fileUrl], { type: 'text/plain' }); // Create a Blob from the file content
+    const fileContent = file.fileUrl || 'no content'; // If empty, set to "no content"
+    const blob = new Blob([fileContent], { type: 'text/plain' }); // Create a Blob from the file content
     formData.append('code_files', blob, file.fileName); // Append the file with its name
   });
 
@@ -278,7 +279,6 @@ export const deleteComment = async (postId: string, commentId: string) => {
 const fetchFileContent = async (files: PostFile[]): Promise<PostFile[]> => {
   try {
     const fileFetchPromises = files.map(async (file) => {
-      console.log(`Fetching file: ${file.fileUrl}`); // Log file URL to debug
       try {
         // Change responseType to 'text' to handle text content
         const fileResponse = await axios.get(file.fileUrl, { responseType: 'text' });
@@ -298,7 +298,7 @@ const fetchFileContent = async (files: PostFile[]): Promise<PostFile[]> => {
     });
 
     const fetchedFiles = await Promise.all(fileFetchPromises);
-    console.log('All files fetched:', fetchedFiles); // Log the final result
+    // console.log('All files fetched:', fetchedFiles); // Log the final result
     return fetchedFiles;
   } catch (fileError) {
     console.error('Error fetching file contents:', fileError); // Catch outer-level errors
@@ -310,13 +310,16 @@ const fetchFileContent = async (files: PostFile[]): Promise<PostFile[]> => {
 export const convertPostFilesToFile = (postFiles: PostFile[]): File[] => {
   return postFiles.map((postFile) => {
     const { fileUrl, fileName } = postFile;
+    console.log('yeah');
+    // If file content is empty, replace it with "no content"
+    const content = fileUrl || 'No content';
 
     // Extract the file extension and get the correct MIME type
     const fileExtension = `.${fileName.split('.').pop()}`;
     const mimeType = getMimeTypeForExtension(fileExtension);
 
-    // Create a Blob from the file URL's content (assuming the content is text, you can adjust this if needed)
-    const fileContent = new Blob([fileUrl], { type: mimeType }); // Assuming content is text, adjust if binary
+    // Create a Blob from the content (which is now "no content" if fileUrl was empty)
+    const fileContent = new Blob([content], { type: mimeType });
 
     // Create the File object with the MIME type and file name
     const fileWithTitle = new File([fileContent], fileName, { type: mimeType });

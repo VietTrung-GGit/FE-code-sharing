@@ -23,6 +23,7 @@ interface PostDetailProps {
   propliked?: boolean;
   propsaved?: boolean;
   commentDelete?: (down: boolean) => void;
+  closeModal: () => void;
 }
 interface CommentUpload {
   _id: string;
@@ -40,6 +41,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
   propliked = false,
   propsaved = false,
   commentDelete = () => {},
+  closeModal: propcloseModal,
 }) => {
   const [post, setPost] = useState<Post>(proppost);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -92,9 +94,18 @@ const PostDetail: React.FC<PostDetailProps> = ({
       }
     };
 
-    fetchUserData();
-  }, []);
+    // Disable body scroll
+    document.body.style.overflow = 'hidden';
 
+    // Fetch user data
+    fetchUserData();
+
+    // Cleanup to restore scroll behavior when component is unmounted or modal is closed
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
+  const parentRef = useRef<HTMLDivElement | null>(null);
   const observer = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -121,41 +132,40 @@ const PostDetail: React.FC<PostDetailProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [page, hasMore, loading]);
+  }, [page, hasMore]);
 
   // Initial load of comments
   useEffect(() => {
     fetchComment();
-  }, [fetchComment]);
+  }, []);
 
   // Infinite scroll logic using IntersectionObserver
   // Inside useEffect for intersection observer
   useEffect(() => {
-    if (!sentinelRef.current) return;
+    if (!sentinelRef.current || !parentRef.current) return;
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries;
       if (entry.isIntersecting && hasMore && !loading) {
         console.log('Fetching comments...');
-        fetchComment(); // Only call if loading is false and hasMore is true
+        fetchComment();
       }
     };
 
     observer.current = new IntersectionObserver(observerCallback, {
-      root: null,
-      rootMargin: '100px', // Increase rootMargin to trigger a bit earlier
+      root: parentRef.current, // Use the parent div as the root
+      rootMargin: '100px', // Trigger a bit earlier
       threshold: 0.9, // Trigger when 90% of the sentinel element is visible
     });
 
     const currentObserver = observer.current;
     currentObserver.observe(sentinelRef.current);
-
     return () => {
       if (currentObserver && sentinelRef.current) {
         currentObserver.unobserve(sentinelRef.current);
       }
     };
-  }, [hasMore, loading, fetchComment]); // Only rerun when hasMore or loading changes
+  }, [hasMore, loading, comments]); // Only rerun when hasMore or loading changes
 
   const handleLike = async () => {
     if (!post) return;
@@ -217,7 +227,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
   };
 
   const handleCommentSubmit = async () => {
-    if (post && newCommentText && newCommentCode) {
+    if (post && (newCommentText || newCommentCode)) {
       try {
         const responseComments = await createComment(post._id, {
           text: newCommentText,
@@ -229,7 +239,9 @@ const PostDetail: React.FC<PostDetailProps> = ({
           _id: responseComments || '',
           code: newCommentCode,
           text: newCommentText,
-          authorname: displayname || '',
+          authorname:
+            displayname ||
+            'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
           avatar: avatarUrl || '',
           postId: post._id,
         };
@@ -238,7 +250,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
         commentDelete(false);
         const displayedComment: Comment = {
           _id: responseComments,
-          code: newCommentText,
+          code: newCommentCode,
           text: newCommentText,
           authorname: displayname || '',
           avatar: avatarUrl || '',
@@ -246,7 +258,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
           postId: post._id,
           createdAt: 'Recently', // Pass formatted date string
           updatedAt: 'Recently', // Pass formatted date string
-          editedAt: 'Recently',
+          editedAt: '',
           __v: 0,
           isAuthor: true,
         };
@@ -261,6 +273,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
         });
         setNewCommentText('');
         setNewCommentCode('');
+        toast.success('Comment success');
       } catch (error) {
         commentDelete(true);
         handleCommentChange(true);
@@ -288,6 +301,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
         ...updatedComments[index],
         text: editedText,
         code: editedCode,
+        editedAt: 'Recently',
       };
       setComments(updatedComments);
 
@@ -339,9 +353,18 @@ const PostDetail: React.FC<PostDetailProps> = ({
   };
 
   return (
-    <div className='w-full h-[95vh] flex flex-col text-white bg-Background/Bottom relative border-Primary/Dark border-solid box-border border-2 rounded-3xl p-5 md:p-7 lg:p-8 xl-10'>
+    <div className='w-full h-full lg:h-[95vh] lg:w-3/5 flex flex-col  text-white bg-Background/Bottom lg:my-10 relative border-Primary/Dark border-solid box-border lg:border-2 lg:rounded-3xl p-5 md:p-7 lg:p-8 xl-10'>
       {/* Avatar, Name, and Date */}
-      <div className='overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
+      <button
+        onClick={propcloseModal}
+        className='absolute top-6 right-12 text-white text-3xl hover:text-Primary/Light z-40'
+      >
+        ×
+      </button>
+      <div
+        ref={parentRef}
+        className='overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'
+      >
         <div className='flex items-center justify-between mb-4'>
           <div className='flex items-center gap-4'>
             <img
@@ -365,64 +388,62 @@ const PostDetail: React.FC<PostDetailProps> = ({
               {/* Check if `updatedAt` is different from `createdAt` */}
             </div>
           </div>
-          <div className='flex flex-wrap gap-2'>
-            {post?.tags && post.tags.length > 0 ? (
-              post.tags.map((tagName, index) => (
+        </div>
+        <div className='flex items-center gap-2 my-2'>
+          <p className='flex-shrink-0'>Tags:</p>
+          {post?.tags && post.tags.length > 0 && (
+            <div className='flex flex-wrap gap-2 flex-grow'>
+              {post.tags.map((tagName, index) => (
                 <span
                   key={index}
-                  className='bg-Primary/Light flex justify-center text-Primary/Dark text-sm px-2 rounded-3xl w-20 py-1'
+                  className='bg-Primary/Light flex justify-center text-Primary/Dark text-sm w-20 px-2 rounded-3xl py-1'
                 >
                   {tagName}
                 </span>
-              ))
-            ) : (
-              <span></span>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <p className='w-full py-2 overflow-hidden resize-none focus:outline-none focus:border-transparent text-lg text-Primary/Light'>
           {post?.title}
         </p>
-
         <p className='mb-4 w-full overflow-hidden resize-none focus:outline-none focus:border-transparent'>
           {post ? post.content : ''}
         </p>
-
         {/* Tabs */}
-        <div className='flex overflow-x-auto'>
-          {post.files.length > 0 ? (
+        <div className='flex overflow-x-auto scrollbar'>
+          {post.files.length > 0 &&
             post.files.map((file, index) => (
               <div
                 key={index}
-                className={`flex-shrink-0 text-Primary/Light font-bold max-w-[150px] truncate px-2 py-1 cursor-pointer ${activeTab === index ? 'border-b-4 border-Primary/Dark' : ''}`}
+                className={`flex-shrink-0 font-semibold px-2 py-1 cursor-pointer ${activeTab === index ? 'min-w-[120px]  border-b-4 text-Primary/Light border-Primary/Dark' : 'w-[120px] truncate text-white'}`}
                 onClick={() => setActiveTab(index)}
               >
-                <div className='flex justify-between items-center w-full'>
-                  <span className='mr-2'>{file.fileName || 'Untitled'}</span>
-                  <button
-                    onClick={() => {
-                      // alert(file.fileUrl);
-                      downloadTextFile(file.fileUrl, file.fileName);
-                    }}
-                    className='inline-flex items-center'
-                  >
-                    <svg
-                      className='w-5 h-5'
-                      viewBox='0 0 24 24'
-                      fill='white'
-                      stroke='white'
-                      xmlns='http://www.w3.org/2000/svg'
+                <div className='flex justify-between items-center w-full space-x-2'>
+                  <span>{file.fileName || 'Untitled'}</span>
+                  {activeTab === index && (
+                    <button
+                      onClick={() => {
+                        // alert(file.fileUrl);
+                        downloadTextFile(file.fileUrl, file.fileName);
+                      }}
+                      className='inline-flex items-center'
                     >
-                      <path d='M5.625 15C5.625 14.5858 5.28921 14.25 4.875 14.25C4.46079 14.25 4.125 14.5858 4.125 15H5.625ZM4.875 16H4.125H4.875ZM19.275 15C19.275 14.5858 18.9392 14.25 18.525 14.25C18.1108 14.25 17.775 14.5858 17.775 15H19.275ZM11.1086 15.5387C10.8539 15.8653 10.9121 16.3366 11.2387 16.5914C11.5653 16.8461 12.0366 16.7879 12.2914 16.4613L11.1086 15.5387ZM16.1914 11.4613C16.4461 11.1347 16.3879 10.6634 16.0613 10.4086C15.7347 10.1539 15.2634 10.2121 15.0086 10.5387L16.1914 11.4613ZM11.1086 16.4613C11.3634 16.7879 11.8347 16.8461 12.1613 16.5914C12.4879 16.3366 12.5461 15.8653 12.2914 15.5387L11.1086 16.4613ZM8.39138 10.5387C8.13662 10.2121 7.66533 10.1539 7.33873 10.4086C7.01212 10.6634 6.95387 11.1347 7.20862 11.4613L8.39138 10.5387ZM10.95 16C10.95 16.4142 11.2858 16.75 11.7 16.75C12.1142 16.75 12.45 16.4142 12.45 16H10.95ZM12.45 5C12.45 4.58579 12.1142 4.25 11.7 4.25C11.2858 4.25 10.95 4.58579 10.95 5H12.45ZM4.125 15V16H5.625V15H4.125ZM4.125 16C4.125 18.0531 5.75257 19.75 7.8 19.75V18.25C6.61657 18.25 5.625 17.2607 5.625 16H4.125ZM7.8 19.75H15.6V18.25H7.8V19.75ZM15.6 19.75C17.6474 19.75 19.275 18.0531 19.275 16H17.775C17.775 17.2607 16.7834 18.25 15.6 18.25V19.75ZM19.275 16V15H17.775V16H19.275ZM12.2914 16.4613L16.1914 11.4613L15.0086 10.5387L11.1086 15.5387L12.2914 16.4613ZM12.2914 15.5387L8.39138 10.5387L7.20862 11.4613L11.1086 16.4613L12.2914 15.5387ZM12.45 16V5H10.95V16H12.45Z' />
-                    </svg>
-                  </button>
+                      <svg
+                        className='w-4 h-4'
+                        viewBox='0 0 20 20'
+                        fill='white'
+                        stroke='white'
+                        xmlns='http://www.w3.org/2000/svg'
+                      >
+                        <path d='M5.625 15C5.625 14.5858 5.28921 14.25 4.875 14.25C4.46079 14.25 4.125 14.5858 4.125 15H5.625ZM4.875 16H4.125H4.875ZM19.275 15C19.275 14.5858 18.9392 14.25 18.525 14.25C18.1108 14.25 17.775 14.5858 17.775 15H19.275ZM11.1086 15.5387C10.8539 15.8653 10.9121 16.3366 11.2387 16.5914C11.5653 16.8461 12.0366 16.7879 12.2914 16.4613L11.1086 15.5387ZM16.1914 11.4613C16.4461 11.1347 16.3879 10.6634 16.0613 10.4086C15.7347 10.1539 15.2634 10.2121 15.0086 10.5387L16.1914 11.4613ZM11.1086 16.4613C11.3634 16.7879 11.8347 16.8461 12.1613 16.5914C12.4879 16.3366 12.5461 15.8653 12.2914 15.5387L11.1086 16.4613ZM8.39138 10.5387C8.13662 10.2121 7.66533 10.1539 7.33873 10.4086C7.01212 10.6634 6.95387 11.1347 7.20862 11.4613L8.39138 10.5387ZM10.95 16C10.95 16.4142 11.2858 16.75 11.7 16.75C12.1142 16.75 12.45 16.4142 12.45 16H10.95ZM12.45 5C12.45 4.58579 12.1142 4.25 11.7 4.25C11.2858 4.25 10.95 4.58579 10.95 5H12.45ZM4.125 15V16H5.625V15H4.125ZM4.125 16C4.125 18.0531 5.75257 19.75 7.8 19.75V18.25C6.61657 18.25 5.625 17.2607 5.625 16H4.125ZM7.8 19.75H15.6V18.25H7.8V19.75ZM15.6 19.75C17.6474 19.75 19.275 18.0531 19.275 16H17.775C17.775 17.2607 16.7834 18.25 15.6 18.25V19.75ZM19.275 16V15H17.775V16H19.275ZM12.2914 16.4613L16.1914 11.4613L15.0086 10.5387L11.1086 15.5387L12.2914 16.4613ZM12.2914 15.5387L8.39138 10.5387L7.20862 11.4613L11.1086 16.4613L12.2914 15.5387ZM12.45 16V5H10.95V16H12.45Z' />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </div>
-            ))
-          ) : (
-            <span className='text-Primary/Light'>No files available</span>
-          )}
+            ))}
         </div>
         {/* <div className='flex overflow-x-auto'>
           {post?.files?.length === 0 ? (
@@ -451,22 +472,17 @@ const PostDetail: React.FC<PostDetailProps> = ({
             ))
           )}
         </div> */}
-
         {/* Code Editor for the selected file */}
         <div className='mb-4'>
           <Editor
-            height='30vh'
+            height='40vh'
             width='100%'
             language={
               post && post.files[activeTab]?.fileName
                 ? getEditorLanguage(post.files[activeTab]?.fileName)
                 : 'markdown'
             }
-            value={
-              post && post.files[activeTab]?.fileUrl
-                ? post.files[activeTab]?.fileUrl
-                : 'No content available'
-            }
+            value={post && post.files[activeTab]?.fileUrl ? post.files[activeTab]?.fileUrl : ''}
             theme='vs-dark'
             options={{
               minimap: { enabled: false },
@@ -478,13 +494,12 @@ const PostDetail: React.FC<PostDetailProps> = ({
             }}
           />
         </div>
-
         {/* Buttons */}
         <div className='flex justify-end space-x-4 mt-4'>
           <div className='flex justify-end'>
             <button
               onClick={handleLike}
-              className={`w-20 h-8 inline-flex items-center justify-center py-2 px-4 rounded-lg ${hasLiked ? 'bg-Accent/Target text-white' : 'bg-white text-Accent/Target'}`}
+              className={`transition-colors duration-200 ease-in-out w-20 h-8 inline-flex items-center justify-center py-2 px-4 rounded-lg ${hasLiked ? 'bg-Accent/Target text-white' : 'bg-white text-Accent/Target'}`}
             >
               <svg
                 className={`w-6 h-6 mr-1 stroke-current fill-current`} // Tailwind class for color
@@ -497,7 +512,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
 
             <svg
               onClick={handleSave}
-              className={`cursor-pointer w-8 h-8 ml-2 stroke-current fill-current ${hasSaved ? 'text-Accent/Target' : 'text-Accent/Light'}`}
+              className={`transition-colors duration-200 ease-in-out cursor-pointer w-8 h-8 ml-2 stroke-current fill-current ${hasSaved ? 'text-Accent/Target' : 'text-Accent/Light'}`}
               viewBox='0 0 24 24'
             >
               <path
@@ -528,19 +543,30 @@ const PostDetail: React.FC<PostDetailProps> = ({
                   <div className='flex justify-between items-center mb-2'>
                     <div className='flex items-center gap-4'>
                       <img
-                        src={comment.avatar || '/default-avatar.png'}
+                        src={
+                          comment.avatar ||
+                          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMwAAADACAMAAAB/Pny7AAAAMFBMVEXh4eGjo6OgoKDk5OTd3d2mpqbY2Ni1tbXV1dXIyMipqamurq69vb3Pz8/CwsKdnZ2sOJR4AAAE30lEQVR4nO2d2ZaDIAxAK2FH9P//dsDavdMKCoSe3KeZeeKeACImmdOJIAiCIAiCIAiCIAiC+GEAXn/qkjB6LrU3C15LvvypS+CkzaQcG9jCwJyajO5TR/rRiShxJfwi3Ohl65GlAtwocS9yExLK8J6iA2Dcq8cNZ/rZDECq4U1Q7sIzKNmHDYC3n0zOWN9DcOA0vlsrr2tn7GBf4+MGlUVn5K3H+g2uNroEG4XbBjbHZY0N6pk2JbgEm6n1eD8AJskl2Bi8odEizWUYhG495v9IWPzX0GDdBCBtwaw2E8qJBtLmyFiUBxsY01UiI0IZ0DmBiaHRCG2m5K3sjED4sMnYytbQ4NvQwGcGJoTGo5tnOfvyGhp08yx7lmGcZ9rlyzhsZ5r8JRMXTevRP2HyXYbBtB79E/nrH98OkPSG+SKD7TZgn0zr0T+yY2fGtzeTDMnU4Jc2gJ96zvzWCWDLZ4z/sMjOZiD3nJqxXdDsOM+gO82kXzPfyaC7cAadvWgQ3jX90u1M2Jxz782wbcyRzP0s7GWtR/6OKS8y2B7/Z/jHrIz/cAhXzClzd8a3L6+ASpdRSF3CRBOpH2gFzkkWAZ8aGHx35jcSlw3aBbMyfU7OelBBuivfsdmmA5cT32gTXPAu/htmy5daZjEeyd6g3fzNZbaY97F74GuuBps6SAO8APJz9iy2l/7PAHj1z/uNUF3kmj4AoCdll9T5dWrFn6yadHcqEQCup1E5KxasU+OkeZcqCxCEpF/KNLyXQaRbk5XVoH8RgiAIgiAIgiCITnnzOtbjG9ryXsm51Nr7y2uz91pLzvt66QxD5Vx7Ey8znBUDY3OAsUFYFy81jNdBqQOheIOhfdQQ5wYNTzeZy59EVPIa9/1GFDEXj4+3s6uRQXrzFENiRme/eTwaWTcadAECkEZlZgJZZSQinRATN2wNyLsQDQ5JWw0ArYav32O+MQ8KwR20NHberbLozNa0TAmKF+M2f3o9w5iNF+uNZPQo5sNUFp1ZjC1KtiCqHBeVqw6LOrWjI4+cYI86dqq8dowro3LWcRU/q4NUqelLiTqiXscgn1dfnqRTKaUedtUwbKdKxpM65Bn5nVn9jksFG17PJdqUzHuCXaVl6TBV8nST2fMjn4LVaLnp/vkUKxTYU72US7mqp8xk/30USuTc0Ywhn1JtHPILsXbZFFk1lbflq0yRh01+Udk+bIl5Vul8+UqJedZmyRRaND8VmZ/aAH7rOdNmopU6nPHqh+ZwbC72SlP9pFmyInVTJ+YjKVrLkV4ht4+ydSlZjT9zKd4wFPb0ZEl0qdBhc6x1b1ahGw2cMop+c1A1vmykdcvOpVaXbajx8KzWMbx8bOp2Py+7Q1du3lT2u0bt+u0dvWa/0aAXban7zVadm8bjv2wy0axx2+f/MpNDze/Mz8hDgxPC0jZ7xh93zcGUb52oJSdxTFaTqJ2Y8RY97k8HYnOTDKA3gFb7kk8YU4h6nIF3+dFhs8PVtgEgd2OLW1j7hMYnAPgUM5qTRAbhJqypzaf4H/SGra1ahvi/9RCn0cOJ+7U/w0eRc88Gz7EXbQSfJYfeitdSgHMxwNKzwWj0JmdimcZapWFXgVXMXqo0EM+uV5axrvUzZuVaP9OVyY2nmgVsJQwEQRAEQRAEQRAEQRDEkfwBfaQ7JeMptiMAAAAASUVORK5CYII='
+                        }
                         alt='Avatar'
                         className='w-8 h-8 rounded-full object-cover'
                       />
                       <div>
-                        <p className='font-bold'>{comment.authorname}</p>
-                        <p className='text-sm text-Accent/Light'>{formatDate(comment.updatedAt)}</p>
-                        {post ? formatDate(comment.createdAt) : 'Loading...'}&nbsp;
-                        {post && post.editedAt && post.createdAt !== comment.editedAt && (
-                          <span className='text-xs text-white'>
-                            (Edited: {formatDate(comment.editedAt)})
-                          </span>
-                        )}
+                        <p className='font-semibold'>{comment.authorname}</p>
+                        <span className='text-sm text-Accent/Light'>
+                          {' '}
+                          {post ? formatDate(comment.createdAt) : 'Loading...'}&nbsp;
+                        </span>
+                        {comment &&
+                          comment.editedAt &&
+                          (comment.editedAt == 'Recently' ||
+                            Math.abs(
+                              new Date(comment.createdAt).getTime() -
+                                new Date(comment.editedAt).getTime(),
+                            ) > 100) && (
+                            <span className='text-xs text-white'>
+                              (Edited: {formatDate(comment.editedAt)})
+                            </span>
+                          )}
                       </div>
                     </div>
                     {comment.isAuthor && (
@@ -571,7 +597,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                               Edit
                             </button>
                             <button
-                              className='text-sm text-Accent/Light hover:text-white'
+                              className='text-sm text-red-200 hover:text-white'
                               onClick={() => handleDelete(comment._id, index)}
                             >
                               Delete
@@ -585,7 +611,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                   {editingComment === index ? (
                     <>
                       <textarea
-                        className='w-full p-2 border border-Primary/Dark rounded mb-2'
+                        className='w-full p-2 border border-Primary/Dark bg-Background/Middle rounded mb-2'
                         value={editedText}
                         onChange={(e) => setEditedText(e.target.value)}
                         placeholder='Edit your comment'
@@ -634,10 +660,8 @@ const PostDetail: React.FC<PostDetailProps> = ({
             </div>
           </div>
         )}
-
         {/* Loading Indicator */}
         {loading && <div className='text-center text-Accent/Light'>Loading...</div>}
-
         {/* Sentinel for Infinite Scroll */}
         <div ref={sentinelRef} className='h-2'></div>
       </div>

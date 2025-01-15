@@ -8,6 +8,15 @@ import { toast } from 'react-toastify';
 
 function Signup() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (isAuthenticated && token) {
+      // If the user is authenticated and the token is valid, redirect to feed
+      navigate('/feed');
+    }
+  }, [isAuthenticated, navigate]);
   const { signup } = useAuth();
   // State to hold form inputs
   const [formData, setFormData] = useState({
@@ -116,7 +125,7 @@ function Signup() {
                   Sign in!
                 </Link>
               </p>
-              <button className='w-32 h-10 rounded-xl bg-Accent/Target text-xl text-white m-6 hover:bg-white hover:text-Accent/Target'>
+              <button className='transition-colors duration-300 ease-in-out w-32 h-10 rounded-xl bg-Accent/Target text-xl text-white m-6 hover:bg-white hover:text-Accent/Target'>
                 Sign up
               </button>
             </form>

@@ -14,8 +14,8 @@ function Footer() {
             <span className='text-Accent/Light'>Dash</span>
           </div>
           <p className='text-l'>Contact with us:</p>
-          <a href='mailto:xxxxxxxxx@gmail.com' className='text-blue-400 '>
-            xxxxxxxxx@gmail.com
+          <a href='mailto:xxxxxxxxx@gmail.com' className='text-Primary/Light '>
+            devteam3gdsc@gmail.com
           </a>
         </div>
 

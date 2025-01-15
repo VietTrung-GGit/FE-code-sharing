@@ -20,12 +20,14 @@ interface PostCreateProps {
   postData?: Post; // Optional prop to enable edit mode
   closeModal: () => void;
   refresh?: (proppost: Post) => void;
+  onPostCreated?: () => void;
 }
 
 const PostCreate: React.FC<PostCreateProps> = ({
   postData,
   closeModal: propcloseModal,
   refresh = () => {},
+  onPostCreated,
 }) => {
   const [files, setFiles] = useState<PostFile[]>([]); // Changed to PostFile[]
   const [activeTab, setActiveTab] = useState<number>(0);
@@ -49,7 +51,16 @@ const PostCreate: React.FC<PostCreateProps> = ({
       }
     };
 
+    // Disable body scroll
+    document.body.style.overflow = 'hidden';
+
+    // Fetch user data
     fetchUserData();
+
+    // Cleanup to restore scroll behavior when component is unmounted or modal is closed
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
   }, []);
 
   const MAX_FILES = 6;
@@ -65,18 +76,29 @@ const PostCreate: React.FC<PostCreateProps> = ({
   }, [postData]);
 
   const onDrop = (acceptedFiles: File[]) => {
-    if (files.length >= MAX_FILES) return;
+    const remainingSlots = MAX_FILES - files.length; // Calculate remaining slots
+    if (remainingSlots <= 0) return; // If no slots available, exit early
 
-    acceptedFiles.forEach((file) => {
-      if (files.length >= MAX_FILES) return;
+    const filesToAdd = acceptedFiles.slice(0, remainingSlots); // Limit to remaining slots
+
+    filesToAdd.forEach((file) => {
       const reader = new FileReader();
       reader.onload = (e: ProgressEvent<FileReader>) => {
         const content = e.target?.result as string;
-        setFiles((prevFiles) => [...prevFiles, { fileName: file.name, fileUrl: content }]);
-        setActiveTab(files.length);
+
+        // Safely update the state with the new files
+        setFiles((prevFiles) => {
+          const updatedFiles = [...prevFiles, { fileName: file.name, fileUrl: content }];
+          setActiveTab(updatedFiles.length - 1); // Set active tab to the newly added file
+          return updatedFiles; // Return the updated state
+        });
       };
       reader.readAsText(file);
     });
+
+    if (acceptedFiles.length > remainingSlots) {
+      toast.warning(`Only ${MAX_FILES} files were accepted. The rest were dismissed.`);
+    }
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -132,43 +154,52 @@ const PostCreate: React.FC<PostCreateProps> = ({
   };
 
   const handleSubmit = async () => {
-    try {
-      console.log(files);
-      const postUploadData: PostUpload = {
-        title,
-        content,
-        tags: selectedTags,
-        code_files: files.map((file) => ({
-          fileName: file.fileName,
-          fileUrl: file.fileUrl, // The file content will be the content of the file
-        })),
-      };
-
-      if (postData) {
-        await updatePost(postData._id, postUploadData); // If postData has _id, call updatePost
-        refresh({
-          ...postData,
+    if (title || content || selectedTags.length != 0 || files.length != 0) {
+      try {
+        const postUploadData: PostUpload = {
           title,
           content,
           tags: selectedTags,
-          files,
-          editedAt: 'Recently',
-        });
-      } else {
-        await createPost(postUploadData); // Otherwise, call createPost
-        window.location.reload();
-      }
+          code_files: files.map((file) => ({
+            fileName: file.fileName,
+            fileUrl: file.fileUrl, // The file content will be the content of the file
+          })),
+        };
 
-      propcloseModal();
-      toast.success('Post submitted successfully!');
-    } catch (error) {
-      console.error('Error submitting post:', error);
-      toast.error('Error submitting post!');
-    }
+        if (postData) {
+          await updatePost(postData._id, postUploadData); // If postData has _id, call updatePost
+          refresh({
+            ...postData,
+            title,
+            content,
+            tags: selectedTags,
+            files,
+            editedAt: 'Recently',
+          });
+        } else {
+          await createPost(postUploadData); // Otherwise, call createPost
+
+          onPostCreated?.();
+        }
+        propcloseModal();
+        toast.success('Post submitted successfully!');
+      } catch (error) {
+        console.error('Error submitting post:', error);
+        toast.error('Error submitting post!');
+      }
+    } else toast.warning('Empty post!');
   };
 
   return (
-    <div className='w-full h-[95vh] flex flex-col  text-white bg-Background/Bottom my-10 relative border-Primary/Dark border-solid box-border border-2 rounded-3xl p-5 md:p-7 lg:p-8 xl-10'>
+    <div className='w-full h-full lg:h-[95vh] lg:w-3/5 flex flex-col  text-white bg-Background/Bottom lg:my-10 relative border-Primary/Dark border-solid box-border lg:border-2 lg:rounded-3xl p-5 md:p-7 lg:p-8 xl-10'>
+      {/* Close Button */}
+      <button
+        onClick={propcloseModal}
+        className='absolute top-6 right-12 text-white text-3xl hover:text-Primary/Light'
+      >
+        ×
+      </button>
+
       <div className='overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
         {/* Avatar, Name, and Date */}
         <div className='flex items-center gap-4 mb-4'>
@@ -270,7 +301,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
           {files.map((file, index) => (
             <div
               key={index}
-              className={`text-Primary/Light font-bold max-w-[150px] truncate px-2 py-1 cursor-pointer ${
+              className={`text-Primary/Light font-semibold w-[120px] truncate px-2 py-1 cursor-pointer ${
                 activeTab === index ? 'border-b-4 border-Primary/Dark' : ''
               }`}
               onClick={() => setActiveTab(index)}
@@ -354,22 +385,16 @@ const PostCreate: React.FC<PostCreateProps> = ({
         <p className='text-left text-Primary/Light text-lg'>Choose tags:</p>
       </div>
       <div className='text-left text-md'>
-        <div className='flex flex-wrap justify-between'>
+        <div className='flex flex-wrap flex justify-center'>
           {tags.map((tag) => (
-            <button key={tag} className='w-24 my-2' onClick={() => handleTagSelect(tag)}>
+            <button key={tag} className='w-24 my-2 mr-2' onClick={() => handleTagSelect(tag)}>
               <div className='flex flex-col'>
                 <div
                   className={`${
-                    selectedTags.includes(tag) ? 'bg-Primary/Dark' : 'bg-Primary/Light'
+                    selectedTags.includes(tag) ? 'bg-Primary/Light' : 'bg-white'
                   } rounded-3xl p-1`}
                 >
-                  <p
-                    className={`${
-                      selectedTags.includes(tag) ? 'text-Primary/Light' : 'text-Primary/Dark'
-                    }`}
-                  >
-                    {tag}
-                  </p>
+                  <p className={'text-Primary/Dark'}>{tag}</p>
                 </div>
               </div>
             </button>

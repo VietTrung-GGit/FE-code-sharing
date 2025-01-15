@@ -10,7 +10,7 @@ interface UserData {
   email: string;
 }
 
-interface UserDataFull {
+export interface UserDataFull {
   displayname: string;
   avatar: string;
   username: string;

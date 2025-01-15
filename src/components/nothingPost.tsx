@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 function NothingPost({ state }: { state: string | undefined }) {
   return (
     <div
-      className={`${state === 'stored' ? 'lg:max-2xl:mt-8' : 'relative lg:max-2xl:-mt-16'} bg-Background/Bottom text-center mt-36 p-14 w-full h-40 border-Primary/Dark border-solid box-border border-2 rounded-3xl mb-28
-    sm:max-lg:p-14 lg:max-xl:p-10 xl:max-2xl:p-12 md:max-lg:mx-[160px] lg:max-xl:ml-[290px] xl:max-2xl:ml-96 sm:max-md:w-full md:max-lg:w-2/3 lg:max-2xl:w-1/2 sm:max-lg:mt-36 `}
+      className={`${state === 'stored' ? 'lg:max-2xl:mt-8' : 'lg:max-2xl:mt-16'} flex bg-Background/Bottom text-center mx-6 mt-20 p-14 w-full max-w-4xl h-40 border-Primary/Dark border-solid box-border border-2 rounded-3xl mb-28
+    sm:max-lg:p-14 lg:max-xl:p-10 xl:max-2xl:p-12 lg:max-2xl:w-1/2 sm:max-lg:mt-20 sm:max-lg:mx-10`}
     >
       <div className='mt-1 sm:max-lg:mt-3 lg:max-xl:mt-5 xl:max-2xl:mt-4'>
         <p className='text-left text-white text-l'>

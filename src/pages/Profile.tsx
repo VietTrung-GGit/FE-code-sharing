@@ -138,7 +138,7 @@ const ProfileCard: React.FC = () => {
     }
 
     try {
-      await updateUserPassword({
+      const response = await updateUserPassword({
         oldPassword: passwords.currentPassword,
         newPassword: passwords.newPassword,
       });
@@ -146,7 +146,8 @@ const ProfileCard: React.FC = () => {
       setIsPasswordMode(false); // Exit password mode
       setPasswords({ currentPassword: '', newPassword: '', confirmNewPassword: '' }); // Clear fields
     } catch (error) {
-      toast.error('Failed to update password. Please try again.');
+      console.log(error);
+      toast.error(error.response?.data || 'Failed to update password. Please try again.');
     }
   };
 
@@ -155,7 +156,10 @@ const ProfileCard: React.FC = () => {
       toast.error('Invalid email address. Please provide a valid email.');
       return;
     }
-
+    if (!profileData.displayName || !profileData.username) {
+      toast.warning('Name must not be empty');
+      return;
+    }
     const previousProfileData = { ...profileData }; // Backup the current profile data
     try {
       // Prepare the updated UserData object
@@ -239,8 +243,8 @@ const ProfileCard: React.FC = () => {
         isTagListVisible={false} // Disable TagList
         sidebarButtonRef={sidebarButtonRef}
       />
-      <div className='h-4/5 flex items-center'>
-        <div className='w-4/5 lg:w-2/5 mx-auto p-10 bg-Background/Bottom text-white rounded-xl shadow-lg relative border-2 border-Primary/Dark'>
+      <div className='h-5/6 flex items-center'>
+        <div className="w-4/5 lg:w-2/5 mx-auto p-10 bg-Background/Bottom bg-[url('assets/particle.svg')] bg-no-repeat bg-center bg-cover text-white rounded-xl shadow-lg relative border-2 border-Primary/Dark">
           <h2 className='text-2xl font-semibold mb-6'>Your Profile</h2>
 
           {/* Flex Layout for Image and Inputs */}
@@ -251,7 +255,7 @@ const ProfileCard: React.FC = () => {
                 <img
                   src={profileData.imageUrl}
                   alt='Profile'
-                  className={`w-24 h-24 rounded-full border-2 object-cover ${
+                  className={`w-24 h-24 rounded-full object-cover ${
                     !isEditing ? 'cursor-default' : 'cursor-pointer hover:brightness-75'
                   }`}
                   onClick={() => isEditing && document.getElementById('imageUpload')?.click()}

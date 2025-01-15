@@ -63,10 +63,10 @@ function Sidebar({
   return (
     <div>
       <div
-        className={`border-t-0 border-b-0 top-14 left-0 bg-Background/Bottom text-center w-56 lg:w-60 xl:64 h-full p-1 fixed flex flex-col border-Primary/Dark border-solid box-border border-r-2 border-y-2 z-40
+        className={`top-24 left-0 lg:border-t-0 bg-Background/Bottom text-center w-56 lg:w-60 xl:64  h-4/5 min-h-[600px] p-1 fixed flex flex-col border-Primary/Dark border-solid box-border z-40 rounded-r-3xl border-y-2 border-r-2
         transition-transform duration-300 ease-in-out 
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 sm:static sm:max-xl:w-64 xl:max-2xl:w-72 sm:max-xl:p-1 xl:max-2xl:p-2 sm:max-2xl:fixed sm:max-lg:top-[58px] lg:max-2xl:top-0`}
+        lg:translate-x-0 sm:static sm:max-xl:w-64 xl:max-2xl:w-72 sm:max-xl:p-1 xl:max-2xl:p-2 sm:max-2xl:fixed sm:max-lg:top-24 lg:max-2xl:top-0 sm:max-lg:rounded-r-3xl sm:max-lg:h-4/5 lg:max-2xl:h-full sm:max-lg:border-y-2 sm:max-lg:border-r-2 lg:max-2xl:border-r-2 lg:rounded-none lg:max-2xl:border-y-0`}
       >
         <div className='mt-2 flex justify-center invisible sm:max-lg:invisible lg:max-2xl:visible'>
           <img src={Logo} alt='CoDash Logo' className='w-10 h-auto' />
@@ -76,7 +76,7 @@ function Sidebar({
           <img
             src={avatarUrl || ''}
             alt='Profile Icon'
-            className='h-20 w-20 sm:max-xl:h-20 sm:max-xl:w-20 xl:max-2xl:h-24 xl:max-2xl:w-24 rounded-full'
+            className='h-20 w-20 sm:max-xl:h-20 sm:max-xl:w-20 xl:max-2xl:h-24 xl:max-2xl:w-24 rounded-full object-cover'
           />
           <p className='text-white mt-6 text-lg sm:max-xl:text-lg xl:max-2xl:text-xl w-56 break-words'>
             {displayname}
@@ -86,11 +86,10 @@ function Sidebar({
         {/* Navigation Buttons */}
         <div className='flex flex-col mt-16 ml-5 flex-grow'>
           <button
-            className={`m-2 flex items-center space-x-2 ${state === undefined ? 'text-green-500' : 'text-white'}`}
+            className={`m-2 flex items-center space-x-2 ${state === undefined ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
             onClick={() => handleNavigation('/feed')}
           >
             <svg
-              className={`${state === undefined ? 'stroke-green-500' : 'stroke-white'}`}
               xmlns='http://www.w3.org/2000/svg'
               width='31'
               height='31'
@@ -108,11 +107,10 @@ function Sidebar({
             <span>Codemunity</span>
           </button>
           <button
-            className={`m-2 flex items-center space-x-2 ${state === 'me' ? 'text-green-500' : 'text-white'}`}
+            className={`m-2 flex items-center space-x-2 ${state === 'me' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
             onClick={() => handleNavigation('/feed/me')}
           >
             <svg
-              className={`${state === 'me' ? 'stroke-green-500' : 'stroke-white'}`}
               xmlns='http://www.w3.org/2000/svg'
               width='30'
               height='30'
@@ -130,11 +128,10 @@ function Sidebar({
             <span>Home</span>
           </button>
           <button
-            className={`m-2 flex items-center space-x-2 ${state === 'stored' ? 'text-green-500' : 'text-white'}`}
+            className={`m-2 flex items-center space-x-2 ${state === 'stored' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
             onClick={() => handleNavigation('/feed/stored')}
           >
             <svg
-              className={`${state === 'stored' ? 'stroke-green-500' : 'stroke-white'}`}
               xmlns='http://www.w3.org/2000/svg'
               width='32'
               height='36'
@@ -152,11 +149,10 @@ function Sidebar({
             <span>Saves</span>
           </button>
           <button
-            className={`m-2 flex items-center space-x-2 ${state === 'profile' ? 'text-green-500' : 'text-white'}`}
+            className={`m-2 flex items-center space-x-2 ${state === 'profile' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
             onClick={() => handleNavigation('/profile')}
           >
             <svg
-              className={`${state === 'profile' ? 'stroke-green-500' : 'stroke-white'}`}
               xmlns='http://www.w3.org/2000/svg'
               width='32'
               height='32'
@@ -174,13 +170,25 @@ function Sidebar({
         </div>
 
         {/* Logout Button */}
-        {/* Logout Button */}
-        <div className='mb-14 sm:max-lg:mb-14 lg:max-2xl:mb-0 flex justify-center'>
+        <div className='mb-0 flex justify-center'>
           <button
-            className='m-2 flex items-center space-x-2 text-Primary/Light'
+            className='m-2 flex items-center space-x-2 text-Primary/Light hover:text-Primary/Target'
             onClick={() => setShowLogoutModal(true)}
           >
             <span>Log out</span>
+            <svg
+              viewBox='0 0 24 24'
+              className='w-6 h-6 stroke-current '
+              fill='none'
+              xmlns='http://www.w3.org/2000/svg'
+            >
+              <path
+                d='M9.35294 16.2001V18.3001C9.35294 18.8571 9.57605 19.3912 9.97319 19.785C10.3703 20.1788 10.909 20.4001 11.4706 20.4001L18.8824 20.4001C19.444 20.4001 19.9826 20.1788 20.3798 19.785C20.7769 19.3912 21 18.8571 21 18.3001L21 5.7001C21 5.14314 20.7769 4.609 20.3798 4.21517C19.9826 3.82135 19.444 3.6001 18.8824 3.6001L11.4706 3.6001C10.909 3.6001 10.3703 3.82135 9.97319 4.21517C9.57605 4.609 9.35294 5.14314 9.35294 5.7001V7.8001M15.7059 12.0001L3 12.0001M3 12.0001L6.17647 15.1501M3 12.0001L6.17647 8.8501'
+                strokeWidth='2'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+              />
+            </svg>
           </button>
         </div>
       </div>
@@ -191,18 +199,18 @@ function Sidebar({
             className='bg-Background/Bottom p-8 rounded-lg max-w-sm w-full border-2 border-Primary/Dark'
             ref={modalRef}
           >
-            <h3 className='text-xl font-semibold mb-8 text-white'>
+            <h3 className='text-xl mb-8 text-white text-center'>
               Are you sure you want to log out?
             </h3>
             <div className='flex justify-between'>
               <button
-                className='ml-7 hover:bg-Accent/Light text-Background/Bottom px-4 py-2 rounded bg-white'
+                className='ml-7 text-red-200 px-4 py-2 hover:text-red-500'
                 onClick={closeModal}
               >
                 Cancel
               </button>
               <button
-                className='mr-7 hover:bg-red-300 text-Background/Bottom px-4 py-2 rounded bg-white'
+                className='mr-7 text-Accent/Light px-4 py-2 hover:text-Accent/Target'
                 onClick={logout}
               >
                 Confirm

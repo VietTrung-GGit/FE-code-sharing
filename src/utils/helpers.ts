@@ -32,12 +32,12 @@ export const formatDate = (date: string): string => {
     if (diffInHours === 0) {
       if (diffInMinutes === 0) {
         if (diffInSeconds < 60) {
-          return `${diffInSeconds} seconds ago`; // Less than a minute ago
+          return `${diffInSeconds} seconds`; // Less than a minute ago
         }
       }
-      return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`; // Minutes ago
+      return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''}`; // Minutes ago
     }
-    return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`; // Hours ago
+    return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''}`; // Hours ago
   }
 
   // If the date is 1 day ago
@@ -114,25 +114,49 @@ export const getEditorLanguage = (fileName: string): string => {
       return 'kotlin';
     case 'ps1':
       return 'powershell';
+    case 'json':
+      return 'json';
+    case 'xml':
+      return 'xml';
+    case 'yaml':
+    case 'yml':
+      return 'yaml';
+    case 'swift':
+      return 'swift';
+    case 'rb':
+      return 'ruby';
+    case 'dart':
+      return 'dart';
+    case 'txt':
+      return 'plain text';
     default:
       return 'markdown';
   }
 };
 
 export const acceptTypes: Accept = {
-  'text/javascript': ['.js', '.jsx'],
-  'text/x-markdown': ['.md', '.markdown'],
-  'application/python': ['.py'],
-  'application/java': ['.java'],
-  'text/x-csharp': ['.cs'],
-  'text/x-c++': ['.cpp'],
-  'application/php': ['.php'],
-  'application/shellscript': ['.sh'],
-  'text/html': ['.html'],
-  'application/sql': ['.sql'],
+  'text/javascript': ['.js', '.jsx', '.mjs'],
+  'text/x-typescript': ['.ts', '.tsx'],
+  'text/x-markdown': ['.md', '.markdown', '.mdown', '.mkd'],
+  'application/python': ['.py', '.pyw'],
+  'application/java': ['.java', '.jar', '.class'],
+  'text/x-csharp': ['.cs', '.csx'],
+  'text/x-c++': ['.cpp', '.cc', '.cxx', '.h', '.hpp'],
+  'application/php': ['.php', '.phtml'],
+  'application/shellscript': ['.sh', '.bash'],
+  'text/html': ['.html', '.htm'],
+  'application/sql': ['.sql', '.db'],
   'text/go': ['.go'],
   'text/rust': ['.rs'],
-  'text/kotlin': ['.kt'],
-  'application/powershell': ['.ps1'],
+  'text/kotlin': ['.kt', '.kts'],
+  'application/powershell': ['.ps1', '.psm1'],
+  'text/css': ['.css'],
+  'application/json': ['.json'],
+  'application/xml': ['.xml'],
+  'application/yaml': ['.yaml', '.yml'],
+  'text/x-swift': ['.swift'],
+  'text/x-ruby': ['.rb'],
+  'application/dart': ['.dart'],
+  'text/plain': ['.txt'],
 };
 

@@ -65,10 +65,10 @@ function TagList({
 
   return (
     <div
-      className={`flex flex-col top-28 right-0 bg-Background/Bottom text-center w-64 h-3/4 pt-4 pl-4 min-h-[500px] rounded-l-3xl fixed border-Primary/Dark border-solid box-border border-2 z-40
+      className={`flex flex-col top-24 right-0 bg-Background/Bottom text-center w-64 h-3/4 pt-4 pl-4 min-h-[500px] rounded-3xl fixed border-Primary/Dark border-solid box-border border-2 z-40
     transition-transform duration-300 ease-in-out
     ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-    lg:translate-x-0 sm:static sm:max-xl:pl-4 xl:max-2xl:pl-6 lg:max-2xl:mr-6 sm:max-2xl:fixed sm:max-lg:rounded-l-3xl lg:max-2xl:rounded-3xl sm:max-lg:top-28 lg:max-2xl:top-8`}
+    lg:translate-x-0 sm:static sm:max-xl:pl-4 xl:max-2xl:pl-6 xl:max-2xl:mr-6 sm:max-2xl:fixed sm:max-lg:top-28 lg:max-2xl:top-8`}
     >
       <div className='mb-4 mt-2'>
         <div className='w-8 inline-block fixed left-6'>

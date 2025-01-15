@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import PostDetail from '../components/postDetail';
+import TagsScroll from '../components/tagsScroll';
 import PostCreate from '../components/postCreate';
 import { formatNumber, formatDate, getEditorLanguage } from '../utils/helpers';
 import { toast } from 'react-toastify';
@@ -126,17 +127,34 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
 
   const handleDelete = async () => {
     if (!post) return;
-    const confirmDelete = window.confirm('Are you sure you want to delete this post?');
-    if (confirmDelete) {
-      setVisible(false);
-      try {
-        deletePost(post._id);
-      } catch (error) {
-        setVisible(true);
-        toast.error('Error deleting post!');
-        console.error('Error deleting post:', error);
-      }
+    setVisible(false);
+    try {
+      deletePost(post._id);
+    } catch (error) {
+      setVisible(true);
+      toast.error('Error deleting post!');
+      console.error('Error deleting post:', error);
     }
+  };
+  const [showDeletePostModal, setShowDeletePostModal] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null); // Ref for the modal content
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setShowDeletePostModal(false); // Close modal if clicked outside
+      }
+    };
+
+    if (showDeletePostModal) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDeletePostModal]);
+  const closeDeleteModal = () => {
+    setShowDeletePostModal(false); // Close the logout confirmation modal
   };
 
   const truncatedText =
@@ -147,12 +165,42 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
   return (
     <div className='flex justify-center items-center relative'>
       {visible && (
-        <div className='bg-Background/Bottom text-white w-4/5 lg:w-1/2 my-10 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+        <div className='bg-Background/Bottom text-white w-[90vw] lg:w-1/2 mb-16 mt-5 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+          {showDeletePostModal && (
+            <div className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'>
+              <div
+                className='bg-Background/Bottom p-8 rounded-lg max-w-sm w-full border-2 border-Primary/Dark'
+                ref={modalRef}
+              >
+                <h3 className='text-xl mb-8 text-white text-center'>
+                  Are you sure you want to delete this post?
+                </h3>
+                <div className='flex justify-between'>
+                  <button
+                    className='ml-7 text-red-200 px-4 py-2 hover:text-red-500'
+                    onClick={closeDeleteModal}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className='mr-7 text-Accent/Light px-4 py-2 hover:text-Accent/Target '
+                    onClick={handleDelete}
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Avatar and Tags */}
           <div className='flex items-center justify-between mb-4'>
             <div className='flex items-center gap-4'>
               <img
-                src={post.avatar || 'fallback-avatar-url.jpg'} // Fallback for avatar
+                src={
+                  post.avatar ||
+                  'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+                } // Fallback for avatar
                 alt='Avatar'
                 className='w-12 h-12 rounded-full object-cover'
               />
@@ -173,19 +221,9 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
                 {/* Check if `updateat` is different from `createat` */}
               </div>
             </div>
-            <div className='flex flex-wrap gap-2'>
-              {post.tags.length > 0 ? (
-                post.tags.map((tagName, index) => (
-                  <span
-                    key={index}
-                    className='bg-Primary/Light flex justify-center text-Primary/Dark text-sm px-2 rounded-3xl w-20 py-1'
-                  >
-                    {tagName}
-                  </span>
-                ))
-              ) : (
-                <span></span>
-              )}
+            <div className='flex w-64'>
+              <div className='flex-grow'></div>
+              {post.tags.length > 0 && <TagsScroll tags={post.tags} />}
             </div>
           </div>
 
@@ -210,38 +248,43 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
           </div>
 
           {/* Tabs */}
-          <div className='flex overflow-x-auto'>
-            {post.files.length > 0 ? (
+          <div className='flex overflow-x-auto scrollbar'>
+            {post.files.length > 0 &&
               post.files.map((file, index) => (
                 <div
                   key={index}
-                  className={`flex-shrink-0 text-Primary/Light font-bold max-w-[150px] truncate px-2 py-1 cursor-pointer ${activeTab === index ? 'border-b-4 border-Primary/Dark' : ''}`}
+                  className={`flex-shrink-0 font-semibold px-2 py-1 cursor-pointer ${activeTab === index ? 'min-w-[90px]  border-b-4 text-Primary/Light border-Primary/Dark' : 'w-[90px] truncate text-white'}`}
                   onClick={() => setActiveTab(index)}
                 >
                   {file.fileName || 'Untitled'}
                 </div>
-              ))
-            ) : (
-              <span className='text-Primary/Light'>No files available</span>
-            )}
+              ))}
           </div>
 
           {/* Editor */}
-          <div>
-            <Editor
-              height='30vh'
-              width='100%'
-              language='javascript'
-              value={post.files[activeTab]?.fileUrl || 'No content available'}
-              theme='vs-dark'
-              options={{
-                minimap: { enabled: false },
-                fontSize: 14,
-                wordWrap: 'on',
-                readOnly: true,
-              }}
-            />
-          </div>
+          {post.files.length != 0 && (
+            <div>
+              <Editor
+                height='40vh'
+                width='100%'
+                language={
+                  post && post.files[activeTab]?.fileName
+                    ? getEditorLanguage(post.files[activeTab]?.fileName)
+                    : 'markdown'
+                }
+                value={post.files[activeTab]?.fileUrl || ''}
+                theme='vs-dark'
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 14,
+                  wordWrap: 'on',
+                  readOnly: true,
+                  renderLineHighlight: 'none',
+                  quickSuggestions: false,
+                }}
+              />
+            </div>
+          )}
 
           {/* Buttons */}
           <div className='flex justify-between items-center mt-4'>
@@ -250,7 +293,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
               <div className='flex space-x-4'>
                 <button
                   onClick={handleEdit}
-                  className='ml-5 text-white rounded-lg hover:text-Accent/Light'
+                  className=' text-white rounded-lg hover:text-Accent/Light'
                 >
                   <svg className='w-6 h-6 stroke-current stroke-2' viewBox='0 0 24 24'>
                     <path
@@ -268,7 +311,10 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
                   </svg>
                 </button>
 
-                <button onClick={handleDelete} className='text-white rounded-lg hover:text-red-300'>
+                <button
+                  onClick={() => setShowDeletePostModal(true)}
+                  className='text-white rounded-lg hover:text-red-300'
+                >
                   <svg className='w-7 h-7 stroke-current stroke-2' viewBox='0 0 24 24'>
                     <path
                       d='M10 12V17'
@@ -329,7 +375,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
 
               <button
                 onClick={() => handleLike(false)}
-                className={`w-20 h-8 inline-flex items-center justify-center py-2 px-4 rounded-lg ${
+                className={`transition-colors duration-200 ease-in-out w-20 h-8 inline-flex items-center justify-center py-2 px-4 rounded-lg ${
                   hasLiked ? 'bg-Accent/Target text-white' : 'bg-white text-Accent/Target'
                 }`}
               >
@@ -341,7 +387,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
 
               <svg
                 onClick={() => handleSave(false)}
-                className={`cursor-pointer w-8 h-8 ml-2 stroke-current fill-current ${
+                className={`transition-colors duration-200 ease-in-out  cursor-pointer w-8 h-8 ml-2 stroke-current fill-current ${
                   hasSaved ? 'text-Accent/Target' : 'text-Accent/Light'
                 }`}
                 viewBox='0 0 24 24'
@@ -365,44 +411,22 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
       )}
       {/* PostDetail Modal */}
       {showPostDetail && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex z-50'>
-          {/* Left Spacer Section (taking up 10% of the width) */}
-          <div className='sm:w-1/10 md:w-1/5 flex items-start justify-start'></div>
-
-          {/* Center Section (PostDetail) */}
-          <div className='sm:w-4/5 md:w-3/5 mx-auto flex items-center justify-center'>
-            <PostDetail
-              proppost={post}
-              toggleLike={handleLikeClick}
-              toggleSave={handleSaveClick}
-              propsaved={hasSaved}
-              propliked={hasLiked}
-              commentDelete={handleCommentChange}
-            />
-          </div>
-
-          {/* Right Section (Close Button) */}
-          <div className='sm:w-1/10 md:w-1/5  flex items-start justify-start'>
-            <button onClick={handleCloseModal1} className='text-3xl text-white'>
-              ×
-            </button>
-          </div>
+        <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
+          <PostDetail
+            proppost={post}
+            toggleLike={handleLikeClick}
+            toggleSave={handleSaveClick}
+            propsaved={hasSaved}
+            propliked={hasLiked}
+            commentDelete={handleCommentChange}
+            closeModal={handleCloseModal1}
+          />
         </div>
       )}
 
       {showPostCreate && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex z-50'>
-          <div className='sm:w-1/10 md:w-1/5 flex items-start justify-start'></div>
-
-          <div className='sm:w-4/5 md:w-3/5 mx-auto flex items-center justify-center'>
-            <PostCreate postData={post} closeModal={handleCloseModal2} refresh={refreshPost} />
-          </div>
-
-          <div className='sm:w-1/10 md:w-1/5  flex items-start justify-start'>
-            <button onClick={handleCloseModal2} className='text-3xl text-white'>
-              ×
-            </button>
-          </div>
+        <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
+          <PostCreate postData={post} closeModal={handleCloseModal2} refresh={refreshPost} />
         </div>
       )}
     </div>

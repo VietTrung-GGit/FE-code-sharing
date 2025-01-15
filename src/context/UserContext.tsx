@@ -1,91 +1,69 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import axios from 'axios'; // Ensure axios is installed and imported
-import { API_ENDPOINTS } from '../api/endpoints'; // Replace with the actual path to your API endpoints
-import { axiosInstance } from '../api/axiosInstance'; // Replace with your Axios configuration
+// src/contexts/UserContext.tsx
 
-// Define the types for the user context
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { getUserFullData, updateUserFullData, UserDataFull } from '../services/userService'; // Adjust the import path as needed
+
 interface UserContextType {
-  userId: string | null;
-  username: string | null;
-  displayname: string | null;
-  avatarUrl: string | undefined;
-  email: string | null;
-  setUser: (user: User) => void; // Function to set the user data
+  user: UserDataFull | null;
+  loadinguser: boolean;
+  erroruser: string | null;
+  updateUser: (data: Partial<UserDataFull>, imageFile?: File) => Promise<void>;
 }
 
-// Define the structure of the user data
-interface User {
-  userId: string | null;
-  username: string | null;
-  displayname: string | null;
-  avatarUrl: string | undefined;
-  email: string | null;
-}
-
-const defaultContextValue: UserContextType = {
-  userId: null,
-  username: null,
-  displayname: null,
-  avatarUrl: undefined,
-  email: null,
-  setUser: () => {},
-};
-
-// Create the context
-const UserContext = createContext<UserContextType>(defaultContextValue);
-
-// Custom hook to use the UserContext
-export const useUser = () => useContext(UserContext);
-
-// UserProvider component with children prop type
+// Typing the children prop for the provider
 interface UserProviderProps {
-  children: ReactNode; // Accepts any valid React children
+  children: ReactNode;
 }
 
-// Function to fetch full user data
-interface UserDataFull {
-  id: string;
-  displayName: string;
-  avatarfile: string;
-  username: string;
-  email: string;
-  password: string;
-}
+const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export const getUserFullData = async (): Promise<UserDataFull> => {
-  const response = await axiosInstance.get<UserDataFull>(API_ENDPOINTS.FETCH_USER_DETAIL);
-  alert(response.data);
-  return response.data;
+export const useUser = (): UserContextType => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new error('useUser must be used within a UserProvider');
+  }
+  return context;
 };
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User>({
-    userId: null,
-    username: null,
-    displayname: null,
-    avatarUrl: undefined,
-    email: null,
-  });
+  const [user, setUser] = useState<UserDataFull | null>(null);
+  const [loadinguser, setloadinguser] = useState(true);
+  const [erroruser, seterroruser] = useState<string | null>(null);
 
+  // Fetch user data on mount
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const userData = await getUserFullData();
-        setUser({
-          userId: userData.id,
-          username: userData.username,
-          displayname: userData.displayName,
-          avatarUrl: userData.avatarfile,
-          email: userData.email,
-        });
-      } catch (error) {
-        console.error('Failed to fetch user data:', error);
+        setUser(userData);
+      } catch (err) {
+        seterroruser('Failed to fetch user data');
+      } finally {
+        setloadinguser(false);
       }
     };
 
     fetchUserData();
   }, []);
 
-  return <UserContext.Provider value={{ ...user, setUser }}>{children}</UserContext.Provider>;
+  // Update user data
+  const updateUser = async (data: Partial<UserDataFull>, imageFile?: File) => {
+    try {
+      // Call the update function from the service
+      await updateUserFullData(data, imageFile);
+
+      // Fetch updated user data and set it in the context
+      const updatedUserData = await getUserFullData();
+      setUser(updatedUserData);
+    } catch (err) {
+      seterroruser('Failed to update user data');
+    }
+  };
+
+  return (
+    <UserContext.Provider value={{ user, loadinguser, erroruser, updateUser }}>
+      {children}
+    </UserContext.Provider>
+  );
 };
 

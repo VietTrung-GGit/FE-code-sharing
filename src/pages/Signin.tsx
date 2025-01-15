@@ -8,6 +8,16 @@ import LoadingSpinner from '../components/loadingSpinner';
 
 function Signin() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (isAuthenticated && token) {
+      // If the user is authenticated and the token is valid, redirect to feed
+      navigate('/feed');
+    }
+  }, [isAuthenticated, navigate]);
+
   const { login } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
@@ -91,7 +101,7 @@ function Signin() {
               {loading ? (
                 <LoadingSpinner /> // Show loading spinner when submitting
               ) : (
-                <button className='w-32 h-10 rounded-xl bg-white text-xl text-Primary/Dark m-6 hover:bg-Primary/Dark hover:text-white'>
+                <button className='transition-colors duration-300 ease-in-out w-32 h-10 rounded-xl bg-white text-xl text-Primary/Dark m-6 hover:bg-Primary/Dark hover:text-white'>
                   Sign in
                 </button>
               )}
@@ -99,7 +109,6 @@ function Signin() {
           </div>
         </div>
       </main>
-
       {/* Footer */}
       <Footer />
     </div>

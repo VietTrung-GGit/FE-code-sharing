@@ -1,104 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import { useRef } from 'react';
 
-interface Post {
-  _id: string;
-  title: string;
-  content: string;
-  tags: string[];
-  author: string;
-  authorname: string;
-  avatar: string;
-  likes: string[];
-  totalLikes: number;
-  files: string[];
-  visibility: 'public' | 'private';
-  stored: string[];
-  totalComments: number;
-  createdAt: string;
-  updatedAt: string;
-  v: number;
-  Stored: boolean;
-  Liked: boolean;
-  isAuthor: boolean;
-}
+const HorizontalScroll = () => {
+  const scrollContainer = useRef<HTMLDivElement>(null);
 
-const posts: Post[] = [
-  {
-    _id: "677f0c8b2bf6e62cd0e22012",
-    title: "hhh",
-    content: "hhh",
-    tags: [],
-    author: "677f064329becf15464443ac",
-    authorname: "knam0919",
-    avatar: "https://res.cloudinary.com/devteam3-gdsc/image/upload/v1736377973/User_avatar_files/efu4wabik5i0scwhbdx8.png",
-    likes: [],
-    totalLikes: 0,
-    files: [
-      "https://res.cloudinary.com/devteam3-gdsc/raw/upload/v1736379530/User_code_files/igkzszoy07hkkwww5esj"
-    ],
-    visibility: "public",
-    stored: [
-      "677f0cdf2bf6e62cd0e2201d"
-    ],
-    totalComments: 0,
-    createdAt: "2025-01-08T23:38:51.302Z",
-    updatedAt: "2025-01-08T23:55:02.204Z",
-    v: 0,
-    Stored: true,
-    Liked: false,
-    isAuthor: false
-  }
-];
+  const scrollLeft = () => {
+    if (scrollContainer.current) {
+      scrollContainer.current.scrollBy({ left: -100, behavior: 'smooth' });
+    }
+  };
 
-const fetchFileContent = async (fileUrl: string) => {
-  try {
-    const response = await fetch(fileUrl);
-    const text = await response.text(); // assuming it's a text or code file
-    return text;
-  } catch (error) {
-    console.error("Error fetching the file:", error);
-    return "";
-  }
-};
-
-const PostList: React.FC = () => {
-  const [fileContent, setFileContent] = useState<string>("");
+  const scrollRight = () => {
+    if (scrollContainer.current) {
+      scrollContainer.current.scrollBy({ left: 100, behavior: 'smooth' });
+    }
+  };
 
   return (
-    <div>
-      {posts.map(post => (
-        <div key={post._id}>
-          <h2>{post.title}</h2>
-          <p>{post.content}</p>
-          <div>Author: {post.authorname}</div>
-          <img src={post.avatar} alt="author avatar" />
-          <div>Total Likes: {post.totalLikes}</div>
-          <div>Total Comments: {post.totalComments}</div>
-          <div>Visibility: {post.visibility}</div>
-          <div>Stored: {post.Stored ? "Yes" : "No"}</div>
-          <div>Liked: {post.Liked ? "Yes" : "No"}</div>
-          <div>Is Author: {post.isAuthor ? "Yes" : "No"}</div>
+    <div className='flex items-center space-x-2'>
+      {/* Left Button */}
+      <button className='p-2 bg-gray-300 rounded-full hover:bg-gray-400' onClick={scrollLeft}>
+        ←
+      </button>
 
-          {/* Handle Files */}
-          <div>
-            {post.files.map((file, index) => (
-              <div key={index}>
-                <a href={file} download={`file-${index}`}>
-                  Download File {index + 1}
-                </a>
-              </div>
-            ))}
-          </div>
+      {/* Scrollable Container */}
+      <div
+        ref={scrollContainer}
+        className='flex overflow-x-auto no-scrollbar space-x-2 w-64' // Set fixed width
+        style={{ scrollSnapType: 'x mandatory', scrollBehavior: 'smooth' }}
+      >
+        {/* Tags */}
+        <span className='px-3 py-1 bg-blue-500 text-white rounded-full'>Tag 1</span>
+        <span className='px-3 py-1 bg-blue-500 text-white rounded-full'>Tag 2</span>
+        <span className='px-3 py-1 bg-blue-500 text-white rounded-full'>Tag 3</span>
+        <span className='px-3 py-1 bg-blue-500 text-white rounded-full'>Tag 4</span>
+        <span className='px-3 py-1 bg-blue-500 text-white rounded-full'>Tag 5</span>
+        <span className='px-3 py-1 bg-blue-500 text-white rounded-full'>Tag 6</span>
+      </div>
 
-          {/* Display the code file content */}
-          <div>
-            <h3>Code Content:</h3>
-            <pre>{fileContent}</pre> {/* Display the content of the file */}
-          </div>
-        </div>
-      ))}
+      {/* Right Button */}
+      <button className='p-2 bg-gray-300 rounded-full hover:bg-gray-400' onClick={scrollRight}>
+        →
+      </button>
     </div>
   );
 };
 
-export default PostList;
+export default HorizontalScroll;
+
