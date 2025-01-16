@@ -1,81 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { updateUserPassword, updateUserFullData } from '../services/userService'; // Import update functions
+import { updateUserPassword, UserDataFull } from '../services/userService'; // Import update functions
 import { toast } from 'react-toastify';
 import { isValidEmail, isStrongPassword } from '../utils/helpers';
 import Sidebar from '../components/sidebar';
 import CollapseMenu from '../components/collapseMenu';
-import { getUserFullData } from '../services/userService';
-
-interface UserDataFull {
-  displayname: string;
-  avatar: string;
-  username: string;
-  email: string;
-}
-
-interface UserDataUpdate {
-  displayname: string;
-  username: string;
-  email: string;
-}
-
-interface ProfileData {
-  username: string;
-  displayName: string;
-  email: string;
-  imageUrl: string;
-}
-
-// interface UserData {
-//   displayName: string;
-//   avatarfile: File; // Changed from avatarUrl to avatarfile
-//   username: string;
-//   email: string;
-// }
+import { useAuthUser } from '../context/AuthUserContext';
 
 const ProfileCard: React.FC = () => {
-  const [userData, setUserData] = useState<UserDataFull | undefined>();
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const user = await getUserFullData();
-        setUserData(user);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+  const { user, updateUser } = useAuthUser();
 
-    fetchUserData();
-  }, []);
-
-  const [profileData, setProfileData] = useState<ProfileData>({
-    username: 'Username', // Fallback to empty string if null
-    displayName: 'Displayname', // Fallback to empty string if null
-    email: 'Email', // Fallback to empty string if null
-    imageUrl:
+  const [profileData, setProfileData] = useState<UserDataFull>({
+    username: user?.username || 'Username', // Fallback to empty string if null
+    displayname: user?.displayname || 'Displayname', // Fallback to empty string if null
+    email: user?.email || 'Email', // Fallback to empty string if null
+    avatar:
+      user?.avatar ||
       'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541', // Placeholder image URL
   });
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const user = await getUserFullData();
-        setUserData(user);
-
-        // Update profile data with fetched user data
-        setProfileData({
-          username: user.username,
-          displayName: user.displayname,
-          email: user.email,
-          imageUrl: user.avatar, // Convert File to object URL
-        });
-      } catch (err) {
-        console.error('Failed to fetch user data:', err);
-      }
-    };
-
-    fetchUserData();
-  }, []);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isPasswordMode, setIsPasswordMode] = useState(false);
@@ -108,7 +49,7 @@ const ProfileCard: React.FC = () => {
       setAvatarFile(file);
       const reader = new FileReader();
       reader.onload = () => {
-        setProfileData((prev) => ({ ...prev, imageUrl: reader.result as string }));
+        setProfileData((prev) => ({ ...prev, avatar: reader.result as string }));
       };
       reader.readAsDataURL(file);
     }
@@ -147,7 +88,7 @@ const ProfileCard: React.FC = () => {
       setPasswords({ currentPassword: '', newPassword: '', confirmNewPassword: '' }); // Clear fields
     } catch (error) {
       console.log(error);
-      toast.error(error.response?.data || 'Failed to update password. Please try again.');
+      toast.error(error?.response?.data || 'Failed to update password. Please try again.');
     }
   };
 
@@ -156,35 +97,19 @@ const ProfileCard: React.FC = () => {
       toast.error('Invalid email address. Please provide a valid email.');
       return;
     }
-    if (!profileData.displayName || !profileData.username) {
+    if (!profileData.displayname || !profileData.username) {
       toast.warning('Name must not be empty');
       return;
     }
     const previousProfileData = { ...profileData }; // Backup the current profile data
     try {
-      // Prepare the updated UserData object
-      const userData: UserDataUpdate = {
-        displayname: profileData.displayName,
-        username: profileData.username,
-        email: profileData.email,
-      };
-
-      // Update the local state with the response data
       setProfileData({
-        username: profileData.username || '',
-        displayName: profileData.displayName,
-        email: profileData.email,
-        imageUrl: avatarFile ? URL.createObjectURL(avatarFile) : profileData.imageUrl, // Update with avatar file URL
+        ...profileData,
+        avatar: avatarFile ? URL.createObjectURL(avatarFile) : profileData.avatar,
       });
 
-      // Also update the user context
-      setUserData({
-        username: profileData.username || '',
-        displayname: profileData.displayName,
-        email: profileData.email,
-        avatar: avatarFile ? URL.createObjectURL(avatarFile) : profileData.imageUrl, // Update with avatar file URL
-      });
-      await updateUserFullData(userData, avatarFile as File);
+      await updateUser(profileData, avatarFile as File);
+
       toast.success('Profile updated successfully!');
       setIsEditing(false); // Exit editing mode
     } catch (error) {
@@ -198,12 +123,12 @@ const ProfileCard: React.FC = () => {
     setIsPasswordMode(false);
     setPasswords({ currentPassword: '', newPassword: '', confirmNewPassword: '' }); // Clear password fields
 
-    if (userData) {
+    if (user) {
       setProfileData({
-        username: userData.username || '',
-        displayName: userData.displayname,
-        email: userData.email,
-        imageUrl: userData.avatar, // Update with avatar file URL
+        username: user.username || '',
+        displayname: user.displayname,
+        email: user.email,
+        avatar: user.avatar, // Update with avatar file URL
       });
     }
   };
@@ -253,7 +178,7 @@ const ProfileCard: React.FC = () => {
             <div className='flex-shrink-0 flex items-center'>
               <div className='relative mr-2'>
                 <img
-                  src={profileData.imageUrl}
+                  src={profileData.avatar}
                   alt='Profile'
                   className={`w-24 h-24 rounded-full object-cover ${
                     !isEditing ? 'cursor-default' : 'cursor-pointer hover:brightness-75'
@@ -345,9 +270,9 @@ const ProfileCard: React.FC = () => {
                     </label>
                     <input
                       type='text'
-                      id='displayName'
+                      id='displayname'
                       maxLength={30}
-                      value={profileData.displayName}
+                      value={profileData.displayname}
                       onChange={handleInputChange}
                       className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md focus:outline-none ${
                         isEditing && 'focus:border focus:ring-2 focus:border-Primary/Dark'

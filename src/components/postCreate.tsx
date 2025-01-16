@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDropzone, Accept } from 'react-dropzone';
 import Editor from '@monaco-editor/react';
 import { formatDate, getEditorLanguage, acceptTypes } from '../utils/helpers';
+import { useAuthUser } from '../context/AuthUserContext';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../index.css';
@@ -14,7 +15,6 @@ import {
   PostUpload,
   updatePost,
 } from '../services/postService';
-import { getUserFullData } from '../services/userService';
 
 interface PostCreateProps {
   postData?: Post; // Optional prop to enable edit mode
@@ -35,28 +35,10 @@ const PostCreate: React.FC<PostCreateProps> = ({
   const [content, setContent] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(
-    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
-  );
-  const [displayname, setDisplayName] = useState<string | null>(null);
-
+  const { user } = useAuthUser();
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userData = await getUserFullData();
-        setAvatarUrl(userData.avatar);
-        setDisplayName(userData.displayname);
-      } catch (error) {
-        console.error('Failed to fetch user data:', error);
-      }
-    };
-
     // Disable body scroll
     document.body.style.overflow = 'hidden';
-
-    // Fetch user data
-    fetchUserData();
-
     // Cleanup to restore scroll behavior when component is unmounted or modal is closed
     return () => {
       document.body.style.overflow = 'auto';
@@ -205,14 +187,14 @@ const PostCreate: React.FC<PostCreateProps> = ({
         <div className='flex items-center gap-4 mb-4'>
           <img
             src={
-              avatarUrl ||
+              user?.avatar ||
               'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
             } // Placeolder if no avatar
             alt='Avatar'
             className='w-12 h-12 rounded-full object-cover'
           />
           <div>
-            <p className='font-bold text-lg'>{displayname || 'Loading...'}</p>
+            <p className='font-bold text-lg'>{user?.displayname || 'Loading...'}</p>
             {postData && (
               <span className='text-xs text-white'>
                 {formatDate(postData.createdAt)}. Updating:&nbsp;
@@ -379,26 +361,26 @@ const PostCreate: React.FC<PostCreateProps> = ({
             No files yet. Upload or start from scratch by clicking +.
           </p>
         )}
-      </div>
 
-      <div className='w-32'>
-        <p className='text-left text-Primary/Light text-lg'>Choose tags:</p>
-      </div>
-      <div className='text-left text-md'>
-        <div className='flex flex-wrap flex justify-center'>
-          {tags.map((tag) => (
-            <button key={tag} className='w-24 my-2 mr-2' onClick={() => handleTagSelect(tag)}>
-              <div className='flex flex-col'>
-                <div
-                  className={`${
-                    selectedTags.includes(tag) ? 'bg-Primary/Light' : 'bg-white'
-                  } rounded-3xl p-1`}
-                >
-                  <p className={'text-Primary/Dark'}>{tag}</p>
+        <div className='w-32'>
+          <p className='text-left text-Primary/Light text-lg'>Choose tags:</p>
+        </div>
+        <div className='text-left text-md'>
+          <div className='flex flex-wrap flex justify-center'>
+            {tags.map((tag) => (
+              <button key={tag} className='w-24 my-2 mr-2' onClick={() => handleTagSelect(tag)}>
+                <div className='flex flex-col'>
+                  <div
+                    className={`${
+                      selectedTags.includes(tag) ? 'bg-Primary/Light' : 'bg-white'
+                    } rounded-3xl p-1`}
+                  >
+                    <p className={'text-Primary/Dark'}>{tag}</p>
+                  </div>
                 </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

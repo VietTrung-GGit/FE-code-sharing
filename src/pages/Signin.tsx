@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useAuth } from '../context/AuthContext';
+import { useAuthUser } from '../context/AuthUserContext';
 import Footer from '../components/footer';
 import Header from '../components/header';
 import LoadingSpinner from '../components/loadingSpinner';
 
 function Signin() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, login } = useAuthUser();
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -18,7 +18,6 @@ function Signin() {
     }
   }, [isAuthenticated, navigate]);
 
-  const { login } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     password: '',

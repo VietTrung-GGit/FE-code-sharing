@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom'; // Ensure to import 'useNavigate' from 'react-router-dom'
-import { useAuth } from '../context/AuthContext';
+import { useAuthUser } from '../context/AuthUserContext';
 import Footer from '../components/footer';
 import Header from '../components/header';
 import { isValidEmail, isStrongPassword } from '../utils/helpers'; // Import validation helper
@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 
 function Signup() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, signup } = useAuthUser();
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -17,7 +17,6 @@ function Signup() {
       navigate('/feed');
     }
   }, [isAuthenticated, navigate]);
-  const { signup } = useAuth();
   // State to hold form inputs
   const [formData, setFormData] = useState({
     username: '',
@@ -62,7 +61,7 @@ function Signup() {
     try {
       // Send data to the backend
       await signup(formData.username, formData.email, formData.password);
-     
+
       setTimeout(() => navigate('/feed/me'), 1500); // Redirect to sign-in page after a short delay
     } catch (error: any) {
       // Handle errors

@@ -1,17 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
-import ButtonShare from '../components/buttonShare';
+import { useDebounce } from '@uidotdev/usehooks';
 import Sidebar from '../components/sidebar';
 import TagList from '../components/tagList';
-import NothingPost from '../components/nothingPost';
 import PostBrief from '../components/postBrief';
 import CollapseMenu from '../components/collapseMenu';
 import { toast } from 'react-toastify';
-import { useUser } from '../context/UserContext';
+import { useAuthUser } from '../context/AuthUserContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Post, fetchPosts } from '../services/postService';
 import LoadingSpinner from '../components/loadingSpinner';
 import PostCreate from '../components/postCreate';
-import { getUserFullData } from '../services/userService';
 import { Link } from 'react-router-dom';
 
 type PostType = 'stored' | 'me' | undefined;
@@ -36,10 +34,16 @@ function Feed() {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [firstLoad, setFirstLoad] = useState(true); // To track the initial load
+  const firstLoadRef = useRef(firstLoad);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [order, setOrder] = useState<'ascending' | 'descending'>('descending');
   const [criteria, setCriteria] = useState<'date' | 'likes' | 'comments'>('date');
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 1000);
+  const debouncedSelectedTags = useDebounce(selectedTags, 1000);
+  const debouncedOrder = useDebounce<'ascending' | 'descending'>(order, 1000);
+  const debouncedCriteria = useDebounce<'date' | 'likes' | 'comments'>(criteria, 1000);
 
   useEffect(() => {
     const validTypes: PostType[] = ['stored', 'me', undefined];
@@ -50,22 +54,64 @@ function Feed() {
       setPage(1);
       setPosts([]);
       setHasMore(true);
+      setFirstLoad(true);
     }
   }, [type, navigate]);
 
   useEffect(() => {
+    // This effect will run only when debouncedSearchTerm changes
+    console.log('Debounced search term:', debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
+
+  useEffect(() => {
+    // This effect will run only when debouncedSelectedTags changes
+    console.log('Debounced selected tags:', debouncedSelectedTags);
+  }, [debouncedSelectedTags]);
+
+  useEffect(() => {
+    // This effect will run only when debouncedOrder changes
+    console.log('Debounced order:', debouncedOrder);
+  }, [debouncedOrder]);
+
+  useEffect(() => {
+    // This effect will run only when debouncedCriteria changes
+    console.log('Debounced criteria:', debouncedCriteria);
+  }, [debouncedCriteria]);
+
+  // useEffect(() => {
+  //   // This effect will run only when type changes
+  //   console.log('Type:', type);
+  // }, [type]);
+
+  // useEffect(() => {
+  //   // This effect will run only when hasMore changes
+  //   console.log('Has more:', hasMore);
+  // }, [hasMore]);
+
+  useEffect(() => {
+    // This effect will run only on the first load
+    console.log('First load:', firstLoad);
+  }, [firstLoad]);
+
+  useEffect(() => {
+    // This effect will run only on the first load
+    console.log('Page:', page);
+  }, [page]);
+
+  useEffect(() => {
     const fetchAndUpdatePosts = async () => {
-      if (loading || !hasMore) return;
+      if (!hasMore && !firstLoad) return; // Prevent fetching if no more posts and not the first load
 
       setLoading(true);
       try {
+        console.log('Debounced search term call:', debouncedSearchTerm);
         const postsResponse = await fetchPosts(
           page,
           6, // Limit: 6 posts per page
-          order,
-          criteria,
-          searchTerm,
-          selectedTags,
+          debouncedOrder,
+          debouncedCriteria,
+          debouncedSearchTerm,
+          debouncedSelectedTags,
           type,
         );
 
@@ -79,12 +125,15 @@ function Feed() {
         console.error('Error fetching posts:', error);
       } finally {
         setLoading(false);
-        setFirstLoad(false); // Mark first load as complete
+        setFirstLoad(false);
       }
     };
-
-    fetchAndUpdatePosts();
-  }, [page, order, criteria, searchTerm, selectedTags, type, hasMore]);
+    console.log(firstLoad);
+    console.log(page);
+    if (firstLoad || page > 1) {
+      fetchAndUpdatePosts();
+    }
+  }, [page, debouncedSearchTerm, debouncedSelectedTags, debouncedOrder, debouncedCriteria, type]);
 
   const handleFilterChange = (filters: {
     selectedTags: string[];
@@ -99,6 +148,7 @@ function Feed() {
     setPage(1);
     setPosts([]);
     setHasMore(true);
+    setFirstLoad(true);
   };
 
   const observer = useRef<IntersectionObserver | null>(null);
@@ -109,7 +159,6 @@ function Feed() {
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries;
       if (entry.isIntersecting && hasMore && !loading) {
-        console.log('+1');
         setPage((prevPage) => prevPage + 1);
       }
     };
@@ -142,6 +191,8 @@ function Feed() {
     setPage(1);
     setPosts([]);
     setHasMore(true);
+    setFirstLoad(true);
+    console.log('yes');
   };
 
   useEffect(() => {
@@ -165,22 +216,7 @@ function Feed() {
   }, []);
 
   const [showPostCreate, setShowPostCreate] = useState<boolean>(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(
-    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
-  );
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userData = await getUserFullData();
-        setAvatarUrl(userData.avatar);
-      } catch (error) {
-        console.error('Failed to fetch user data:', error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
+  const { user } = useAuthUser();
 
   const handleCreate = () => {
     setShowPostCreate(true);
@@ -193,24 +229,29 @@ function Feed() {
     <div className='bg-Background/Middle relative min-h-screen flex flex-col'>
       {type !== 'stored' && (
         <div className='mb-6'>
-          <div className='flex justify-center w-full'>
+          <div className='flex justify-center ml-4 mr-3 sm:max-lg:ml-12 sm:max-lg:mr-10 lg:max-2xl:ml-3'>
             <button
-              className='bg-Background/Bottom border-2 h-40 mx-6 border-Primary/Dark px-6 py-4 w-full max-w-4xl flex items-center justify-between rounded-3xl shadow-md lg:max-2xl:w-1/2 sm:max-lg:rounded-3xl lg:max-2xl:rounded-b-3xl sm:max-lg:mx-10 lg:max-2xl:mt-0
-        border-solid box-border border-2 mb-10 rounded-3xl lg:border-t-0 text-center mt-0 p-14 mt-28 lg:rounded-none
+              className='bg-Background/Bottom border-2 h-40  border-Primary/Dark px-6 py-4 w-full max-w-4xl flex items-center justify-between rounded-3xl shadow-md lg:max-2xl:w-1/2 sm:max-lg:rounded-3xl lg:max-2xl:rounded-b-3xl lg:max-2xl:mt-0
+        border-solid box-border border-2 mb-10 rounded-3xl lg:border-t-0 text-center mt-0 p-14 mt-28 lg:rounded-none 
         sm:max-lg:p-14 lg:max-xl:p-10 xl:max-2xl:p-12'
               onClick={handleCreate}
             >
-              <div className='inline-block -ml-2 -mt-4  sm:max-lg:-mt-4 lg:max-2xl:-mt-2 sm:max-md:-ml-2 md:max-2xl:ml-4'>
-                <img
-                  src={avatarUrl || ''}
-                  alt='Profile Icon'
-                  className='w-16 h-16 rounded-full object-cover'
-                />
-              </div>
+              <div className='flex flex-row w-full items-center space-x-4'>
+                <div className='inline-block flex-shrink-0'>
+                  <img
+                    src={
+                      user?.avatar ||
+                      'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+                    }
+                    alt='Profile Icon'
+                    className='w-16 h-16 rounded-full object-cover'
+                  />
+                </div>
 
-              {/* Share Text Section */}
-              <div className='bg-Background/Middle inline-block -mt-2 py-4 pl-4 rounded-3xl h-14 w-4/5 marker:sm:max-lg:-mt-2 lg:max-2xl:mt-0'>
-                <p className='text-left text-Primary/Light text-l'>Share your code...</p>
+                {/* Share Text Section */}
+                <div className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6'>
+                  <p className='text-left text-Primary/Light text-l'>Share your code...</p>
+                </div>
               </div>
             </button>
 
@@ -231,10 +272,10 @@ function Feed() {
           {/* Show NothingPost only after the first load, no posts, and not loading */}
           {!loading && posts.length === 0 && (
             <div className='mb-6'>
-              <div className='flex justify-center w-full'>
+              <div className='flex justify-center sm:max-lg:ml-12 sm:max-lg:mr-10 lg:max-2xl:ml-3 ml-4 mr-3'>
                 <div
-                  className={`${type === 'stored' ? 'lg:max-2xl:mt-8' : 'lg:max-2xl:mt-16'} flex bg-Background/Bottom text-center mx-6 mt-20 p-14 w-full max-w-4xl h-40 border-Primary/Dark border-solid box-border border-2 rounded-3xl mb-28
-    sm:max-lg:p-14 lg:max-xl:p-10 xl:max-2xl:p-12 lg:max-2xl:w-1/2 sm:max-lg:mt-20 sm:max-lg:mx-10`}
+                  className={`${type === 'stored' ? 'lg:max-2xl:mt-8 ' : 'lg:max-2xl:mt-16 '}  flex bg-Background/Bottom text-center mt-20 p-14 w-full max-w-4xl h-40 border-Primary/Dark border-solid box-border border-2 rounded-3xl mb-28
+    sm:max-lg:p-14 lg:max-xl:p-10 xl:max-2xl:p-12 lg:max-2xl:w-1/2 sm:max-lg:mt-20`}
                 >
                   <div className='mt-1 sm:max-lg:mt-3 lg:max-xl:mt-5 xl:max-2xl:mt-4'>
                     <p className='text-left text-white text-l'>
@@ -258,7 +299,7 @@ function Feed() {
           {posts.length > 0 && (
             <div
               id='posts-container'
-              className={`items-center ${type === 'stored' ? 'mt-28 sm:max-lg:mt-28 lg:max-2xl:mt-0' : ''}`}
+              className={`items-center ml-3 mr-1 sm:max-lg:ml-6 sm:max-lg:mr-3 lg:max-2xl:ml-3 ${type === 'stored' ? 'mt-28 sm:max-lg:mt-28 lg:max-2xl:mt-0' : ''}`}
             >
               {posts.map((post) => (
                 <div key={post._id} className='post'>

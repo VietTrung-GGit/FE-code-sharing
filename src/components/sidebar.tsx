@@ -1,8 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuthUser } from '../context/AuthUserContext';
 import Logo from '../assets/logo.svg';
-import { getUserFullData } from '../services/userService';
 
 function Sidebar({
   isOpen,
@@ -14,26 +13,9 @@ function Sidebar({
   onClose: () => void;
 }) {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuthUser();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(
-    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
-  );
-  const [displayname, setDisplayName] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null); // Ref for the modal content
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userData = await getUserFullData();
-        setAvatarUrl(userData.avatar);
-        setDisplayName(userData.displayname);
-      } catch (error) {
-        console.error('Failed to fetch user data:', error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -63,7 +45,7 @@ function Sidebar({
   return (
     <div>
       <div
-        className={`top-24 left-0 lg:border-t-0 bg-Background/Bottom text-center w-56 lg:w-60 xl:64  h-4/5 min-h-[600px] p-1 fixed flex flex-col border-Primary/Dark border-solid box-border z-40 rounded-r-3xl border-y-2 border-r-2
+        className={`top-24 left-0 lg:border-t-0 bg-Background/Bottom text-center w-56 lg:max-2xl:w-64   h-4/5 min-h-[600px] p-1 fixed flex flex-col border-Primary/Dark border-solid box-border z-40 rounded-r-3xl border-y-2 border-r-2
         transition-transform duration-300 ease-in-out 
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 sm:static sm:max-xl:w-64 xl:max-2xl:w-72 sm:max-xl:p-1 xl:max-2xl:p-2 sm:max-2xl:fixed sm:max-lg:top-24 lg:max-2xl:top-0 sm:max-lg:rounded-r-3xl sm:max-lg:h-4/5 lg:max-2xl:h-full sm:max-lg:border-y-2 sm:max-lg:border-r-2 lg:max-2xl:border-r-2 lg:rounded-none lg:max-2xl:border-y-0`}
@@ -74,12 +56,15 @@ function Sidebar({
 
         <div className='flex flex-col mx-12 mt-10 items-center sm:max-lg:mt-10 lg:max-2xl:mt-32'>
           <img
-            src={avatarUrl || ''}
+            src={
+              user?.avatar ||
+              'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+            }
             alt='Profile Icon'
             className='h-20 w-20 sm:max-xl:h-20 sm:max-xl:w-20 xl:max-2xl:h-24 xl:max-2xl:w-24 rounded-full object-cover'
           />
           <p className='text-white mt-6 text-lg sm:max-xl:text-lg xl:max-2xl:text-xl w-56 break-words'>
-            {displayname}
+            {user?.displayname || 'Display name'}
           </p>
         </div>
 

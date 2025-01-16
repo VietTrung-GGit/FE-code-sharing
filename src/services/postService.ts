@@ -281,7 +281,7 @@ const fetchFileContent = async (files: PostFile[]): Promise<PostFile[]> => {
     const fileFetchPromises = files.map(async (file) => {
       try {
         // Change responseType to 'text' to handle text content
-        const fileResponse = await axios.get(file.fileUrl, { responseType: 'text' });
+        const fileResponse = await axios.get<string>(file.fileUrl, { responseType: 'text' });
 
         if (fileResponse.status !== 200) {
           throw new Error(`Failed to fetch file ${file.fileName}. Status: ${fileResponse.status}`);

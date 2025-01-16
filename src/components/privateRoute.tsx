@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuthUser } from '../context/AuthUserContext';
 import Logo from '../assets/logo.svg';
 
 interface ProtectedRouteProps {
@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 const PrivateRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, authLoading } = useAuth();
+  const { isAuthenticated, authLoading } = useAuthUser();
 
   if (authLoading) {
     // Render a loading spinner or skeleton

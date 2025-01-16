@@ -3,13 +3,6 @@ import { API_ENDPOINTS } from '../api/endpoints';
 
 // Define interfaces for user data
 
-interface UserData {
-  displayName: string;
-  avatarfile: File;
-  username: string;
-  email: string;
-}
-
 export interface UserDataFull {
   displayname: string;
   avatar: string;
@@ -28,9 +21,8 @@ export const getUserFullData = async (): Promise<UserDataFull> => {
   return postResponse.data;
 };
 
-// Function to update full user data (e.g., username, email, displayName, avatar)
 export const updateUserFullData = async (
-  data: Partial<UserData>,
+  data: Partial<UserDataFull>,
   imageFile?: File,
 ): Promise<void> => {
   // Create FormData to send both user data and image
@@ -38,13 +30,16 @@ export const updateUserFullData = async (
 
   // Append regular user data fields (ensuring they are not undefined)
   Object.keys(data).forEach((key) => {
-    const value = data[key as keyof Partial<UserData>];
+    // Skip 'avatar' if imageFile is provided to ensure no duplicate appending
+    if (key === 'avatar' && imageFile) return;
+
+    const value = data[key as keyof Partial<UserDataFull>];
     if (value !== undefined) {
       formData.append(key, String(value)); // Ensure value is a string
     }
   });
 
-  // Check if imageFile is defined and append it
+  // Append the new avatar if imageFile is provided
   if (imageFile) {
     formData.append('avatar', imageFile);
   }

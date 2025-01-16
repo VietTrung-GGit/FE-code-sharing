@@ -1,7 +1,6 @@
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { UserProvider } from './context/UserContext';
 import { ToastContainer } from 'react-toastify'; // Import ToastContainer
 import 'react-toastify/dist/ReactToastify.css'; // Import Toastify styles
 import './index.css';
@@ -13,21 +12,19 @@ import Feed from './pages/Feed';
 import Test from './pages/Test';
 import ProfileCard from './pages/Profile';
 import ProtectedRoute from './components/privateRoute'; // Import the protected route component
-import { AuthProvider } from './context/AuthContext';
+import { AuthUserProvider } from './context/AuthUserContext';
 
 const root = document.getElementById('root');
 
 if (root) {
   ReactDOM.createRoot(root).render(
     <Router>
-      <AuthProvider>
+      <AuthUserProvider>
         <Routes>
           <Route path='/' element={<Landing />} />
           <Route path='/signin' element={<Signin />} />
           <Route path='/signup' element={<Signup />} />
           <Route path='/test' element={<Test />} />
-          {/* Protected routes wrapped with ProtectedRoute */}
-          {/* //   <UserProvider> */}
           <Route
             path='/feed'
             element={
@@ -52,12 +49,9 @@ if (root) {
               </ProtectedRoute>
             }
           />
-          {/* </UserProvider> */}
-          {/* Catch-all route for 404 */}
           <Route path='/*' element={<NotFound />} />
         </Routes>
-      </AuthProvider>
-      {/* Toast container */}
+      </AuthUserProvider>
       <ToastContainer
         position='top-right'
         autoClose={1000}
