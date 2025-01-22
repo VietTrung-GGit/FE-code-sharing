@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-import tailwindScrollbar from "tailwind-scrollbar";
+import tailwindScrollbar from 'tailwind-scrollbar';
 
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
@@ -8,6 +8,12 @@ export default {
 
     extend: {
       //put in extend if you want to preserve the default
+      screens: {
+        xsm: '480px',
+        xxsm: '370px',
+        xsmnopost: '420px',
+        'h-sm': { raw: '(min-height: 680px)' },
+      }, // Custom breakpoint for extra small screens
       colors: {
         'inputbox-Sign': '#D9D9D9',
         'Primary/Dark': '#05477E',
@@ -20,10 +26,10 @@ export default {
         'Accent/Light': '#BBF7D0',
         'Accent/Target': '#22C55E',
       },
-              scrollbar: {
-          DEFAULT: "#2e2e2e", 
-          hover: "#444444",    
-        },
+      scrollbar: {
+        DEFAULT: '#2e2e2e',
+        hover: '#444444',
+      },
       fontFamily: {
         serif: ['Source Serif Pro', 'serif'],
         mono: ['Consolas', 'monospace'],

@@ -17,15 +17,9 @@ function TagList({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onFilterChange: (filters: {
-    selectedTags: string[];
-    sortBy: string;
-    order: string;
-    searchQuery: string;
-  }) => void;
+  onFilterChange: (filters: { selectedTags: string[]; sortBy: string; order: string }) => void;
 }) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [activeButton, setActiveButton] = useState<'descending' | 'ascending' | null>('descending');
   const [methodButton, setMethodButton] = useState<'likes' | 'date' | 'comments' | null>('date');
 
@@ -105,8 +99,8 @@ function TagList({
             >
               <rect fill='white' x='1.49365' y='1.5' width='25' height='25' />
               <path
-                fill-rule='evenodd'
-                clip-rule='evenodd'
+                fillRule='evenodd'
+                clipRule='evenodd'
                 d='M20.2257 19.4978C21.6447 17.906 22.5071 15.8071 22.5071 13.5067C22.5071 8.53245 18.4747 4.5 13.5004 4.5C8.5261 4.5 4.49365 8.53245 4.49365 13.5067C4.49365 18.481 8.5261 22.5135 13.5004 22.5135C15.2116 22.5135 16.8114 22.0362 18.1739 21.2076L20.7091 21.7514L20.2257 19.4978Z'
               />
             </mask>
@@ -129,105 +123,111 @@ function TagList({
   // This function triggers when any filter or search query changes.
   const handleFiltersChange = () => {
     onFilterChange({
-      selectedTags,
+      selectedTags: selectedTags || [],
       sortBy: methodButton || 'date', // Default to date if no sort method is selected
       order: activeButton || 'descending', // Default to descending if no order is selected
-      searchQuery,
     });
   };
 
   useEffect(() => {
     handleFiltersChange();
     // Trigger filter change whenever state changes
-  }, [selectedTags, searchQuery, activeButton, methodButton, criteria]);
+  }, [selectedTags, activeButton, methodButton, criteria]);
 
   return (
-    <div
-      className={`flex flex-col top-24 right-0 bg-Background/Bottom text-center w-64 h-4/5 pt-4 pl-4 min-h-[500px] rounded-3xl fixed border-Primary/Dark border-solid box-border border-2 z-40
+    <>
+      <div
+        className={`flex flex-col top-24 right-0 bg-Background/Bottom text-center w-[260px] lg:w-[22vw] xl:w-[19vw] h-4/5 pt-4 pl-4 min-h-[400px] max-h-[800px] rounded-3xl fixed border-Primary/Dark border-solid box-border border-2 z-40
     transition-transform duration-300 ease-in-out
     ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-    lg:translate-x-0 sm:static sm:max-xl:pl-4 xl:max-2xl:pl-6 xl:max-2xl:mr-6 sm:max-2xl:fixed sm:max-lg:top-24 lg:max-2xl:top-20`}
-    >
-      <div className='mb-4 mt-2'>
-        <div className='w-8 inline-block fixed left-6'>
-          <img src={Search} alt='Search icon'></img>
-        </div>
-        <div className='ml-2 sm:max-xl:ml-2 xl:max-2xl:-ml-2'>
-          <input
-            className='rounded-3xl text-left bg-Background/Middle text-Primary/Light text-lg placeholder-Primary/Light w-40 pl-2 sm:max-xl:pl-2 xl:max-2xl:pl-3'
-            placeholder='Search...'
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          ></input>
-        </div>
-      </div>
-
-      {/*ASC/DESC BUTTONS*/}
-      <div className='mb-4'>
-        <button
-          className='w-[140px] '
-          onClick={() =>
-            handleOrderStateClick(activeButton === 'ascending' ? 'descending' : 'ascending')
-          }
-        >
+    lg:translate-x-0 sm:static sm:max-xl:pl-4 xl:pl-6 lg:mr-[1vw] sm:fixed sm:max-lg:top-24 lg:top-[calc(max(2rem,25vh-6rem))]`}
+      >
+        {/* <div className='mb-4 mt-2'>
           <div className='w-8 inline-block fixed left-6'>
-            <img
-              src={activeButton === 'descending' ? Descend : Ascend}
-              alt='Descending/Ascending icon'
-            ></img>
+            <img src={Search} alt='Search icon'></img>
           </div>
-          <div className='w-28 -ml-6 inline-block sm:max-xl:-ml-6 xl:max-2xl:-ml-8'>
-            <p className='text-left text-Primary/Light text-lg hover:text-Primary/Target'>
-              {activeButton === 'descending' ? 'Descending' : 'Ascending'}
-            </p>
+          <div className='ml-2 sm:max-xl:ml-2 xl:-ml-2'>
+            <input
+              className='rounded-3xl text-left bg-Background/Middle text-Primary/Light text-lg placeholder-Primary/Light w-40 pl-2 sm:max-xl:pl-2 xl:pl-3'
+              placeholder='Search...'
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            ></input>
           </div>
-        </button>
-      </div>
-
-      {/*date,likes,comments*/}
-      <div className='mb-2'>
-        {buttons.map(({ label, criteriaKey, svg }) => (
+        </div> */}
+        <p className='text-left text-white text-xl justify-center flex mr-2 font-semibold'>
+          Filter methods:
+        </p>
+        <br />
+        {/*ASC/DESC BUTTONS*/}
+        <div className='mb-4 xl:flex xl:ml-14'>
           <button
-            key={criteriaKey}
-            className={`w-[140px] ml-10 mb-4 flex items-center space-x-2 ${
-              criteria === criteriaKey ? 'text-Primary/Light ' : 'text-white hover:text-gray-300'
-            }`}
-            onClick={() => handleCriteriaMethodChange(criteriaKey)}
+            className='w-[140px] '
+            onClick={() =>
+              handleOrderStateClick(activeButton === 'ascending' ? 'descending' : 'ascending')
+            }
           >
-            {svg}
-            <span className='text-lg'>{label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/*filter by tags*/}
-      <div className='mb-4'>
-        <div className='w-8 inline-block fixed left-6'>
-          <img src={Filter} alt='Fliter icon'></img>
-        </div>
-        <div className='w-32 -ml-6 inline-block sm:max-xl:-ml-6 xl:max-2xl:-ml-8'>
-          <p className='text-left text-Primary/Light text-lg'>Filter by tags:</p>
-        </div>
-      </div>
-
-      {/*tags*/}
-      {/*tags*/}
-      <div className='mr-2 flex-1 overflow-y-auto scrollbar scrollbar-thin scrollbar-thumb-Primary/Dark scrollbar-track-Background/Middle'>
-        {tags.map((tag) => (
-          <button key={tag} className='w-24 my-2 mr-2 ' onClick={() => handleButtonClick(tag)}>
-            <div className='flex flex-col'>
-              <div
-                className={`${
-                  selectedTags.includes(tag) ? 'bg-Primary/Light' : 'bg-white hover:bg-gray-300'
-                } rounded-3xl p-1 `}
-              >
-                <p className='text-Primary/Dark'>{tag}</p>
-              </div>
+            <div className='w-8 inline-block fixed left-6'>
+              <img
+                src={activeButton === 'descending' ? Descend : Ascend}
+                alt='Descending/Ascending icon'
+              ></img>
+            </div>
+            <div className='w-28 -ml-6 inline-block sm:max-xl:-ml-6 xl:-ml-8'>
+              <p className='text-left text-Primary/Light text-lg hover:text-Primary/Target'>
+                {activeButton === 'descending' ? 'Descending' : 'Ascending'}
+              </p>
             </div>
           </button>
-        ))}
+        </div>
+
+        {/*date,likes,comments*/}
+        <div className='mb-2'>
+          {buttons.map(({ label, criteriaKey, svg }) => (
+            <button
+              key={criteriaKey}
+              className={`w-[140px] ml-14 mb-4 flex items-center space-x-2 ${
+                criteria === criteriaKey
+                  ? 'text-Primary/Light hover:text-Primary/Target'
+                  : 'text-white hover:text-gray-300'
+              }`}
+              onClick={() => handleCriteriaMethodChange(criteriaKey)}
+            >
+              {svg}
+              <span className='text-lg'>{label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/*filter by tags*/}
+        <div className='mb-4 lg:ml-6 xl:flex xl:ml-20'>
+          <div className='w-8 inline-block fixed left-6'>
+            <img src={Filter} alt='Fliter icon'></img>
+          </div>
+          <div className='w-32 -ml-6 inline-block sm:max-xl:-ml-6 xl:-ml-8'>
+            <p className='text-left text-Primary/Light text-lg'>Filter by tags:</p>
+          </div>
+        </div>
+
+        {/*tags*/}
+        {/*tags*/}
+        <div className='mr-2 flex-1 overflow-y-auto scrollbar scrollbar-thin scrollbar-thumb-Primary/Dark scrollbar-track-Background/Middle'>
+          {tags.map((tag) => (
+            <button key={tag} className='w-24 my-2 mr-2 ' onClick={() => handleButtonClick(tag)}>
+              <div className='flex flex-col'>
+                <div
+                  className={`${
+                    selectedTags.includes(tag) ? 'bg-Primary/Light' : 'bg-white hover:bg-gray-300'
+                  } rounded-3xl p-1 `}
+                >
+                  <p className='text-Primary/Dark'>{tag}</p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

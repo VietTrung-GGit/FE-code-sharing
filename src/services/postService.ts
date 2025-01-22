@@ -287,8 +287,6 @@ const fetchFileContent = async (files: PostFile[]): Promise<PostFile[]> => {
           throw new Error(`Failed to fetch file ${file.fileName}. Status: ${fileResponse.status}`);
         }
 
-        console.log(`Fetched content for file: ${file.fileName}`); // Log after successful fetch
-
         const content = fileResponse.data; // The content will be a string
         return { ...file, fileUrl: content }; // Now fileUrl contains the actual content
       } catch (error) {
@@ -310,7 +308,6 @@ const fetchFileContent = async (files: PostFile[]): Promise<PostFile[]> => {
 export const convertPostFilesToFile = (postFiles: PostFile[]): File[] => {
   return postFiles.map((postFile) => {
     const { fileUrl, fileName } = postFile;
-    console.log('yeah');
     // If file content is empty, replace it with "no content"
     const content = fileUrl || 'No content';
 

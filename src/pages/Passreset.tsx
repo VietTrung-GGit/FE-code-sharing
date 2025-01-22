@@ -6,21 +6,9 @@ import Footer from '../components/footer';
 import Header from '../components/header';
 import LoadingSpinner from '../components/loadingSpinner';
 
-function Signin() {
-  const navigate = useNavigate();
-  const { isAuthenticated, login } = useAuthUser();
-
-  useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (isAuthenticated && token) {
-      // If the user is authenticated and the token is valid, redirect to feed
-      navigate('/feed');
-    }
-  }, [isAuthenticated, navigate]);
-
+function PassReset() {
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
+    email: '',
   });
 
   // State to display feedback messages
@@ -37,30 +25,38 @@ function Signin() {
     e.preventDefault();
 
     // **Client-Side Validation**
-    if (!formData.username.trim()) {
-      toast.error('Username is required.');
-      return;
-    }
 
-    if (!formData.password.trim()) {
-      toast.error('Password is required.');
+    if (!formData.email.trim()) {
+      toast.error('Email is required.');
       return;
     }
 
     setLoading(true); // Start loading
 
     try {
-      // Send data to the backend
-      await login(formData.username, formData.password);
-      navigate('/feed/me'); // Redirect to dashboard after a short delay
+      // Simulate API call to send reset email
+      const response = await fetch('/api/password-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send password reset email.');
+      }
+      // Display success message
+      toast.success(
+        data.message || 'Password reset email sent successfully. Please check your inbox.',
+      );
     } catch (error: any) {
-      // Handle errors
-      toast.error(error.response?.data?.message || 'An error occurred during sign-in.');
+      // Display error message
+      toast.error(error.message || 'An error occurred while sending the reset email.');
     } finally {
       setLoading(false); // Stop loading
     }
   };
-
   return (
     <div className='bg-Background/Middle relative min-h-screen flex flex-col'>
       {/* Header */}
@@ -72,43 +68,33 @@ function Signin() {
         <div className='px-3 lg:px-10 pt-0 mt-[-4rem] flex justify-center'>
           <div className="bg-Background/Bottom bg-[url('assets/particle.svg')] bg-no-repeat bg-center bg-cover text-center w-full mt-0 p-10 relative border-Primary/Dark border-solid box-border border-2 rounded-b-3xl mb-28 sm:p-10 md:p-14 lg:p-16 xl:p-20">
             <form onSubmit={handleSubmit}>
-              <h3 className='text-3xl text-white m-6 pt-10'>SIGN IN</h3>
-              <input
-                type='text'
-                placeholder='Username'
-                className='bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3 transition-all duration-300 ease-in-out focus:outline-none focus:ring-3 focus:ring-primary focus:ring-offset-2'
-                name='username'
-                value={formData.username}
-                onChange={handleChange}
-              />
-              <br />
-              <input
-                type='password'
-                placeholder='Password'
-                className='bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3 transition-all duration-300 ease-in-out focus:outline-none focus:ring-3 focus:ring-primary focus:ring-offset-2'
-                name='password'
-                value={formData.password}
-                onChange={handleChange}
-                autoComplete='current-password'
-              />
+              <h3 className='text-3xl text-white m-6 pt-10'>PASSWORD RESET</h3>
               <br />
               <p className='text-l text-white m-6 mx-2'>
-                Don't have an account?{' '}
-                <Link to='/signup' className='font-bold'>
-                  Sign up!
-                </Link>
+                Please enter the following detail to reset your password:
               </p>
 
+              <input
+                type='email'
+                placeholder='Email'
+                className='bg-inputbox-Sign rounded-3xl p-3 w-3/4 text-l m-6 md:w-2/3 lg:w-1/2 xl:w-1/3 transition-all duration-300 ease-in-out focus:outline-none focus:ring-3 focus:ring-primary focus:ring-offset-2'
+                name='email'
+                value={formData.email}
+                onChange={handleChange}
+              />
+
+              <br />
               <p className='text-l text-white m-6 mx-2'>
-                <Link to='/passreset' className='font-bold'>
-                  Forget your password?
+                Return to{' '}
+                <Link to='/signin' className='font-bold'>
+                  Sign in?
                 </Link>
               </p>
               {loading ? (
                 <LoadingSpinner /> // Show loading spinner when submitting
               ) : (
-                <button className='transition-colors duration-300 ease-in-out w-32 h-10 rounded-xl bg-white text-xl text-Primary/Dark m-6 hover:bg-Primary/Dark hover:text-white'>
-                  Sign in
+                <button className='transition-colors duration-300 ease-in-out w-32 h-10 rounded-xl bg-Accent/Target text-xl text-white m-6 hover:bg-white hover:text-Accent/Target'>
+                  Submit
                 </button>
               )}
             </form>
@@ -121,5 +107,5 @@ function Signin() {
   );
 }
 
-export default Signin;
+export default PassReset;
 

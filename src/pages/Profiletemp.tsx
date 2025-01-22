@@ -19,17 +19,7 @@ interface Params extends Record<string, string | undefined> {
   type: PostType;
 }
 
-function Feed() {
-  // const { user } = useUser();
-  const [activeComponent, setActiveComponent] = useState<'sidebar' | 'taglist' | null>(null);
-  const { type } = useParams<Params>();
-  const sidebarRef = useRef<HTMLDivElement>(null);
-  const tagListRef = useRef<HTMLDivElement>(null);
-  const sidebarButtonRef = useRef<HTMLButtonElement>(null);
-  const tagListButtonRef = useRef<HTMLButtonElement>(null);
-  const navigate = useNavigate();
-
-  // States
+function ProfileTemp() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -39,6 +29,15 @@ function Feed() {
   const [searchTerm, setSearchTerm] = useState('');
   const [order, setOrder] = useState<'ascending' | 'descending'>('descending');
   const [criteria, setCriteria] = useState<'date' | 'likes' | 'comments'>('date');
+
+  const { user } = useAuthUser();
+  const [activeComponent, setActiveComponent] = useState<'sidebar' | 'taglist' | null>(null);
+  const { type } = useParams<Params>();
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const tagListRef = useRef<HTMLDivElement>(null);
+  const sidebarButtonRef = useRef<HTMLButtonElement>(null);
+  const tagListButtonRef = useRef<HTMLButtonElement>(null);
+  const navigate = useNavigate();
 
   const debouncedSearchTerm = useDebounce(searchTerm, 600);
   const debouncedSelectedTags = useDebounce(selectedTags, 800);
@@ -78,36 +77,10 @@ function Feed() {
       fetchAndUpdatePosts();
     }
   }, [type, debouncedSearchTerm, debouncedSelectedTags, debouncedOrder, debouncedCriteria]);
-
-  // useEffect(() => {
-  //   // This effect will run only when debouncedSearchTerm changes
-  //   console.log('Debounced search term:', debouncedSearchTerm);
-  // }, [debouncedSearchTerm]);
-
   useEffect(() => {
     // This effect will run only when debouncedSelectedTags changes
     console.log('Debounced selected tags:', debouncedSelectedTags);
   }, [debouncedSelectedTags]);
-
-  // useEffect(() => {
-  //   // This effect will run only when debouncedOrder changes
-  //   console.log('Debounced order:', debouncedOrder);
-  // }, [debouncedOrder]);
-
-  // useEffect(() => {
-  //   // This effect will run only when debouncedCriteria changes
-  //   console.log('Debounced criteria:', debouncedCriteria);
-  // }, [debouncedCriteria]);
-
-  // useEffect(() => {
-  //   // This effect will run only when type changes
-  //   console.log('Type:', type);
-  // }, [type]);
-
-  // useEffect(() => {
-  //   // This effect will run only when hasMore changes
-  //   console.log('Has more:', hasMore);
-  // }, [hasMore]);
 
   useEffect(() => {
     // This effect will run only on the first load
@@ -205,84 +178,97 @@ function Feed() {
     };
   }, []);
 
-  const [showPostCreate, setShowPostCreate] = useState<boolean>(false);
-  const { user } = useAuthUser();
-
-  const handleCreate = () => {
-    setShowPostCreate(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowPostCreate(false);
-  };
   return (
-    <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
-      <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
-        <div
-          className='bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-full flex items-center justify-between rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl lg:rounded-b-3xl lg:mt-0
-        border-solid box-border mb-5 rounded-3xl lg:border-t-0 text-center mt-0 mt-28 lg:rounded-none'
-        >
-          <div className='flex flex-row w-full items-center space-x-4 mx-4'>
-            <div className='inline-block flex-shrink-0 w-9 h-9 items-center justify-center flex'>
-              <img src={Search} alt='Search Icon' className='w-9 h-9 rounded-full object-cover' />
+    <div className='bg-Background/Middle relative min-h-screen flex flex-col'>
+      <div className='flex flex-row mt-20 ml-36 justify-center space-x-12'>
+        <div className='bg-Background/Bottom rounded-xl border-2 border-Primary/Dark w-3/5 ml-40 flex flex-row'>
+          <div className='flex flex-col h-[450px]'>
+            <img
+              src={
+                user?.avatar ||
+                'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+              }
+              alt='Profile Icon'
+              className='h-20 w-20 lg:h-56 lg:w-56 rounded-full object-cover mx-10 mt-10'
+            />
+            <div className='flex justify-center'>
+              <button className='transition-colors duration-300 ease-in-out w-32 h-8 rounded-xl bg-Accent/Target text-lg text-white m-6 hover:bg-white hover:text-Accent/Target '>
+                Follow
+              </button>
             </div>
-
-            {/* Share Text Section */}
-            <input
-              className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-Primary/Light text-l'
-              placeholder='Search...'
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            ></input>
+            <div className='flex justify-start ml-10'>
+              <p className='text-Primary/Light text-lg sm:max-xl:text-lg xl:text-base w-56 break-words'>
+                Contact via:
+              </p>
+            </div>
           </div>
-        </div>
-
-        {showPostCreate && (
-          <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
-            <PostCreate closeModal={handleCloseModal} onPostCreated={refetchPosts} />
-          </div>
-        )}
-      </div>
-      {type !== 'stored' && (
-        <div className='mb-5'>
-          <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-            <div
-              className='bg-Background/Bottom border-2 h-40  border-Primary/Dark px-6 py-4 w-full flex items-center justify-between rounded-3xl shadow-md lg:w-1/2 sm:max-lg:rounded-3xl lg:rounded-b-3xl lg:mt-0
-        border-solid box-border border-2 mb-5 rounded-3xl text-center mt-0 p-14 mt-6
-        sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12'
-            >
-              <div className='flex flex-row w-full items-center space-x-4'>
-                <div className='inline-block flex-shrink-0'>
-                  <img
-                    src={
-                      user?.avatar ||
-                      'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                    }
-                    alt='Profile Icon'
-                    className='w-16 h-16 rounded-full object-cover'
+          <div className='fixed ml-[770px] mt-6'>
+            <button>
+              <svg
+                width='24'
+                height='24'
+                viewBox='0 0 24 24'
+                fill='none'
+                xmlns='http://www.w3.org/2000/svg'
+              >
+                <g clip-path='url(#clip0_765_1033)'>
+                  <path
+                    d='M12 18C13.6569 18 15 19.3431 15 21C15 22.6569 13.6569 24 12 24C10.3431 24 9 22.6569 9 21C9 19.3431 10.3431 18 12 18Z'
+                    fill='white'
                   />
-                </div>
-
-                {/* Share Text Section */}
-                <button
-                  className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6 overflow-hidden whitespace-nowrap'
-                  onClick={handleCreate}
-                >
-                  <p className='text-left text-Primary/Light text-l overflow-hidden'>
-                    Share your code...
-                  </p>
-                </button>
-              </div>
+                  <path
+                    d='M12 9C13.6569 9 15 10.3431 15 12C15 13.6569 13.6569 15 12 15C10.3431 15 9 13.6569 9 12C9 10.3431 10.3431 9 12 9Z'
+                    fill='white'
+                  />
+                  <path
+                    d='M15 3C15 1.34314 13.6569 -7.24234e-08 12 0C10.3431 7.24235e-08 9 1.34315 9 3C9 4.65686 10.3431 6 12 6C13.6569 6 15 4.65686 15 3Z'
+                    fill='white'
+                  />
+                </g>
+                <defs>
+                  <clipPath id='clip0_765_1033'>
+                    <rect width='24' height='24' fill='white' />
+                  </clipPath>
+                </defs>
+              </svg>
+            </button>
+          </div>
+          <div className='flex flex-col space-y-10 w-96'>
+            <div className='flex flex-row mt-2'>
+              <p className='text-white font-semibold mt-6 text-lg sm:max-xl:text-lg xl:text-3xl w-56 break-words'>
+                {user?.displayname || 'Display name'}
+              </p>
+              <p className='text-Primary/Light mt-8 text-lg sm:max-xl:text-lg xl:text-lg w-56 break-words'>
+                {user?.username || 'Username'}
+              </p>
             </div>
-
-            {showPostCreate && (
-              <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
-                <PostCreate closeModal={handleCloseModal} onPostCreated={refetchPosts} />
-              </div>
-            )}
+            <div className='bg-Background/Middle w-[480px] h-72 rounded-3xl'>
+              <p className='text-Primary/Light p-4'>bio</p>
+            </div>
           </div>
         </div>
-      )}
+        <div className=' flex flex-col'>
+          <div className='bg-Background/Bottom rounded-xl border-2 border-Primary/Dark w-56 h-[450px]'>
+            <div className='flex flex-col'>
+              <p className='text-white text-2xl font-semibold flex justify-center mt-8'>
+                Dashboard
+              </p>
+              <br />
+              <p className='text-white text-3xl font-semibold flex justify-center'>1000</p>
+              <p className='text-Primary/Light text-xl flex justify-center'>Posts</p>
+              <br />
+              <p className='text-white text-3xl font-semibold flex justify-center'>321K</p>
+              <p className='text-Primary/Light text-xl flex justify-center'>Likes</p>
+              <br />
+              <p className='text-white text-3xl font-semibold flex justify-center'>123K</p>
+              <p className='text-Primary/Light text-xl flex justify-center'>Followers</p>
+              <br />
+              <p className='text-white text-3xl font-semibold flex justify-center'>2</p>
+              <p className='text-Primary/Light text-xl flex justify-center'>Following</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Show LoadingSpinner during the first load */}
       {firstLoad ? (
@@ -341,11 +327,10 @@ function Feed() {
       <div ref={sidebarRef}>
         <Sidebar
           isOpen={activeComponent === 'sidebar'}
-          state={type}
+          state='profiletemp'
           onClose={() => setActiveComponent(null)}
         />
       </div>
-
       {/* TagList */}
       <div ref={tagListRef}>
         <TagList
@@ -354,7 +339,6 @@ function Feed() {
           onFilterChange={handleFilterChange}
         />
       </div>
-
       {/* CollapseMenu */}
       <CollapseMenu
         onToggleSidebar={toggleSidebar}
@@ -368,6 +352,5 @@ function Feed() {
     </div>
   );
 }
-
-export default Feed;
+export default ProfileTemp;
 

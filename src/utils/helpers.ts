@@ -20,22 +20,22 @@ export const formatDate = (date: string): string => {
   }
 
   const now = new Date();
-  const inputDate = new Date(date); // Make sure the input is in ISO 8601 format or standard format
+  const inputDate = new Date(date); // Ensure the input is in ISO 8601 or standard date format
   const diffInMilliseconds = now.getTime() - inputDate.getTime();
   const diffInSeconds = Math.floor(diffInMilliseconds / 1000);
   const diffInMinutes = Math.floor(diffInSeconds / 60);
   const diffInHours = Math.floor(diffInMinutes / 60);
   const diffInDays = Math.floor(diffInHours / 24);
 
+  // If the difference is less than 30 seconds, return "Recently"
+  if (diffInSeconds < 30) {
+    return 'Recently';
+  }
+
   // If the date is within the last 24 hours, show relative time
   if (diffInDays === 0) {
     if (diffInHours === 0) {
-      if (diffInMinutes === 0) {
-        if (diffInSeconds < 60) {
-          return `${diffInSeconds} seconds`; // Less than a minute ago
-        }
-      }
-      return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''}`; // Minutes ago
+      return `${diffInMinutes} min${diffInMinutes !== 1 ? 's' : ''}`; // Minutes ago
     }
     return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''}`; // Hours ago
   }
@@ -46,9 +46,10 @@ export const formatDate = (date: string): string => {
   }
 
   // Show the formatted date for older dates
-  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-  return inputDate.toLocaleDateString('en-US', options); // Ensuring 'en-US' format or adjust locale as needed
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+  return inputDate.toLocaleDateString('en-US', options); // Ensure 'en-US' format or adjust locale as needed
 };
+
 
 // Function for validating email format
 export const isValidEmail = (email: string) => {

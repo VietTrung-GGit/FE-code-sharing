@@ -10,9 +10,12 @@ import Signup from './pages/Signup';
 import NotFound from './pages/Notfound';
 import Feed from './pages/Feed';
 import Test from './pages/Test';
+import Notifications from './pages/Notifications';
 import ProfileCard from './pages/Profile';
+import ProfileTemp from './pages/Profiletemp';
 import ProtectedRoute from './components/privateRoute'; // Import the protected route component
 import { AuthUserProvider } from './context/AuthUserContext';
+import PassReset from './pages/Passreset';
 
 const root = document.getElementById('root');
 
@@ -25,6 +28,8 @@ if (root) {
           <Route path='/signin' element={<Signin />} />
           <Route path='/signup' element={<Signup />} />
           <Route path='/test' element={<Test />} />
+          <Route path='/passreset' element={<PassReset />} />
+
           <Route
             path='/feed'
             element={
@@ -46,6 +51,22 @@ if (root) {
             element={
               <ProtectedRoute>
                 <ProfileCard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/notifications'
+            element={
+              <ProtectedRoute>
+                <Notifications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/profiletemp'
+            element={
+              <ProtectedRoute>
+                <ProfileTemp />
               </ProtectedRoute>
             }
           />

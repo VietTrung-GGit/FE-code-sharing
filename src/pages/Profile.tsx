@@ -168,8 +168,8 @@ const ProfileCard: React.FC = () => {
         isTagListVisible={false} // Disable TagList
         sidebarButtonRef={sidebarButtonRef}
       />
-      <div className='h-5/6 flex items-center'>
-        <div className="w-4/5 lg:w-2/5 mx-auto p-10 bg-Background/Bottom bg-[url('assets/particle.svg')] bg-no-repeat bg-center bg-cover text-white rounded-xl shadow-lg relative border-2 border-Primary/Dark">
+      <div className='h-full flex '>
+        <div className="w-5/6 ml-[50px] mr-[50px] sm:max-lg:w-4/5 lg:w-3/5 sm:max-lg:ml-[150px] sm:max-lg:mr-[150px] lg:max-xl:ml-[380px] lg:max-xl:mr-[100px] xl:ml-[450px] xl:mr-[150px] min-h-[450px] mt-28 mb-12 sm:max-lg:mt-28 sm:max-lg:mb-12 lg:my-28 p-10 bg-Background/Bottom bg-[url('assets/particle.svg')]  bg-center bg-cover text-white rounded-xl shadow-lg relative border-2 border-Primary/Dark">
           <h2 className='text-2xl font-semibold mb-6'>Your Profile</h2>
 
           {/* Flex Layout for Image and Inputs */}

@@ -7,26 +7,28 @@ interface TagsScrollProps {
 
 const TagsScroll: React.FC<TagsScrollProps> = ({
   tags,
-  containerClassName = 'flex gap-2 overflow-x-auto w-64',
+  containerClassName = 'flex gap-2 overflow-x-auto w-full sm:w-64',
 }) => {
   const scrollContainer = useRef<HTMLDivElement>(null);
 
   const scrollLeft = () => {
     if (scrollContainer.current) {
-      scrollContainer.current.scrollBy({ left: -100, behavior: 'smooth' });
+      scrollContainer.current.scrollBy({ left: -88, behavior: 'smooth' });
     }
   };
 
   const scrollRight = () => {
     if (scrollContainer.current) {
-      scrollContainer.current.scrollBy({ left: 100, behavior: 'smooth' });
+      scrollContainer.current.scrollBy({ left: 88, behavior: 'smooth' });
     }
   };
 
   const showButtons = tags.length > 3;
-  const alignmentClass = tags.length <= 3 ? 'justify-end' : 'justify-start';
+  const alignmentClass = tags.length <= 3 ? 'justify-center sm:justify-end' : ' justify-start';
   return (
-    <div className='flex items-center space-x-1'>
+    <div
+      className={`flex items-center space-x-1 xsm:w-auto md:mr-0 ${showButtons ? 'xxsm:-mr-7 -mr-7' : 'xxsm:mr-2 mr-0'}`}
+    >
       {/* Left Scroll Button */}
       {showButtons && (
         <button className='rounded-full hover:text-Primary/Light text-lg' onClick={scrollLeft}>

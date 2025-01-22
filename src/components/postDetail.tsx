@@ -389,9 +389,10 @@ const PostDetail: React.FC<PostDetailProps> = ({
             </div>
           </div>
         </div>
-        <div className='flex items-center gap-2 my-2'>
-          <p className='flex-shrink-0'>Tags:</p>
-          {post?.tags && post.tags.length > 0 && (
+
+        {post?.tags && post.tags.length > 0 && (
+          <div className='flex items-center gap-2 my-2'>
+            <p className='flex-shrink-0'>Tags:</p>
             <div className='flex flex-wrap gap-2 flex-grow'>
               {post.tags.map((tagName, index) => (
                 <span
@@ -402,8 +403,8 @@ const PostDetail: React.FC<PostDetailProps> = ({
                 </span>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <p className='w-full py-2 overflow-hidden resize-none focus:outline-none focus:border-transparent text-lg text-Primary/Light'>
           {post?.title}
