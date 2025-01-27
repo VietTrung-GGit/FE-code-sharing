@@ -12,6 +12,7 @@ export default {
         xsm: '480px',
         xxsm: '370px',
         xsmnopost: '420px',
+        xlme: '1530px',
         'h-sm': { raw: '(min-height: 680px)' },
       }, // Custom breakpoint for extra small screens
       colors: {

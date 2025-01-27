@@ -205,49 +205,44 @@ const PostCreate: React.FC<PostCreateProps> = ({
         </div>
 
         {/* Title */}
-        <textarea
+        <input
           value={title}
           onChange={(e) => {
             const newValue = e.target.value;
-            if (newValue.length <= 100) {
+            if (newValue.length <= 200) {
               setTitle(newValue);
             } else {
-              setTitle(newValue.slice(0, 100));
+              setTitle(newValue.slice(0, 200));
+              toast.warning('Length of title must not exceed 200 characters.');
             }
           }}
           placeholder='Title'
-          className='w-full p-2 text-Primary/Light bg-Background/Bottom text-lg overflow-hidden focus:outline-none focus:border-transparent'
-          rows={1}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            target.style.height = 'auto'; // Reset height
-            const limitedContent = target.value.slice(0, 100); // Limit content
-            target.value = limitedContent; // Ensure textarea value matches limit
-            target.style.height = `${Math.min(target.scrollHeight, 100)}px`; // Adjust to content with max height
-          }}
+          className='w-full p-2 text-Primary/Light bg-Background/Bottom text-lg focus:outline-none focus:border-transparent'
         />
 
         {/* Text Input */}
         <textarea
           value={content}
-          onChange={(e) => {
-            const newValue = e.target.value;
-            if (newValue.length <= 1000) {
-              setContent(newValue);
-            } else {
-              setContent(newValue.slice(0, 1000));
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement;
+            const newValue = target.value;
+
+            // Handle character limit
+            if (newValue.length > 2000) {
+              target.value = newValue.slice(0, 2000);
+              toast.warning('Length of content must not exceed 2000 characters.');
             }
+
+            // Update state with new value
+            setContent(target.value.slice(0, 2000));
+
+            // Adjust height dynamically
+            target.style.height = 'auto'; // Reset height to auto before recalculating
+            target.style.height = `${Math.min(target.scrollHeight, 2000)}px`; // Adjust height to content, with max height of 2000px
           }}
           placeholder='Share your code...'
           className='mb-4 w-full p-2 bg-Background/Middle overflow-hidden resize-none focus:outline-none focus:border-transparent'
           rows={1}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            target.style.height = 'auto'; // Reset height
-            const limitedContent = target.value.slice(0, 1000); // Limit content
-            target.value = limitedContent; // Ensure textarea value matches limit
-            target.style.height = `${Math.min(target.scrollHeight, 1000)}px`; // Adjust to content with max height
-          }}
         />
 
         {/* Dropzone */}

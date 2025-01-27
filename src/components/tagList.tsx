@@ -14,9 +14,13 @@ import { tags } from '../services/postService';
 function TagList({
   isOpen,
   onFilterChange,
+  profileFixed,
+  state,
 }: {
   isOpen: boolean;
+  state: string | undefined;
   onClose: () => void;
+  profileFixed: boolean;
   onFilterChange: (filters: { selectedTags: string[]; sortBy: string; order: string }) => void;
 }) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -137,10 +141,10 @@ function TagList({
   return (
     <>
       <div
-        className={`flex flex-col top-24 right-0 bg-Background/Bottom text-center w-[260px] lg:w-[22vw] xl:w-[19vw] h-4/5 pt-4 pl-4 min-h-[400px] max-h-[800px] rounded-3xl fixed border-Primary/Dark border-solid box-border border-2 z-40
+        className={`${!profileFixed && state === 'me' ? 'max-h-[580px]' : 'fixed sm:fixed max-h-[800px] '} flex-col top-24 right-0 flex bg-Background/Bottom text-center w-[260px] lg:w-[22vw] xl:w-[19vw] h-4/5 pt-4 pl-4 min-h-[400px]  rounded-3xl border-Primary/Dark border-solid box-border border-2 z-40
     transition-transform duration-300 ease-in-out
     ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-    lg:translate-x-0 sm:static sm:max-xl:pl-4 xl:pl-6 lg:mr-[1vw] sm:fixed sm:max-lg:top-24 lg:top-[calc(max(2rem,25vh-6rem))]`}
+    lg:translate-x-0 sm:static sm:max-xl:pl-4 xl:pl-6 lg:mr-[1vw] sm:max-lg:top-24 lg:top-[calc(max(2rem,25vh-6rem))]`}
       >
         {/* <div className='mb-4 mt-2'>
           <div className='w-8 inline-block fixed left-6'>

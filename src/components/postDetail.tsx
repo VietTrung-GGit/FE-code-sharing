@@ -406,10 +406,10 @@ const PostDetail: React.FC<PostDetailProps> = ({
           </div>
         )}
 
-        <p className='w-full py-2 overflow-hidden resize-none focus:outline-none focus:border-transparent text-lg text-Primary/Light'>
+        <p className='w-full py-2 overflow-hidden resize-none focus:outline-none focus:border-transparent text-lg text-Primary/Light break-all'>
           {post?.title}
         </p>
-        <p className='mb-4 w-full overflow-hidden resize-none focus:outline-none focus:border-transparent'>
+        <p className='whitespace-pre-line break-all mb-4 w-full overflow-hidden resize-none focus:outline-none focus:border-transparent'>
           {post ? post.content : ''}
         </p>
         {/* Tabs */}

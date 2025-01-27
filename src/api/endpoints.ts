@@ -2,8 +2,11 @@
 export const API_ENDPOINTS = {
   //Auth_related
   SIGNIN: '/auth/login',
+  PASSWORDRESET: '/auth/passwordReset',
+  PASSWORDNEW: (token: string) => `/auth/passwordNew/${token}`,
   SIGNUP: '/auth/signup',
   REFRESH_TOKEN: '/auth/refresh',
+  LOGOUT: '/auth/logout',
 
   //USer_related
 
@@ -31,12 +34,11 @@ export const API_ENDPOINTS = {
     queryParams.append('criteria', criteria);
     if (search) queryParams.append('search', search);
     if (tags.length > 0) queryParams.append('tags', tags.join(','));
-    if (!type){
+    if (!type) {
       return `/community?${queryParams.toString()}`;
     }
     return `/me?${queryParams.toString()}`;
   },
- 
 
   // Fetch post details by post ID
   FETCH_POST_DETAIL: (postId: string) => {

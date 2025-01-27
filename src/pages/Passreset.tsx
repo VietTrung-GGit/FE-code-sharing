@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useAuthUser } from '../context/AuthUserContext';
+import { passwordReset } from '../services/authService';
 import Footer from '../components/footer';
 import Header from '../components/header';
-import LoadingSpinner from '../components/loadingSpinner';
+import LoadingSpinner from '../components/loadingAnimate';
 
 function PassReset() {
   const [formData, setFormData] = useState({
@@ -35,21 +35,9 @@ function PassReset() {
 
     try {
       // Simulate API call to send reset email
-      const response = await fetch('/api/password-reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to send password reset email.');
-      }
+      const response = await passwordReset(formData.email);
       // Display success message
-      toast.success(
-        data.message || 'Password reset email sent successfully. Please check your inbox.',
-      );
+      toast.success(response || 'Password reset email sent successfully. Please check your inbox.');
     } catch (error: any) {
       // Display error message
       toast.error(error.message || 'An error occurred while sending the reset email.');

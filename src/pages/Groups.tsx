@@ -19,7 +19,7 @@ interface Params extends Record<string, string | undefined> {
   type: PostType;
 }
 
-function ProfileTemp() {
+function Groups() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -193,7 +193,7 @@ function ProfileTemp() {
             />
             <div className='flex justify-center'>
               <button className='transition-colors duration-300 ease-in-out w-32 h-8 rounded-xl bg-Accent/Target text-lg text-white m-6 hover:bg-white hover:text-Accent/Target '>
-                Follow
+                Join
               </button>
             </div>
             <div className='flex justify-start ml-10'>
@@ -207,15 +207,11 @@ function ProfileTemp() {
             <div className='flex flex-row mt-2'>
               <div>
                 <p className='text-white font-semibold mt-6 text-lg sm:max-xl:text-lg xl:text-3xl w-44 break-words'>
-                  {user?.displayname || 'Display name'}
+                  Group name
                 </p>
               </div>
-              <div>
-                <p className='text-Primary/Light mt-8 text-lg sm:max-xl:text-lg xl:text-lg w-28 break-words'>
-                  {user?.username || 'Username'}
-                </p>
-              </div>
-              <div className='ml-44 mt-2'>
+
+              <div className='ml-72 mt-2'>
                 <button>
                   <svg
                     width='24'
@@ -248,7 +244,7 @@ function ProfileTemp() {
               </div>
             </div>
             <div className='bg-Background/Middle w-[480px] h-72 rounded-3xl'>
-              <p className='text-Primary/Light p-4'>bio</p>
+              <p className='text-Primary/Light p-4'>bio group</p>
             </div>
           </div>
         </div>
@@ -259,17 +255,17 @@ function ProfileTemp() {
                 Dashboard
               </p>
               <br />
-              <p className='text-white text-3xl font-semibold flex justify-center'>1000</p>
+              <br />
+              <p className='text-white text-3xl font-semibold flex justify-center'>1001</p>
               <p className='text-Primary/Light text-xl flex justify-center'>Posts</p>
               <br />
-              <p className='text-white text-3xl font-semibold flex justify-center'>321K</p>
-              <p className='text-Primary/Light text-xl flex justify-center'>Likes</p>
-              <br />
-              <p className='text-white text-3xl font-semibold flex justify-center'>123K</p>
-              <p className='text-Primary/Light text-xl flex justify-center'>Followers</p>
               <br />
               <p className='text-white text-3xl font-semibold flex justify-center'>2</p>
-              <p className='text-Primary/Light text-xl flex justify-center'>Following</p>
+              <p className='text-Primary/Light text-xl flex justify-center'>Projects</p>
+              <br />
+              <br />
+              <p className='text-white text-3xl font-semibold flex justify-center'>4</p>
+              <p className='text-Primary/Light text-xl flex justify-center'>Members</p>
             </div>
           </div>
         </div>
@@ -332,7 +328,7 @@ function ProfileTemp() {
       <div ref={sidebarRef}>
         <Sidebar
           isOpen={activeComponent === 'sidebar'}
-          state='profiletemp'
+          state='groups'
           onClose={() => setActiveComponent(null)}
         />
       </div>
@@ -357,5 +353,5 @@ function ProfileTemp() {
     </div>
   );
 }
-export default ProfileTemp;
+export default Groups;
 

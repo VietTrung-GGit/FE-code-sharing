@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { useAuthUser } from '../context/AuthUserContext';
 import Footer from '../components/footer';
 import Header from '../components/header';
-import LoadingSpinner from '../components/loadingSpinner';
+import LoadingSpinner from '../components/loadingAnimate';
 
 function Signin() {
   const navigate = useNavigate();
@@ -100,7 +100,7 @@ function Signin() {
               </p>
 
               <p className='text-l text-white m-6 mx-2'>
-                <Link to='/passreset' className='font-bold'>
+                <Link to='/pass-reset' className='font-bold'>
                   Forget your password?
                 </Link>
               </p>

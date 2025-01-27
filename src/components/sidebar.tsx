@@ -156,8 +156,8 @@ function Sidebar({
             <span>Saves</span>
           </button>
           <button
-            className={`m-2 flex items-center space-x-2 ${state === 'profiletemp' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
-            onClick={() => handleNavigation('/profiletemp')}
+            className={`m-2 flex items-center space-x-2 ${state === 'groups' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
+            onClick={() => handleNavigation('/groups')}
           >
             <svg
               width='36'

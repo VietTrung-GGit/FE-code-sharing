@@ -13,9 +13,11 @@ import Test from './pages/Test';
 import Notifications from './pages/Notifications';
 import ProfileCard from './pages/Profile';
 import ProfileTemp from './pages/Profiletemp';
+import Groups from './pages/Groups';
 import ProtectedRoute from './components/privateRoute'; // Import the protected route component
 import { AuthUserProvider } from './context/AuthUserContext';
 import PassReset from './pages/Passreset';
+import PassNew from './pages/Passnew';
 
 const root = document.getElementById('root');
 
@@ -28,7 +30,8 @@ if (root) {
           <Route path='/signin' element={<Signin />} />
           <Route path='/signup' element={<Signup />} />
           <Route path='/test' element={<Test />} />
-          <Route path='/passreset' element={<PassReset />} />
+          <Route path='/pass-reset' element={<PassReset />} />
+          <Route path='/pass-new/:token' element={<PassNew />} />
 
           <Route
             path='/feed'
@@ -67,6 +70,14 @@ if (root) {
             element={
               <ProtectedRoute>
                 <ProfileTemp />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/groups'
+            element={
+              <ProtectedRoute>
+                <Groups />
               </ProtectedRoute>
             }
           />

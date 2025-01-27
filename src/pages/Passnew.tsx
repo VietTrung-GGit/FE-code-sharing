@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useAuthUser } from '../context/AuthUserContext';
 import Footer from '../components/footer';
 import Header from '../components/header';
 import { isStrongPassword } from '../utils/helpers';
-import LoadingSpinner from '../components/loadingSpinner';
+import LoadingSpinner from '../components/loadingAnimate';
+import { passwordNew } from '../services/authService';
 
 function PassNew() {
+  const navigate = useNavigate();
+  const { token } = useParams<{ token: string }>();
+
+  if (!token) {
+    toast.error('Invalid or missing token.');
+    navigate('/signin');
+    return null; // Prevent rendering the rest of the component
+  }
+
   const [formData, setFormData] = useState({
     password: '',
     passwordConfirm: '',
@@ -41,27 +50,15 @@ function PassNew() {
     }
 
     setLoading(true); // Start loading
-
     try {
       // Simulate API call to send reset email
-      const response = await fetch('/api/password-reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to send password reset email.');
-      }
+      const response = await passwordNew(token, formData.password);
       // Display success message
-      toast.success(
-        data.message || 'Password reset email sent successfully. Please check your inbox.',
-      );
+      toast.success(response || 'Password reset successfully. Please sign in again!');
+      setTimeout(() => navigate('/signin'), 2000);
     } catch (error: any) {
       // Display error message
-      toast.error(error.message || 'An error occurred while sending the reset email.');
+      toast.error(error.message || 'An error occurred while resetting new password.');
     } finally {
       setLoading(false); // Stop loading
     }
