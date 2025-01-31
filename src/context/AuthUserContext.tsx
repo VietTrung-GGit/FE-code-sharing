@@ -87,7 +87,7 @@ export const AuthUserProvider: React.FC<AuthUserProviderProps> = ({ children }) 
       await fetchUserData(); // Fetch user data after login
     } catch (error) {
       console.error('Login failed:', error);
-      toast.error(error as string);
+      toast.error(error.response.data || 'Login failed');
     }
   };
 
@@ -98,7 +98,7 @@ export const AuthUserProvider: React.FC<AuthUserProviderProps> = ({ children }) 
       await login(username, password); // Log in after successful signup
     } catch (error) {
       console.error('Sign up failed:', error);
-      toast.error(error as string);
+      toast.error(error.response.data.message || 'Sign up failed');
     }
   };
 

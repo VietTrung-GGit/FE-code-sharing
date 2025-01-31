@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useAuthUser } from '../context/AuthUserContext';
 import Logo from '../assets/logo.svg';
+import { useNotifications } from '../context/NotificationContext';
 
 function Sidebar({
   isOpen,
@@ -16,7 +17,7 @@ function Sidebar({
   const { logout, user } = useAuthUser();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null); // Ref for the modal content
-
+  const { totalNotifications } = useNotifications();
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
@@ -70,7 +71,7 @@ function Sidebar({
         </div>
 
         {/* Navigation Buttons */}
-        <div className='flex flex-col my-8 ml-5 flex-grow overflow-y-auto'>
+        <div className='flex flex-col my-8 ml-5 flex-grow overflow-y-auto scrollbar scrollbar-thin scrollbar-thumb-Primary/Dark scrollbar-track-Background/Middle'>
           <button
             className={`m-2 flex items-center space-x-2 ${state === undefined ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
             onClick={() => handleNavigation('/feed')}
@@ -132,7 +133,7 @@ function Sidebar({
                 strokeLinejoin='round'
               />
             </svg>
-            <span>Notifications (0)</span>
+            <span>{`Notifications (${totalNotifications})`}</span>
           </button>
           <button
             className={`m-2 flex items-center space-x-2 ${state === 'stored' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}

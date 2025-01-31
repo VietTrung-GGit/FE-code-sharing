@@ -4,7 +4,7 @@ import PostDetail from '../components/postDetail';
 import TagsScroll from '../components/tagsScroll';
 import PostCreate from '../components/postCreate';
 import { formatNumber, formatDate, getEditorLanguage } from '../utils/helpers';
-import { PostType } from '../pages/Feed';
+
 import { toast } from 'react-toastify';
 import {
   Post,
@@ -18,10 +18,9 @@ import {
 
 interface PostBriefProps {
   postData: Post;
-  state: PostType;
 }
 
-const PostBrief: React.FC<PostBriefProps> = ({ postData, state }) => {
+const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
   const [post, setPost] = useState<Post | null>(null);
   const [activeTab, setActiveTab] = useState<number>(0);
   const [showPostDetail, setShowPostDetail] = useState<boolean>(false); // New state for modal visibility
@@ -171,13 +170,10 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, state }) => {
     setShowDeletePostModal(false); // Close the logout confirmation modal
   };
 
-  const truncatedText =
-    (post?.content.length || 0) > 400 ? post?.content.slice(0, 400) + '...' : post?.content;
-
   if (!post) return <div>Loading...</div>;
 
   return (
-    <div className={`flex ${state === 'me' ? '' : 'justify-center'} items-center relative `}>
+    <div className={`flex justify-center items-center relative `}>
       {visible && (
         <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] mb-10 mt-5 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
           {showDeletePostModal && (
@@ -235,7 +231,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, state }) => {
                 {/* Check if `updateat` is different from `createat` */}
               </div>
             </div>
-            <div className='mt-2 sm:mt-0 w-full sm:w-auto'>
+            <div className={`mt-2 sm:mt-0 w-full sm:w-auto `}>
               {post.tags.length > 0 && <TagsScroll tags={post.tags} />}
             </div>
           </div>
@@ -247,6 +243,21 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, state }) => {
             </div>
           )}
 
+          {/* {post?.tags && post.tags.length > 0 && (
+            <div className='flex items-center gap-2'>
+              <div className='flex flex-wrap gap-2 flex-grow'>
+                {post.tags.map((tagName, index) => (
+                  <span
+                    key={index}
+                    className='bg-Primary/Light text-xs flex justify-center text-Primary/Dark text-sm w-min px-2 rounded-3xl py-1'
+                  >
+                    {tagName}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )} */}
+
           {/* Post Text */}
           <div className='flex items-center'>
             <div>
@@ -254,7 +265,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, state }) => {
                 ref={textRef}
                 className='mb-4 w-full overflow-hidden whitespace-pre-line break-all line-clamp-3'
               >
-                {truncatedText || ''}
+                {post.content || ''}
               </p>
               {isTruncated && (
                 <p onClick={handleMoreClick} className='text-Accent/Light text-sm cursor-pointer'>

@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { NotificationsProvider } from './context/NotificationContext';
 import { ToastContainer } from 'react-toastify'; // Import ToastContainer
 import 'react-toastify/dist/ReactToastify.css'; // Import Toastify styles
 import './index.css';
@@ -25,64 +26,66 @@ if (root) {
   ReactDOM.createRoot(root).render(
     <Router>
       <AuthUserProvider>
-        <Routes>
-          <Route path='/' element={<Landing />} />
-          <Route path='/signin' element={<Signin />} />
-          <Route path='/signup' element={<Signup />} />
-          <Route path='/test' element={<Test />} />
-          <Route path='/pass-reset' element={<PassReset />} />
-          <Route path='/pass-new/:token' element={<PassNew />} />
+        <NotificationsProvider>
+          <Routes>
+            <Route path='/' element={<Landing />} />
+            <Route path='/signin' element={<Signin />} />
+            <Route path='/signup' element={<Signup />} />
+            <Route path='/test' element={<Test />} />
+            <Route path='/pass-reset' element={<PassReset />} />
+            <Route path='/pass-new/:token' element={<PassNew />} />
 
-          <Route
-            path='/feed'
-            element={
-              <ProtectedRoute>
-                <Feed />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path='/feed/:type'
-            element={
-              <ProtectedRoute>
-                <Feed />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path='/profile'
-            element={
-              <ProtectedRoute>
-                <ProfileCard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path='/notifications'
-            element={
-              <ProtectedRoute>
-                <Notifications />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path='/profiletemp'
-            element={
-              <ProtectedRoute>
-                <ProfileTemp />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path='/groups'
-            element={
-              <ProtectedRoute>
-                <Groups />
-              </ProtectedRoute>
-            }
-          />
-          <Route path='/*' element={<NotFound />} />
-        </Routes>
+            <Route
+              path='/feed'
+              element={
+                <ProtectedRoute>
+                  <Feed />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path='/feed/:type'
+              element={
+                <ProtectedRoute>
+                  <Feed />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path='/profile'
+              element={
+                <ProtectedRoute>
+                  <ProfileCard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path='/notifications'
+              element={
+                <ProtectedRoute>
+                  <Notifications />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path='/profiletemp'
+              element={
+                <ProtectedRoute>
+                  <ProfileTemp />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path='/groups'
+              element={
+                <ProtectedRoute>
+                  <Groups />
+                </ProtectedRoute>
+              }
+            />
+            <Route path='/*' element={<NotFound />} />
+          </Routes>
+        </NotificationsProvider>
       </AuthUserProvider>
       <ToastContainer
         position='top-right'

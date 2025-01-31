@@ -1,4 +1,5 @@
 import axiosInstance from '../api/axiosInstance';
+import { createLikeNotification, createCommentNotification } from '../services/notificationService';
 import { API_ENDPOINTS } from '../api/endpoints';
 import { getMimeTypeForExtension } from '../utils/helpers';
 import { toast } from 'react-toastify';
@@ -211,6 +212,7 @@ export const deletePost = async (postId: string) => {
 // Like a post
 export const likePost = async (postId: string) => {
   const response = await axiosInstance.get(API_ENDPOINTS.LIKE_POST(postId));
+  await createLikeNotification(postId);
   return response.data;
 };
 
@@ -241,6 +243,7 @@ export const createComment = async (
     API_ENDPOINTS.CREATE_COMMENT(postId),
     commentData,
   );
+  await createCommentNotification(response.data.commentId);
   return response.data.commentId;
 };
 

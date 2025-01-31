@@ -11,7 +11,7 @@ export const loginUser = async (username: string, password: string) => {
     }>(API_ENDPOINTS.SIGNIN, { username, password }, { withCredentials: true });
     return response.data;
   } catch (error) {
-    throw error.response?.data || 'Login failed';
+    throw error || 'Login failed';
   }
 };
 
@@ -20,7 +20,7 @@ export const logoutUser = async () => {
   try {
     await axiosInstance.post(API_ENDPOINTS.LOGOUT, {}, { withCredentials: true });
   } catch (error) {
-    throw error.response?.data || 'Logout failed';
+    throw error || 'Logout failed';
   }
 };
 
@@ -34,7 +34,7 @@ export const refreshAccessToken = async () => {
     );
     return response.data.newAccessToken;
   } catch (error) {
-    throw error.response?.data || 'Token refresh failed';
+    throw error || 'Token refresh failed';
   }
 };
 
@@ -47,7 +47,7 @@ export const signupUser = async (username: string, email: string, password: stri
     );
     return response.data; // Successful sign up message
   } catch (error) {
-    throw error.response?.data || 'Sign up failed';
+    throw error || 'Sign up failed';
   }
 };
 
@@ -60,7 +60,7 @@ export const passwordReset = async (email: string) => {
     );
     return response.data.message; // Successful sign up message
   } catch (error) {
-    throw error.response?.data || 'Error sending password reset request';
+    throw error || 'Error sending password reset request';
   }
 };
 
@@ -73,7 +73,7 @@ export const passwordNew = async (token: string, newPassword: string) => {
     );
     return response.data.message; // Successful sign up message
   } catch (error) {
-    throw error.response?.data || 'Error sending password reset request';
+    throw error || 'Error sending password reset request';
   }
 };
 

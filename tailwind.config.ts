@@ -9,11 +9,11 @@ export default {
     extend: {
       //put in extend if you want to preserve the default
       screens: {
-        xsm: '480px',
         xxsm: '370px',
         xsmnopost: '420px',
+        xsm: '480px',
+        xsmprofile: '800px',
         xlme: '1530px',
-        'h-sm': { raw: '(min-height: 680px)' },
       }, // Custom breakpoint for extra small screens
       colors: {
         'inputbox-Sign': '#D9D9D9',

@@ -7,7 +7,7 @@ interface TagsScrollProps {
 
 const TagsScroll: React.FC<TagsScrollProps> = ({
   tags,
-  containerClassName = 'flex gap-2 overflow-x-auto w-full sm:w-64',
+  containerClassName = 'flex gap-2 overflow-x-auto w-80 sm:w-64',
 }) => {
   const scrollContainer = useRef<HTMLDivElement>(null);
 
@@ -27,7 +27,7 @@ const TagsScroll: React.FC<TagsScrollProps> = ({
   const alignmentClass = tags.length <= 3 ? 'justify-center sm:justify-end' : ' justify-start';
   return (
     <div
-      className={`flex items-center space-x-1 xsm:w-auto md:mr-0 ${showButtons ? 'xxsm:-mr-7 -mr-7' : 'xxsm:mr-2 mr-0'}`}
+      className={`flex items-center space-x-1 justify-center xsm:w-auto ${showButtons ? 'sm:-mr-7' : 'xxsm:mr-2 mr-0'} `}
     >
       {/* Left Scroll Button */}
       {showButtons && (

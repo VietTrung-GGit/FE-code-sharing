@@ -1,34 +1,141 @@
 import Sidebar from '../components/sidebar';
 import CollapseMenu from '../components/collapseMenu';
-import { toast } from 'react-toastify';
 import { useParams, useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/loadingAnimate';
-import { useState, useEffect, useRef } from 'react';
+import { toast } from 'react-toastify';
+import { io } from 'socket.io-client';
+import { useState, useEffect, useRef, UIEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { PostType } from './Feed';
+import {
+  getUserNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
+  Notification,
+} from '../services/notificationService';
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
+import { formatDate } from '../utils/helpers';
 
 function Notifications() {
   const [activeComponent, setActiveComponent] = useState<'sidebar' | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const sidebarButtonRef = useRef<HTMLButtonElement>(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  // Toggle dropdown visibility
-  const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
 
-  // Close dropdown when clicking outside
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const [totalNotifications, setTotalNotifications] = useState(0);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const socket = useRef<any>(null);
+  const limit = 10;
+
+  const fetchNotifications = async (
+    filter: string = 'all',
+    page: number = 1,
+    limit: number = 5,
+  ) => {
+    try {
+      const response = await getUserNotifications(filter, page, limit);
+      const newNotifications = response.data.notifications;
+
+      setNotifications((prev) => {
+        const ids = new Set(prev.map((notif) => notif._id));
+        return [...prev, ...newNotifications.filter((notif) => !ids.has(notif._id))];
+      });
+      setTotalNotifications(response.data.totalNotifications);
+      setHasMore(response.data.hasMore); // Check if more notifications are available
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  const markAsRead = async (notificationId: string) => {
+    try {
+      await markNotificationAsRead(notificationId);
+      setNotifications((prev) =>
+        prev.map((notif) => (notif._id === notificationId ? { ...notif, isRead: true } : notif)),
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications((prev) => prev.map((notif) => ({ ...notif, isRead: true })));
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
+  const handleDeleteNotification = async (notificationId: string) => {
+    try {
+      await deleteNotification(notificationId);
+      setNotifications((prev) => prev.filter((notif) => notif._id !== notificationId));
+      setTotalNotifications(totalNotifications - 1);
+      toast.success('Notification deleted successfully');
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      toast.error('Failed to delete notification');
+    }
+  };
+
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
+    socket.current = io('wss://backendgdscdevteam3-2.onrender.com', {
+      withCredentials: true,
+      extraHeaders: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+    });
 
-    document.addEventListener('mousedown', handleClickOutside);
+    socket.current.on('connect', () => {
+      console.log('Socket.IO connected');
+      setIsConnected(true);
+    });
+
+    socket.current.on('notificationEvent', (newNotification: Notification) => {
+      setNotifications((prev) => [newNotification, ...prev]);
+      toast.info(`🔔 ${newNotification.message}`);
+    });
+
+    socket.current.on('disconnect', () => {
+      console.log('Socket.IO disconnected');
+      setIsConnected(false);
+    });
+
+    socket.current.on('error', (error: any) => {
+      console.error('Socket.IO error:', error);
+    });
+
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      socket.current?.disconnect();
     };
   }, []);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchNotifications('all', page, limit);
+  }, [page]);
+
+  // Infinite scroll handler
+  const handleScroll = () => {
+    if (
+      window.innerHeight + document.documentElement.scrollTop >=
+      document.documentElement.offsetHeight - 100
+    ) {
+      if (hasMore) {
+        setPage((prev) => prev + 1); // Increment page to fetch more
+      }
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMore]);
+
   const toggleSidebar = () => {
     setActiveComponent((prev) => (prev === 'sidebar' ? null : 'sidebar'));
   };
@@ -69,298 +176,158 @@ function Notifications() {
 
             <span className='text-3xl font-semibold'>Notifications</span>
             <div className='flex justify-center flex-end'>
-              <button className='text-Primary/Light text-lg hover:text-Primary/Target ml-80'>
-                Marked all as read
+              <button
+                onClick={markAllAsRead}
+                className='text-Primary/Light text-lg hover:text-Primary/Target ml-80'
+              >
+                Mark all as read
               </button>
             </div>
           </div>
           <div className='mb-6'>
             <div className='flex flex-col'>
               <div className='flex justify-center mt-8'>
-                <p className='font-semibold text-lg text-white'>Today</p>
+                <p className='font-semibold text-lg text-white'>Recent</p>
               </div>
-              <div
-                className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-4 flex bg-Background/Bottom text-center mt-28 p-12 w-full h-28 border-Primary/Dark border-solid box-border border-2 rounded-3xl
+
+              {notifications.length > 0 ? (
+                notifications.map((notification) => (
+                  <button
+                    key={notification._id}
+                    className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-4 flex bg-Background/Bottom text-center mt-28 p-12 w-full h-28 border-Primary/Dark border-solid box-border border-2 rounded-3xl mb-
     sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-full sm:max-lg:mt-28`}
-              >
-                <div className='mt-1 sm:max-lg:mt-3 lg:max-xl:mt-2 xl:-mt-2'>
-                  <p className='text-left text-white text-l'>
-                    No notifications for now... Go explore{' '}
-                    <Link to='/feed' className='text-Accent/Target cursor-pointer inline'>
-                      Codemunity
-                    </Link>{' '}
-                    or{' '}
-                    <Link to='/feed/me' className='text-Primary/Light cursor-pointer inline'>
-                      share your own code
-                    </Link>{' '}
-                    !
-                  </p>
-                </div>
-              </div>
-              <button
-                className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-4 flex bg-Background/Bottom text-center mt-28 p-12 w-full h-28 border-Primary/Light hover:border-Primary/Target border-solid box-border border-2 rounded-3xl mb-
-    sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-full sm:max-lg:mt-28`}
-              >
-                <div className='flex fixed -mt-10 ml-[600px] flex-col gap-y-6' ref={dropdownRef}>
-                  <button className='text-white hover:text-gray-300' onClick={toggleDropdown}>
-                    <svg
-                      width='24'
-                      height='22'
-                      viewBox='0 0 24 22'
-                      fill='none'
-                      xmlns='http://www.w3.org/2000/svg'
-                    >
-                      <path
-                        d='M6 12C6 13.6569 4.6569 15 3 15C1.3431 15 0 13.6569 0 12C0 10.3431 1.3431 9 3 9C4.6569 9 6 10.3431 6 12Z'
-                        fill='currentColor'
-                      />
-                      <path
-                        d='M15 12C15 13.6569 13.6569 15 12 15C10.3431 15 9 13.6569 9 12C9 10.3431 10.3431 9 12 9C13.6569 9 15 10.3431 15 12Z'
-                        fill='currentColor'
-                      />
-                      <path
-                        d='M21 15C22.6569 15 24 13.6569 24 12C24 10.3431 22.6569 9 21 9C19.3431 9 18 10.3431 18 12C18 13.6569 19.3431 15 21 15Z'
-                        fill='currentColor'
-                      />
-                    </svg>
-                  </button>
-                  {isDropdownOpen && (
-                    <div className='absolute -right-48 mt-2 w-48 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
-                      <ul className='py-1 my-3 ml-2'>
-                        <li>
-                          <button className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
-                            Marked as read
-                          </button>
-                        </li>
-                        <li>
-                          <button className='block px-4 py-2 text-red-500 hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
-                            Delete
-                          </button>
-                        </li>
-                      </ul>
+                  >
+                    <div className='ml-[585px] -mt-10 absolute'>
+                      <Menu as='div' className='absolute'>
+                        {/* The button that triggers the dropdown */}
+                        <MenuButton className='px-4 py-2 text-white rounded hover:text-gray-300'>
+                          <svg
+                            width='24'
+                            height='22'
+                            viewBox='0 0 24 22'
+                            fill='none'
+                            xmlns='http://www.w3.org/2000/svg'
+                          >
+                            <path
+                              d='M6 12C6 13.6569 4.6569 15 3 15C1.3431 15 0 13.6569 0 12C0 10.3431 1.3431 9 3 9C4.6569 9 6 10.3431 6 12Z'
+                              fill='currentColor'
+                            />
+                            <path
+                              d='M15 12C15 13.6569 13.6569 15 12 15C10.3431 15 9 13.6569 9 12C9 10.3431 10.3431 9 12 9C13.6569 9 15 10.3431 15 12Z'
+                              fill='currentColor'
+                            />
+                            <path
+                              d='M21 15C22.6569 15 24 13.6569 24 12C24 10.3431 22.6569 9 21 9C19.3431 9 18 10.3431 18 12C18 13.6569 19.3431 15 21 15Z'
+                              fill='currentColor'
+                            />
+                          </svg>
+                        </MenuButton>
+
+                        {/* Dropdown menu */}
+                        <MenuItems className='absolute -right-48 top-4 w-48 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
+                          <ul className='py-1 my-3 ml-2'>
+                            {/* Mark as Read option */}
+                            {!notification.isRead && (
+                              <MenuItem>
+                                {({ active }: { active: boolean }) => (
+                                  <button
+                                    onClick={() => markAsRead(notification._id)}
+                                    className={`block px-4 py-2 w-full text-left flex flex-row gap-4 text-white ${
+                                      active ? 'bg-Background/Middle' : ''
+                                    }`}
+                                  >
+                                    Mark as read
+                                  </button>
+                                )}
+                              </MenuItem>
+                            )}
+
+                            {/* Delete option */}
+                            <MenuItem>
+                              {({ active }: { active: boolean }) => (
+                                <button
+                                  onClick={() => handleDeleteNotification(notification._id)}
+                                  className={`block px-4 py-2 w-full text-left flex flex-row gap-4 text-red-500 ${
+                                    active ? 'bg-Background/Middle' : ''
+                                  }`}
+                                >
+                                  Delete
+                                </button>
+                              )}
+                            </MenuItem>
+                          </ul>
+                        </MenuItems>
+                      </Menu>
                     </div>
-                  )}
-                  <div className='flex flex-row'>
-                    <button className='-ml-9 -mt-2 text-white hover:text-Accent/Light'>
-                      <svg
-                        width='27'
-                        height='27'
-                        viewBox='0 0 27 27'
-                        fill='none'
-                        xmlns='http://www.w3.org/2000/svg'
-                      >
-                        <path
-                          d='M4.16211 16.0875L10.7996 21.375L22.8371 5.625'
-                          stroke='currentColor'
-                          stroke-width='3'
-                          stroke-linecap='round'
-                          stroke-linejoin='round'
+                    <div className='flex flex-row gap-4 -ml-6 -mt-6'>
+                      <div className='flex items-center min-w-[15px] min-h-[15px]'>
+                        {!notification.isRead && (
+                          <svg
+                            width='15'
+                            height='15'
+                            viewBox='0 0 15 15'
+                            fill='none'
+                            xmlns='http://www.w3.org/2000/svg'
+                          >
+                            <path
+                              d='M13.125 7.5C13.125 10.6066 10.6066 13.125 7.5 13.125C4.3934 13.125 1.875 10.6066 1.875 7.5C1.875 4.3934 4.3934 1.875 7.5 1.875C10.6066 1.875 13.125 4.3934 13.125 7.5Z'
+                              fill='#9CE1E7'
+                            />
+                            <path
+                              d='M13.125 7.5C13.125 10.6066 10.6066 13.125 7.5 13.125C4.3934 13.125 1.875 10.6066 1.875 7.5C1.875 4.3934 4.3934 1.875 7.5 1.875C10.6066 1.875 13.125 4.3934 13.125 7.5Z'
+                              stroke='#9CE1E7'
+                              stroke-width='3'
+                              stroke-linecap='round'
+                              stroke-linejoin='round'
+                            />
+                          </svg>
+                        )}
+                      </div>
+
+                      <div className='flex justify-center'>
+                        <img
+                          src={
+                            notification.avatar ||
+                            'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+                          } // Fallback for avatar
+                          alt='Avatar'
+                          className='w-16 h-16 rounded-full object-cover'
                         />
-                      </svg>
-                    </button>
-                    <button className='-mt-2 text-white hover:text-red-300'>
-                      <svg
-                        width='44'
-                        height='44'
-                        viewBox='0 0 44 44'
-                        fill='none'
-                        xmlns='http://www.w3.org/2000/svg'
-                      >
-                        <path
-                          d='M29.3337 14.6665L14.667 29.3332M29.3337 29.3332L14.667 14.6665'
-                          stroke='currentColor'
-                          stroke-width='3'
-                          stroke-linecap='round'
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                <div className='flex flex-row gap-4 -ml-6 -mt-6'>
-                  <div className='flex items-center '>
-                    <svg
-                      width='15'
-                      height='15'
-                      viewBox='0 0 15 15'
-                      fill='none'
-                      xmlns='http://www.w3.org/2000/svg'
-                    >
-                      <path
-                        d='M13.125 7.5C13.125 10.6066 10.6066 13.125 7.5 13.125C4.3934 13.125 1.875 10.6066 1.875 7.5C1.875 4.3934 4.3934 1.875 7.5 1.875C10.6066 1.875 13.125 4.3934 13.125 7.5Z'
-                        fill='#9CE1E7'
-                      />
-                      <path
-                        d='M13.125 7.5C13.125 10.6066 10.6066 13.125 7.5 13.125C4.3934 13.125 1.875 10.6066 1.875 7.5C1.875 4.3934 4.3934 1.875 7.5 1.875C10.6066 1.875 13.125 4.3934 13.125 7.5Z'
-                        stroke='#9CE1E7'
-                        stroke-width='3'
-                        stroke-linecap='round'
-                        stroke-linejoin='round'
-                      />
-                    </svg>
-                  </div>
-                  <div className='flex justify-center'>
-                    <img
-                      src={
-                        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                      } // Fallback for avatar
-                      alt='Avatar'
-                      className='w-16 h-16 rounded-full object-cover'
-                    />
-                  </div>
-                  <div className='flex flex-col mt-0 justify-center'>
-                    <div className='flex'>
-                      <p className='text-white text-lg'>
-                        <span className='text-Primary/Light'>@someone</span> tagged you in a post!
-                      </p>
+                      </div>
+                      <div className='flex flex-col mt-0 justify-center'>
+                        <div className='flex'>
+                          <p className='text-white text-lg'>
+                            <span className='text-Primary/Light'>{notification.senderName}</span>{' '}
+                            {notification.message}
+                          </p>
+                        </div>
+                        <div className='flex'>
+                          <p className='text-Accent/Light'>{formatDate(notification.createdAt)}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className='flex'>
-                      <p className='text-Accent/Light'>Just now</p>
-                    </div>
-                  </div>
-                </div>
-              </button>
-              <button
-                className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-4 flex bg-Background/Bottom text-center mt-28 p-12 w-full h-28 border-Primary/Light hover:border-Primary/Target border-solid box-border border-2 rounded-3xl mb-2
-    sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-full sm:max-lg:mt-28`}
-              >
-                <div className='flex fixed -mt-10 ml-[600px]'>
-                  <button className='text-white hover:text-gray-300'>
-                    <svg
-                      width='24'
-                      height='22'
-                      viewBox='0 0 24 22'
-                      fill='none'
-                      xmlns='http://www.w3.org/2000/svg'
-                    >
-                      <path
-                        d='M6 12C6 13.6569 4.6569 15 3 15C1.3431 15 0 13.6569 0 12C0 10.3431 1.3431 9 3 9C4.6569 9 6 10.3431 6 12Z'
-                        fill='currentColor'
-                      />
-                      <path
-                        d='M15 12C15 13.6569 13.6569 15 12 15C10.3431 15 9 13.6569 9 12C9 10.3431 10.3431 9 12 9C13.6569 9 15 10.3431 15 12Z'
-                        fill='currentColor'
-                      />
-                      <path
-                        d='M21 15C22.6569 15 24 13.6569 24 12C24 10.3431 22.6569 9 21 9C19.3431 9 18 10.3431 18 12C18 13.6569 19.3431 15 21 15Z'
-                        fill='currentColor'
-                      />
-                    </svg>
                   </button>
-                </div>
-                <div className='flex flex-row gap-4 -ml-6 -mt-6'>
-                  <div className='flex items-center'>
-                    <svg
-                      width='15'
-                      height='15'
-                      viewBox='0 0 15 15'
-                      fill='none'
-                      xmlns='http://www.w3.org/2000/svg'
-                    >
-                      <path
-                        d='M13.125 7.5C13.125 10.6066 10.6066 13.125 7.5 13.125C4.3934 13.125 1.875 10.6066 1.875 7.5C1.875 4.3934 4.3934 1.875 7.5 1.875C10.6066 1.875 13.125 4.3934 13.125 7.5Z'
-                        fill='#9CE1E7'
-                      />
-                      <path
-                        d='M13.125 7.5C13.125 10.6066 10.6066 13.125 7.5 13.125C4.3934 13.125 1.875 10.6066 1.875 7.5C1.875 4.3934 4.3934 1.875 7.5 1.875C10.6066 1.875 13.125 4.3934 13.125 7.5Z'
-                        stroke='#9CE1E7'
-                        stroke-width='3'
-                        stroke-linecap='round'
-                        stroke-linejoin='round'
-                      />
-                    </svg>
-                  </div>
-                  <div className='flex justify-center'>
-                    <img
-                      src={
-                        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                      } // Fallback for avatar
-                      alt='Avatar'
-                      className='w-16 h-16 rounded-full object-cover'
-                    />
-                  </div>
-                  <div className='flex flex-col mt-0 justify-center'>
-                    <div className='flex'>
-                      <p className='text-white text-lg'>
-                        <span className='text-Primary/Light'>@someone</span> tagged you in a post!
-                      </p>
-                    </div>
-                    <div className='flex'>
-                      <p className='text-Accent/Light'>Just now</p>
-                    </div>
-                  </div>
-                </div>
-              </button>
-              <button
-                className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-4 flex bg-Background/Bottom text-center mt-28 p-12 w-full h-28 border-Primary/Dark hover:border-opacity-60 border-solid box-border border-2 rounded-3xl mb-2
+                ))
+              ) : (
+                <div
+                  className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-4 flex bg-Background/Bottom text-center mt-28 p-12 w-full h-28 border-Primary/Dark border-solid box-border border-2 rounded-3xl
     sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-full sm:max-lg:mt-28`}
-              >
-                <div className='flex fixed -mt-10 ml-[600px]'>
-                  <button className='text-white hover:text-gray-300'>
-                    <svg
-                      width='24'
-                      height='22'
-                      viewBox='0 0 24 22'
-                      fill='none'
-                      xmlns='http://www.w3.org/2000/svg'
-                    >
-                      <path
-                        d='M6 12C6 13.6569 4.6569 15 3 15C1.3431 15 0 13.6569 0 12C0 10.3431 1.3431 9 3 9C4.6569 9 6 10.3431 6 12Z'
-                        fill='currentColor'
-                      />
-                      <path
-                        d='M15 12C15 13.6569 13.6569 15 12 15C10.3431 15 9 13.6569 9 12C9 10.3431 10.3431 9 12 9C13.6569 9 15 10.3431 15 12Z'
-                        fill='currentColor'
-                      />
-                      <path
-                        d='M21 15C22.6569 15 24 13.6569 24 12C24 10.3431 22.6569 9 21 9C19.3431 9 18 10.3431 18 12C18 13.6569 19.3431 15 21 15Z'
-                        fill='currentColor'
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <div className='flex flex-row gap-4 -ml-6 -mt-6'>
-                  <div className='flex items-center invisible'>
-                    <svg
-                      width='15'
-                      height='15'
-                      viewBox='0 0 15 15'
-                      fill='none'
-                      xmlns='http://www.w3.org/2000/svg'
-                    >
-                      <path
-                        d='M13.125 7.5C13.125 10.6066 10.6066 13.125 7.5 13.125C4.3934 13.125 1.875 10.6066 1.875 7.5C1.875 4.3934 4.3934 1.875 7.5 1.875C10.6066 1.875 13.125 4.3934 13.125 7.5Z'
-                        fill='#9CE1E7'
-                      />
-                      <path
-                        d='M13.125 7.5C13.125 10.6066 10.6066 13.125 7.5 13.125C4.3934 13.125 1.875 10.6066 1.875 7.5C1.875 4.3934 4.3934 1.875 7.5 1.875C10.6066 1.875 13.125 4.3934 13.125 7.5Z'
-                        stroke='#9CE1E7'
-                        stroke-width='3'
-                        stroke-linecap='round'
-                        stroke-linejoin='round'
-                      />
-                    </svg>
-                  </div>
-                  <div className='flex justify-center'>
-                    <img
-                      src={
-                        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                      } // Fallback for avatar
-                      alt='Avatar'
-                      className='w-16 h-16 rounded-full object-cover'
-                    />
-                  </div>
-                  <div className='flex flex-col mt-0 justify-center'>
-                    <div className='flex'>
-                      <p className='text-white text-lg'>
-                        <span className='text-Primary/Light'>@someone</span> tagged you in a post!
-                      </p>
-                    </div>
-                    <div className='flex'>
-                      <p className='text-Accent/Light'>Just now</p>
-                    </div>
+                >
+                  <div className='mt-1 sm:max-lg:mt-3 lg:max-xl:mt-2 xl:-mt-2'>
+                    <p className='text-left text-white text-l'>
+                      No notifications for now... Go explore{' '}
+                      <Link to='/feed' className='text-Accent/Target cursor-pointer inline'>
+                        Codemunity
+                      </Link>{' '}
+                      or{' '}
+                      <Link to='/feed/me' className='text-Primary/Light cursor-pointer inline'>
+                        share your own code
+                      </Link>{' '}
+                      !
+                    </p>
                   </div>
                 </div>
-              </button>
+              )}
             </div>
           </div>
         </div>

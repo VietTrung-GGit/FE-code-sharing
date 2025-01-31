@@ -28,7 +28,7 @@ export const formatDate = (date: string): string => {
   const diffInDays = Math.floor(diffInHours / 24);
 
   // If the difference is less than 30 seconds, return "Recently"
-  if (diffInSeconds < 30) {
+  if (diffInSeconds < 60) {
     return 'Recently';
   }
 
@@ -49,7 +49,6 @@ export const formatDate = (date: string): string => {
   const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
   return inputDate.toLocaleDateString('en-US', options); // Ensure 'en-US' format or adjust locale as needed
 };
-
 
 // Function for validating email format
 export const isValidEmail = (email: string) => {
