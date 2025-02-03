@@ -4,6 +4,7 @@ import { API_ENDPOINTS } from '../api/endpoints';
 // Define interfaces for user data
 
 export interface UserDataFull {
+  _id: string;
   displayname: string;
   avatar: string;
   username: string;
@@ -55,5 +56,15 @@ export const updateUserFullData = async (
 // Function to update user password
 export const updateUserPassword = async (data: UpdatePasswordData): Promise<void> => {
   await axiosInstance.put(API_ENDPOINTS.USER_PASSWORD_UPDATE, data);
+};
+
+export const followUser = async (userId: string) => {
+  const response = await axiosInstance.get(API_ENDPOINTS.FOLLOW(userId));
+  return response.data;
+};
+
+export const unfollowUser = async (userId: string) => {
+  const response = await axiosInstance.get(API_ENDPOINTS.UNFOLLOW(userId));
+  return response.data;
 };
 

@@ -350,7 +350,6 @@ function ProfileTemp() {
         onToggleTagList={toggleTagList}
         isSidebarOpen={activeComponent === 'sidebar'}
         isTagListOpen={activeComponent === 'taglist'}
-        isTagListVisible={true}
         sidebarButtonRef={sidebarButtonRef}
         tagListButtonRef={tagListButtonRef}
       />

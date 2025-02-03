@@ -46,7 +46,7 @@ function Sidebar({
   return (
     <div>
       <div
-        className={`top-24 left-0 lg:border-y-0 bg-Background/Bottom text-center w-[266px] lg:w-[23vw] xl:w-[20vw]
+        className={`relative top-24 left-0 lg:border-y-0 bg-Background/Bottom text-center w-[266px] lg:w-[23vw] xl:w-[20vw]
            h-4/5  p-1 fixed flex flex-col border-Primary/Dark border-solid box-border z-40 rounded-r-3xl border-y-2 border-r-2
         transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -68,10 +68,57 @@ function Sidebar({
           <p className='text-white mt-6 font-semibold text-lg sm:max-xl:text-lg xl:text-xl w-56 break-words'>
             {user?.displayname || 'Display name'}
           </p>
+          <button
+            className={`m-2 ${totalNotifications > 0 ? ' bg-Accent/Target text-white' : 'bg-white text-Primary/Dark'} flex items-center space-x-4 rounded-3xl text-lg font-semibold min-w-[100px] px-2 py-1 hover:bg-opacity-80 `}
+            onClick={() => handleNavigation('/notifications')}
+          >
+            <svg
+              width='23'
+              height='27'
+              viewBox='0 0 23 27'
+              fill='currentColor'
+              xmlns='http://www.w3.org/2000/svg'
+            >
+              <path
+                d='M11.5 27C12.2913 27.001 13.0633 26.7416 13.7086 26.2577C14.3539 25.7738 14.8405 25.0895 15.1008 24.3H7.89922C8.15946 25.0895 8.64605 25.7738 9.29137 26.2577C9.93669 26.7416 10.7087 27.001 11.5 27ZM20.4444 16.9911V10.8C20.4444 6.45705 17.6525 2.79855 13.8703 1.6983C13.4959 0.702 12.581 0 11.5 0C10.419 0 9.50411 0.702 9.12972 1.6983C5.3475 2.7999 2.55556 6.45705 2.55556 10.8V16.9911L0.37439 19.2955C0.255502 19.4207 0.161218 19.5695 0.0969646 19.7333C0.0327111 19.8971 -0.000242074 20.0727 1.33871e-06 20.25V21.6C1.33871e-06 21.958 0.134623 22.3014 0.374254 22.5546C0.613884 22.8078 0.938891 22.95 1.27778 22.95H21.7222C22.0611 22.95 22.3861 22.8078 22.6257 22.5546C22.8654 22.3014 23 21.958 23 21.6V20.25C23.0002 20.0727 22.9673 19.8971 22.903 19.7333C22.8388 19.5695 22.7445 19.4207 22.6256 19.2955L20.4444 16.9911Z'
+                fill='currentColor'
+              />
+            </svg>
+
+            <span>{`${totalNotifications}`}</span>
+
+            <svg
+              width='20'
+              height='10'
+              viewBox='0 0 20 10'
+              fill='none'
+              xmlns='http://www.w3.org/2000/svg'
+            >
+              <path d='M0 0L10 10L20 0H0Z' fill='currentColor' />
+            </svg>
+          </button>
         </div>
 
         {/* Navigation Buttons */}
         <div className='flex flex-col my-8 ml-5 flex-grow overflow-y-auto scrollbar scrollbar-thin scrollbar-thumb-Primary/Dark scrollbar-track-Background/Middle'>
+          <button
+            className={`m-2 flex items-center space-x-2 ${state === undefined ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
+            onClick={() => handleNavigation('/feed')}
+          >
+            <svg
+              width='38'
+              height='36'
+              viewBox='0 0 38 36'
+              fill='none'
+              xmlns='http://www.w3.org/2000/svg'
+            >
+              <path
+                d='M36.7718 12.6766L25.3801 11.0342L20.2878 0.792305C20.1487 0.511888 19.9199 0.284884 19.6372 0.146901C18.9283 -0.200281 18.0669 0.0890376 17.7124 0.792305L12.62 11.0342L1.22838 12.6766C0.914314 12.7211 0.627167 12.868 0.40732 13.0906C0.141537 13.3616 -0.00492147 13.7262 0.000126282 14.1043C0.00517403 14.4823 0.161315 14.843 0.43424 15.1069L8.67626 23.0787L6.72904 34.3355C6.68338 34.5973 6.71259 34.8666 6.81335 35.1129C6.91412 35.3591 7.08242 35.5724 7.29916 35.7285C7.51589 35.8847 7.7724 35.9775 8.0396 35.9964C8.30679 36.0153 8.57398 35.9595 8.81086 35.8355L19.0001 30.5209L29.1893 35.8355C29.4675 35.9824 29.7905 36.0313 30.1001 35.9779C30.8808 35.8444 31.4057 35.1099 31.2711 34.3355L29.3239 23.0787L37.5659 15.1069C37.7903 14.8888 37.9383 14.6039 37.9832 14.2924C38.1043 13.5134 37.557 12.7924 36.7718 12.6766ZM25.8557 21.9571L27.4754 31.3176L19.0001 26.9022L10.5248 31.3221L12.1445 21.9615L5.28882 15.3295L14.7647 13.963L19.0001 5.44811L23.2355 13.963L32.7114 15.3295L25.8557 21.9571Z'
+                fill='currentColor'
+              />
+            </svg>
+            <span>Feed</span>
+          </button>
           <button
             className={`m-2 flex items-center space-x-2 ${state === undefined ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
             onClick={() => handleNavigation('/feed')}
@@ -94,8 +141,8 @@ function Sidebar({
             <span>Codemunity</span>
           </button>
           <button
-            className={`m-2 flex items-center space-x-2 ${state === 'me' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
-            onClick={() => handleNavigation('/feed/me')}
+            className={`m-2 flex items-center space-x-2 ${state === 'home' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
+            onClick={() => handleNavigation('/home')}
           >
             <svg
               xmlns='http://www.w3.org/2000/svg'
@@ -114,27 +161,7 @@ function Sidebar({
             </svg>
             <span>Home</span>
           </button>
-          <button
-            className={`m-2 flex items-center space-x-2 ${state === 'notifications' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
-            onClick={() => handleNavigation('/notifications')}
-          >
-            <svg
-              width='31'
-              height='35'
-              viewBox='0 0 31 35'
-              fill='none'
-              xmlns='http://www.w3.org/2000/svg'
-            >
-              <path
-                d='M10.8018 26.1111H5.48109C3.50922 26.1111 2.52329 26.1111 2.31584 25.9428C2.08279 25.7537 2.02585 25.6422 2.0006 25.3251C1.97815 25.0428 2.58242 23.9559 3.791 21.7825C5.03882 19.5383 6.09838 16.2707 6.09838 11.6444C6.09838 9.08658 7.0889 6.63348 8.85203 4.82479C10.6152 3.01611 13.0065 2 15.5 2C17.9934 2 20.3847 3.01611 22.1478 4.82479C23.9111 6.63348 24.9016 9.08658 24.9016 11.6444C24.9016 16.2707 25.9611 19.5383 27.209 21.7825C28.4174 23.9559 29.0218 25.0428 28.9994 25.3251C28.9742 25.6422 28.9171 25.7537 28.6841 25.9428C28.4767 26.1111 27.4908 26.1111 25.5189 26.1111H20.2008M10.8018 26.1111L10.7992 27.8333C10.7992 30.6869 12.9039 33 15.5 33C18.0962 33 20.2008 30.6869 20.2008 27.8333V26.1111M10.8018 26.1111H20.2008'
-                stroke='currentColor'
-                strokeWidth='3'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              />
-            </svg>
-            <span>{`Notifications (${totalNotifications})`}</span>
-          </button>
+
           <button
             className={`m-2 flex items-center space-x-2 ${state === 'stored' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
             onClick={() => handleNavigation('/feed/stored')}

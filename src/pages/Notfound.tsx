@@ -12,7 +12,7 @@ function NotFound() {
         <div>
           <p>Oops! Did you get lost?</p>
           <Link to='/feed/me' className='text-Accent/Light hover:text-Accent/Target'>
-            Go back to Home
+            Go back to Dashboard
           </Link>
         </div>
       </main>

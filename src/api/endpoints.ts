@@ -13,6 +13,20 @@ export const API_ENDPOINTS = {
   USER_DATA: '/user/updateFull',
   USER_PASSWORD_UPDATE: '/user/updatePassword',
   FETCH_USER_DETAIL: '/user/fullInfo',
+  FOLLOW: (userId: string) => `/user/${userId}/follow`,
+  UNFOLLOW: (userId: string) => `/user/${userId}/unfollow`,
+
+  //group_related
+  GROUP_DATA: (groupId: string) => `/group/${groupId}/data`,
+  FETCH_GROUP_DETAIL: (groupId: string) => `/group/${groupId}/fullInfo`,
+  JOIN_GROUP: (groupId: string) => `/group/${groupId}/join`,
+  LEAVE_GROUP: (groupId: string) => `/group/${groupId}/leave`,
+
+  //project_related
+  PROJECT_DATA: (projectId: string) => `/project/${projectId}/data`,
+  FETCH_PROJECT_DETAIL: (projectId: string) => `/project/${projectId}/fullInfo`,
+  JOIN_PROJECT: (projectId: string) => `/project/${projectId}/join`,
+  LEAVE_PROJECT: (projectId: string) => `/project/${projectId}/leave`,
 
   //Post_related
   POST_DETAILS: (postId: string) => `/posts/${postId}`,

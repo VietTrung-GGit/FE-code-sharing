@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { BiSolidEdit, BiTrashAlt } from 'react-icons/bi';
 import Editor from '@monaco-editor/react';
 import PostDetail from '../components/postDetail';
 import TagsScroll from '../components/tagsScroll';
@@ -309,6 +310,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
                   wordWrap: 'on',
                   readOnly: true,
                   renderLineHighlight: 'none',
+                  scrollBeyondLastLine: false,
                   quickSuggestions: false,
                 }}
               />
@@ -324,58 +326,14 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
                   onClick={handleEdit}
                   className=' text-white rounded-lg hover:text-Accent/Light'
                 >
-                  <svg className='w-6 h-6 stroke-current stroke-2' viewBox='0 0 24 24'>
-                    <path
-                      d='M20,16v4a2,2,0,0,1-2,2H4a2,2,0,0,1-2-2V6A2,2,0,0,1,4,4H8'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth='2'
-                    />
-                    <polygon
-                      points='12.5 15.8 22 6.2 17.8 2 8.3 11.5 8 16 12.5 15.8'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth='2'
-                    />
-                  </svg>
+                  <BiSolidEdit className='text-2xl' />
                 </button>
 
                 <button
                   onClick={() => setShowDeletePostModal(true)}
                   className='text-white rounded-lg hover:text-red-300'
                 >
-                  <svg className='w-7 h-7 stroke-current stroke-2' viewBox='0 0 24 24'>
-                    <path
-                      d='M10 12V17'
-                      strokeWidth='2'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                    />
-                    <path
-                      d='M14 12V17'
-                      strokeWidth='2'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                    />
-                    <path
-                      d='M4 7H20'
-                      strokeWidth='2'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                    />
-                    <path
-                      d='M6 10V18C6 19.6569 7.34315 21 9 21H15C16.6569 21 18 19.6569 18 18V10'
-                      strokeWidth='2'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                    />
-                    <path
-                      d='M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5V7H9V5Z'
-                      strokeWidth='2'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                    />
-                  </svg>
+                  <BiTrashAlt className='text-2xl' />
                 </button>
               </div>
             ) : (

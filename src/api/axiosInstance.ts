@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an Axios instance
 export const axiosInstance = axios.create({
-  baseURL: 'https://backendgdscdevteam3-2.onrender.com',
+  baseURL: 'https://4cj9kc-4000.csb.app',
   headers: {
     'Content-Type': 'application/json',
   },

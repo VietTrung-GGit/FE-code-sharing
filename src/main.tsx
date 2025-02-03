@@ -6,15 +6,17 @@ import { ToastContainer } from 'react-toastify'; // Import ToastContainer
 import 'react-toastify/dist/ReactToastify.css'; // Import Toastify styles
 import './index.css';
 import Landing from './pages/Landing';
+
 import Signin from './pages/Signin';
 import Signup from './pages/Signup';
 import NotFound from './pages/Notfound';
 import Feed from './pages/Feed';
+import UserDashboard from './pages/UserDashboard';
 import Test from './pages/Test';
 import Notifications from './pages/Notifications';
 import ProfileCard from './pages/Profile';
 import ProfileTemp from './pages/Profiletemp';
-import Groups from './pages/Groups';
+import GroupDashboard from './pages/GroupDashboard';
 import ProtectedRoute from './components/privateRoute'; // Import the protected route component
 import { AuthUserProvider } from './context/AuthUserContext';
 import PassReset from './pages/Passreset';
@@ -28,7 +30,7 @@ if (root) {
       <AuthUserProvider>
         <NotificationsProvider>
           <Routes>
-            <Route path='/' element={<Landing />} />
+            <Route path='/' element={<Feed />} />
             <Route path='/signin' element={<Signin />} />
             <Route path='/signup' element={<Signup />} />
             <Route path='/test' element={<Test />} />
@@ -60,6 +62,14 @@ if (root) {
               }
             />
             <Route
+              path='/home'
+              element={
+                <ProtectedRoute>
+                  <UserDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path='/notifications'
               element={
                 <ProtectedRoute>
@@ -79,7 +89,7 @@ if (root) {
               path='/groups'
               element={
                 <ProtectedRoute>
-                  <Groups />
+                  <GroupDashboard />
                 </ProtectedRoute>
               }
             />

@@ -165,7 +165,6 @@ const ProfileCard: React.FC = () => {
       <CollapseMenu
         onToggleSidebar={toggleSidebar}
         isSidebarOpen={activeComponent === 'sidebar'}
-        isTagListVisible={false} // Disable TagList
         sidebarButtonRef={sidebarButtonRef}
       />
       <div className='h-full flex '>

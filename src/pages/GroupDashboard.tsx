@@ -1,14 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { IoIosMore, IoIosMail, IoMdArrowDropdown } from 'react-icons/io';
-
 import { BiSolidEdit } from 'react-icons/bi';
 import { AiOutlineUserDelete } from 'react-icons/ai';
+import { MdOutlinePublicOff } from 'react-icons/md';
+import { TbFlag, TbFlagOff } from 'react-icons/tb';
 import { useDebounce } from '@uidotdev/usehooks';
 import Search from '../assets/search.svg';
+import UserBrief from '../components/userBrief';
 import Filter from '../assets/filter.svg';
 import Sidebar from '../components/sidebar';
 import TagList from '../components/tagList';
 import PostBrief from '../components/postBrief';
+import GroupBrief from '../components/groupBrief';
+import ProjectBrief from '../components/projectBrief';
 import QuickNav from '../components/quickNav';
 import CollapseMenu from '../components/collapseMenu';
 import { toast } from 'react-toastify';
@@ -25,9 +29,12 @@ interface Params extends Record<string, string | undefined> {
   type: PostType;
 }
 
-function Groups() {
+function GroupDashboard() {
   // const { user } = useUser();
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
+  const [activeDashboard, setActiveDashboard] = useState<
+    'posts' | 'members' | 'myposts' | 'projects' | 'pendposts' | null
+  >('posts');
   const { type } = useParams<Params>();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const tagListRef = useRef<HTMLDivElement>(null);
@@ -53,6 +60,8 @@ function Groups() {
   const dropdownConfigRef = useRef<HTMLDivElement>(null);
   const [isDropdownFilterOpen, setIsDropdownFilterOpen] = useState(false);
   const dropdownFilterRef = useRef<HTMLDivElement>(null);
+  const [buttonText, setButtonText] = useState<'Follow' | 'Unfollow' | 'Followed' | null>(null);
+  const [buttonClicked, setButtonClicked] = useState(false);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 600);
   const debouncedSelectedTags = useDebounce(selectedTags, 800);
@@ -284,7 +293,7 @@ function Groups() {
       <>
         <div className='mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
           <div className='bg-Background/Bottom bg-center bg-cover rounded-3xl border-2 border-Primary/Dark border-solid box-border w-full lg:w-[calc(50vw-5rem)] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] flex flex-col items-center relative'>
-            <div className=' w-full flex justify-end mt-4 -ml-2' ref={dropdownConfigRef}>
+            <div className=' w-full flex justify-end mt-4 mr-14' ref={dropdownConfigRef}>
               <button
                 onClick={toggleDropdownConfig}
                 className='hover:text-gray-300 text-white text-3xl'
@@ -327,7 +336,9 @@ function Groups() {
                   </button>
                 </div>
                 <div className='absolute flex items-center bottom-8 xsm:left-0 -left-2 sm:static space-x-2'>
-                  <p className='text-xl text-white'> addMembers</p>
+                  <div className='flex flex-row '>
+                    <p className='text-white text-lg'>addmembers here</p>
+                  </div>
                 </div>
               </div>
 
@@ -336,7 +347,7 @@ function Groups() {
                   <div className='flex flex-col'>
                     <div className=''>
                       <p className='text-white font-semibold mt-6 text-3xl sm:text-3xl lg:text-2xl xl:text-3xl break-words'>
-                        {user?.displayname || 'Group name'}
+                        Groupname
                       </p>
                     </div>
 
@@ -357,13 +368,13 @@ function Groups() {
         </div>
         <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8 lg:hidden'>
           <div
-            className={`bg-Background/Bottom bg-center bg-cover border-2 h-36  border-Primary/Dark px-6 py-4 w-full flex items-center justify-center rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl  ${type === 'me' ? 'lg:mt-4 lg:rounded-3xl' : 'lg:mt-0 lg:border-t-0 lg:rounded-none lg:rounded-b-3xl'}
+            className={`bg-Background/Bottom bg-center bg-cover border-2 h-36  border-Primary/Dark px-6 py-4 w-full flex items-center justify-center rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl  lg:mt-4 lg:rounded-3xl
         border-solid box-border text-center mt-16 `}
           >
             <div className='flex flex-col items-center'>
               <div className='flex mx-2 mb-4'>
                 <p className='text-white xsm:text-2xl text-xl font-semibold text-center break-words'>
-                  {user?.username || 'Groupname'}'s Dashboard
+                  Groupname's Dashboard
                 </p>
               </div>
               <div className='flex flex-row gap-4 xsm:gap-8 sm:gap-20 '>
@@ -399,23 +410,63 @@ function Groups() {
         </div>
 
         <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
-          <div className='flex flex-row justify-center gap-28 w-1/2'>
-            <button className='text-white text-xl'>Posts</button>
-            <button className='text-white text-xl'>Projects</button>
-            <button className='text-white text-xl'>Members</button>
-            <button className='text-white text-xl'>My posts</button>
-            <button className='text-white text-xl'>Pending posts</button>
-            <button className='text-white text-xl'>Activity log</button>
+          <div className='flex flex-row justify-center gap-20 w-1/2'>
+            <button
+              className={`${activeDashboard === 'posts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              onClick={() => setActiveDashboard('posts')}
+            >
+              Posts
+            </button>
+            <button
+              className={`${activeDashboard === 'projects' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              onClick={() => setActiveDashboard('projects')}
+            >
+              Projects
+            </button>
+            <button
+              className={`${activeDashboard === 'members' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              onClick={() => setActiveDashboard('members')}
+            >
+              Members
+            </button>
+            <button
+              className={`${activeDashboard === 'myposts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              onClick={() => setActiveDashboard('myposts')}
+            >
+              My posts
+            </button>
+            <button
+              className={`${activeDashboard === 'pendposts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              onClick={() => setActiveDashboard('pendposts')}
+            >
+              Pending posts
+            </button>
           </div>
         </div>
-        <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
-          <p className='text-xl text-white'>Posts (0)</p>
+        <div className='flex justify-start -mt-10 sm:max-lg:-mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 relative'>
+          <div className=' absolute left-96'>
+            {activeDashboard === 'posts' && (
+              <p className='text-2xl font-semibold text-white'>Posts (0)</p>
+            )}
+            {activeDashboard === 'myposts' && (
+              <p className='text-2xl font-semibold text-white'>My posts (0)</p>
+            )}
+            {activeDashboard === 'members' && (
+              <p className='text-2xl font-semibold text-white'>Members (0)</p>
+            )}
+            {activeDashboard === 'projects' && (
+              <p className='text-2xl font-semibold text-white'>Projects (0)</p>
+            )}
+            {activeDashboard === 'pendposts' && (
+              <p className='text-2xl font-semibold text-white'>Pending posts (0)</p>
+            )}
+          </div>
         </div>
       </>
 
       <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-2 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
         <div
-          className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-full flex items-center justify-between rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl  ${type === 'me' ? 'lg:mt-4 lg:rounded-3xl' : 'lg:mt-0 lg:border-t-0 lg:rounded-none lg:rounded-b-3xl'}
+          className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-full flex items-center justify-between rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl lg:mt-4 lg:rounded-3xl
         border-solid box-border mb-5 text-center mt-28 `}
         >
           <div className='flex flex-row w-full items-center space-x-4 mx-4'>
@@ -447,6 +498,7 @@ function Groups() {
                     <TagList
                       onFilterChange={handleFilterChange}
                       feedShowTaglistModal={showTaglistModal}
+                      activeFilter={activeDashboard}
                     />
                   </div>
                 </div>
@@ -461,7 +513,7 @@ function Groups() {
           </div>
         )}
       </div>
-      {type !== 'stored' && (
+      {activeDashboard === 'posts' && (
         <>
           <div className='mb-5'>
             <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
@@ -501,68 +553,84 @@ function Groups() {
               )}
             </div>
           </div>
-        </>
-      )}
 
-      {/* Show LoadingSpinner during the first load */}
-      {firstLoad ? (
-        <LoadingSpinner />
-      ) : (
-        <>
-          {/* Show NothingPost only after the first load, no posts, and not loading */}
-          {!loading && posts.length === 0 && (
-            <div className='mb-5'>
-              <div className='flex justify-center mx-0 lg:mx-6'>
-                <div
-                  className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-8 flex bg-Background/Bottom text-center p-12 w-full h-40 border-Primary/Dark border-solid box-border border-2 rounded-3xl
+          {/* Show LoadingSpinner during the first load */}
+          {firstLoad ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              {/* Show NothingPost only after the first load, no posts, and not loading */}
+              {!loading && posts.length === 0 && (
+                <div className='mb-5'>
+                  <div className='flex justify-center mx-0 lg:mx-6'>
+                    <div
+                      className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-8 flex bg-Background/Bottom text-center p-12 w-full h-40 border-Primary/Dark border-solid box-border border-2 rounded-3xl
     sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-1/2 mt-4`}
-                >
-                  <div className='h-auto'>
-                    <p className='text-left text-white text-l -mt-2 xsmnopost:mt-2 sm:mt-2 xl:mt-4'>
-                      Nothing here... Go explore{' '}
-                      <Link to='/feed' className='text-Accent/Target cursor-pointer inline'>
-                        Codemunity
-                      </Link>{' '}
-                      or{' '}
-                      <Link to='/feed/me' className='text-Primary/Light cursor-pointer inline'>
-                        share your own code
-                      </Link>{' '}
-                      !
-                    </p>
+                    >
+                      <div className='h-auto'>
+                        <p className='text-left text-white text-l -mt-2 xsmnopost:mt-2 sm:mt-2 xl:mt-4'>
+                          Nothing here... Go explore{' '}
+                          <Link to='/feed' className='text-Accent/Target cursor-pointer inline'>
+                            Codemunity
+                          </Link>{' '}
+                          or{' '}
+                          <Link to='/feed/me' className='text-Primary/Light cursor-pointer inline'>
+                            share your own code
+                          </Link>{' '}
+                          !
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
+              )}
 
-          {/* Display posts if available */}
-          {posts.length > 0 && (
-            <div
-              id='posts-container'
-              className={` mx-6 sm:max-lg:mx-14 lg:mx-8 ${type === 'stored' ? 'mt-28 sm:max-lg:mt-28 lg:mt-0' : ''}`}
-            >
-              {posts.map((post) => (
-                <div key={post._id} className='post'>
-                  <PostBrief postData={post} />
+              {/* Display posts if available */}
+              {posts.length > 0 && (
+                <div
+                  id='posts-container'
+                  className={` mx-6 sm:max-lg:mx-14 lg:mx-8 ${type === 'stored' ? 'mt-28 sm:max-lg:mt-28 lg:mt-0' : ''}`}
+                >
+                  {posts.map((post) => (
+                    <div key={post._id} className='post'>
+                      <PostBrief postData={post} />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              )}
 
-          {/* Show LoadingSpinner during additional data fetching */}
-          {loading && <LoadingSpinner />}
+              {/* Show LoadingSpinner during additional data fetching */}
+              {loading && <LoadingSpinner />}
+            </>
+          )}
         </>
       )}
-
+      {/*
+      {activeDashboard === 'users' && (
+        <div className='mb-5'>
+          <UserBrief />
+        </div>
+      )}
+      {activeDashboard === 'groups' && (
+        <div className='mb-5'>
+          <GroupBrief />
+        </div>
+      )}
+      {activeDashboard === 'projects' && (
+        <div className='mb-5'>
+          <ProjectBrief />
+        </div>
+      )}
+    */}
       {/* Sentinel for infinite scroll */}
       <div ref={sentinelRef} style={{ height: '50px' }} />
 
       <div className=' fixed flex flex-col top-12 lg:right-2 xl:right-4 sm:max-lg:invisible invisible lg:visible'>
-        <div className="bg-Background/Bottom bg-[url('assets/particle.svg')]  bg-cover rounded-3xl border-2 border-Primary/Dark lg:w-[22vw] xl:w-[19vw] lg:h-[420px] xl:h-[425px] mt-4 ml-[3rem] ">
-          <div className='flex flex-col'>
+        <div className='bg-Background/Bottom bg-cover rounded-3xl border-2 border-Primary/Dark lg:w-[22vw] xl:w-[19vw] lg:h-[420px] xl:h-[400px] mt-4 ml-[3rem] '>
+          <div className='flex flex-col '>
             <div className='flex justify-center mx-2'>
-              <p className='text-white text-2xl font-semibold mt-16 text-center break-words'>
-                {user?.username || 'Username'}'s Dashboard
+              <p className='text-white text-2xl font-semibold mt-12 text-center break-words'>
+                Groupname's Dashboard
               </p>
             </div>
             <br />
@@ -582,16 +650,18 @@ function Groups() {
                 <p className='text-Primary/Light text-xl flex justify-center'>Members</p>
               </div>
             </div>
-            <div className='flex'>
-              <p className='text-xl text-white'>Content only visible to members</p>
+            <div className='flex justify-center items-center flex-row mx-6 gap-3'>
+              <MdOutlinePublicOff className='text-4xl text-white' />
+              <p className='text-lg text-white'>Content only visible to members</p>
             </div>
-            <div className='flex'>
-              <p className='text-xl text-white'>Member's posts need approval from admins</p>
+            <div className='flex justify-center items-center flex-row mx-6 gap-3'>
+              <TbFlag className='text-5xl text-white' />
+              <p className='text-lg text-white'>Member's posts need approval from admins</p>
             </div>
           </div>
-          <div className='flex justify-center lg:-mt-4 xl:ml-0'>
+          <div className='flex justify-center xl:ml-0'>
             <button className='transition-colors duration-300 ease-in-out w-44 h-10 rounded-xl bg-Accent/Target text-lg text-white m-4 hover:bg-white hover:text-Accent/Target '>
-              Join
+              Follow
             </button>
           </div>
         </div>
@@ -617,16 +687,14 @@ function Groups() {
         />
       </div>*/}
       {/* TagList */}
-      {/*
-      {type !== 'me' && (
-        <div>
-          <QuickNav
-            isOpen={activeComponent === 'quicknav'}
-            onClose={() => setActiveComponent(null)}
-          />
-        </div>
-      )}
-    */}
+
+      <div className='flex lg:invisible'>
+        <QuickNav
+          isOpen={activeComponent === 'quicknav'}
+          onClose={() => setActiveComponent(null)}
+        />
+      </div>
+
       {/* CollapseMenu */}
       <CollapseMenu
         onToggleSidebar={toggleSidebar}
@@ -640,5 +708,5 @@ function Groups() {
   );
 }
 
-export default Groups;
+export default GroupDashboard;
 

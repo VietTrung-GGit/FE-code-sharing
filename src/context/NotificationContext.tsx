@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
+import { useAuthUser } from '../context/AuthUserContext';
 import { toast } from 'react-toastify';
-import { io } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 import {
   getUserNotifications,
   markNotificationAsRead,
@@ -24,12 +25,13 @@ type NotificationsContextType = {
 const NotificationsContext = createContext<NotificationsContextType | null>(null);
 
 export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAuthUser();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [totalNotifications, setTotalNotifications] = useState(0);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const socket = useRef<any>(null);
+  const socket = useRef<Socket | null>(null);
 
   const fetchNotifications = async (
     filter: string = 'all',
@@ -84,36 +86,39 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
   };
 
   useEffect(() => {
-    socket.current = io('wss://backendgdscdevteam3-2.onrender.com', {
-      withCredentials: true,
-      extraHeaders: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-    });
+    if (isAuthenticated == true) {
+      socket.current = io('wss://4cj9kc-4000.csb.app', {
+        withCredentials: true,
+        transports: ['websocket'],
+        query: {
+          token: localStorage.getItem('accessToken'),
+        },
+      });
 
-    socket.current.on('connect', () => {
-      console.log('Socket.IO connected');
-      setIsConnected(true);
-    });
+      socket.current.on('connect', () => {
+        console.log('Socket.IO connected');
+        setIsConnected(true);
+      });
 
-    socket.current.on('notificationEvent', (newNotification: Notification) => {
-      setNotifications((prev) => [newNotification, ...prev]);
-      toast.info(`🔔 ${newNotification.message}`);
-    });
+      socket.current.on('newNotification', (newNotification: Notification) => {
+        setNotifications((prev) => [newNotification, ...prev]);
+        toast.info(`🔔 ${newNotification.senderName} ${newNotification.message}`);
+      });
 
-    socket.current.on('disconnect', () => {
-      console.log('Socket.IO disconnected');
-      setIsConnected(false);
-    });
+      socket.current.on('disconnect', () => {
+        console.log('Socket.IO disconnected');
+        setIsConnected(false);
+      });
 
-    socket.current.on('error', (error: any) => {
-      console.error('Socket.IO error:', error);
-    });
+      socket.current.on('error', (error: any) => {
+        console.error('Socket.IO error:', error);
+      });
 
-    return () => {
-      socket.current?.disconnect();
-    };
-  }, []);
+      return () => {
+        socket.current?.disconnect();
+      };
+    }
+  }, [isAuthenticated]);
 
   return (
     <NotificationsContext.Provider

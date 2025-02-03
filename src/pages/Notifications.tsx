@@ -1,6 +1,8 @@
 import Sidebar from '../components/sidebar';
 import CollapseMenu from '../components/collapseMenu';
 import { useParams, useNavigate } from 'react-router-dom';
+import { IoIosMore } from 'react-icons/io';
+import { FaCircle } from 'react-icons/fa';
 import LoadingSpinner from '../components/loadingAnimate';
 import { toast } from 'react-toastify';
 import { io } from 'socket.io-client';
@@ -15,11 +17,18 @@ import {
 } from '../services/notificationService';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { formatDate } from '../utils/helpers';
+type PostType = 'stored' | 'me' | undefined;
 
+interface Params extends Record<string, string | undefined> {
+  type: PostType;
+}
 function Notifications() {
-  const [activeComponent, setActiveComponent] = useState<'sidebar' | null>(null);
+  const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
+  const { type } = useParams<Params>();
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const quickNavRef = useRef<HTMLDivElement>(null);
   const sidebarButtonRef = useRef<HTMLButtonElement>(null);
+  const quickNavButtonRef = useRef<HTMLButtonElement>(null);
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -82,38 +91,6 @@ function Notifications() {
     }
   };
 
-  useEffect(() => {
-    socket.current = io('wss://backendgdscdevteam3-2.onrender.com', {
-      withCredentials: true,
-      extraHeaders: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-    });
-
-    socket.current.on('connect', () => {
-      console.log('Socket.IO connected');
-      setIsConnected(true);
-    });
-
-    socket.current.on('notificationEvent', (newNotification: Notification) => {
-      setNotifications((prev) => [newNotification, ...prev]);
-      toast.info(`🔔 ${newNotification.message}`);
-    });
-
-    socket.current.on('disconnect', () => {
-      console.log('Socket.IO disconnected');
-      setIsConnected(false);
-    });
-
-    socket.current.on('error', (error: any) => {
-      console.error('Socket.IO error:', error);
-    });
-
-    return () => {
-      socket.current?.disconnect();
-    };
-  }, []);
-
   // Initial fetch
   useEffect(() => {
     fetchNotifications('all', page, limit);
@@ -139,10 +116,18 @@ function Notifications() {
   const toggleSidebar = () => {
     setActiveComponent((prev) => (prev === 'sidebar' ? null : 'sidebar'));
   };
+  const toggleQuickNav = () => {
+    setActiveComponent((prev) => (prev === 'quicknav' ? null : 'quicknav'));
+  };
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
-      if (!sidebarRef.current?.contains(target) && !sidebarButtonRef.current?.contains(target)) {
+      if (
+        !sidebarRef.current?.contains(target) &&
+        !quickNavRef.current?.contains(target) &&
+        !sidebarButtonRef.current?.contains(target) &&
+        !quickNavButtonRef.current?.contains(target)
+      ) {
         setActiveComponent(null);
       }
     };
@@ -153,6 +138,7 @@ function Notifications() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
   return (
     <div className='bg-Background/Middle relative min-h-screen flex flex-col'>
       <div className='flex flex-row'>
@@ -197,30 +183,11 @@ function Notifications() {
                     className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-4 flex bg-Background/Bottom text-center mt-28 p-12 w-full h-28 border-Primary/Dark border-solid box-border border-2 rounded-3xl mb-
     sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-full sm:max-lg:mt-28`}
                   >
-                    <div className='ml-[585px] -mt-10 absolute'>
+                    <div className='ml-[565px] -mt-10 absolute'>
                       <Menu as='div' className='absolute'>
                         {/* The button that triggers the dropdown */}
-                        <MenuButton className='px-4 py-2 text-white rounded hover:text-gray-300'>
-                          <svg
-                            width='24'
-                            height='22'
-                            viewBox='0 0 24 22'
-                            fill='none'
-                            xmlns='http://www.w3.org/2000/svg'
-                          >
-                            <path
-                              d='M6 12C6 13.6569 4.6569 15 3 15C1.3431 15 0 13.6569 0 12C0 10.3431 1.3431 9 3 9C4.6569 9 6 10.3431 6 12Z'
-                              fill='currentColor'
-                            />
-                            <path
-                              d='M15 12C15 13.6569 13.6569 15 12 15C10.3431 15 9 13.6569 9 12C9 10.3431 10.3431 9 12 9C13.6569 9 15 10.3431 15 12Z'
-                              fill='currentColor'
-                            />
-                            <path
-                              d='M21 15C22.6569 15 24 13.6569 24 12C24 10.3431 22.6569 9 21 9C19.3431 9 18 10.3431 18 12C18 13.6569 19.3431 15 21 15Z'
-                              fill='currentColor'
-                            />
-                          </svg>
+                        <MenuButton className='px-4 py-2 text-white text-3xl rounded hover:text-gray-300'>
+                          <IoIosMore />
                         </MenuButton>
 
                         {/* Dropdown menu */}
@@ -262,25 +229,7 @@ function Notifications() {
                     <div className='flex flex-row gap-4 -ml-6 -mt-6'>
                       <div className='flex items-center min-w-[15px] min-h-[15px]'>
                         {!notification.isRead && (
-                          <svg
-                            width='15'
-                            height='15'
-                            viewBox='0 0 15 15'
-                            fill='none'
-                            xmlns='http://www.w3.org/2000/svg'
-                          >
-                            <path
-                              d='M13.125 7.5C13.125 10.6066 10.6066 13.125 7.5 13.125C4.3934 13.125 1.875 10.6066 1.875 7.5C1.875 4.3934 4.3934 1.875 7.5 1.875C10.6066 1.875 13.125 4.3934 13.125 7.5Z'
-                              fill='#9CE1E7'
-                            />
-                            <path
-                              d='M13.125 7.5C13.125 10.6066 10.6066 13.125 7.5 13.125C4.3934 13.125 1.875 10.6066 1.875 7.5C1.875 4.3934 4.3934 1.875 7.5 1.875C10.6066 1.875 13.125 4.3934 13.125 7.5Z'
-                              stroke='#9CE1E7'
-                              stroke-width='3'
-                              stroke-linecap='round'
-                              stroke-linejoin='round'
-                            />
-                          </svg>
+                          <FaCircle className='text-md text-Primary/Light' />
                         )}
                       </div>
 
@@ -366,9 +315,11 @@ function Notifications() {
       {/* CollapseMenu */}
       <CollapseMenu
         onToggleSidebar={toggleSidebar}
+        onToggleQuickNav={toggleQuickNav}
         isSidebarOpen={activeComponent === 'sidebar'}
-        isTagListVisible={false} // Disable TagList
+        isQuickNavOpen={activeComponent === 'quicknav'}
         sidebarButtonRef={sidebarButtonRef}
+        quickNavButtonRef={quickNavButtonRef}
       />
     </div>
   );
