@@ -10,7 +10,7 @@ function Landing() {
   useEffect(() => {
     const token = localStorage.getItem('accessToken'); // Replace with your token logic
     if (token) {
-      navigate('/feed'); // Redirect to the Home page
+      navigate('/community'); // Redirect to the Home page
     }
   }, [navigate]);
 

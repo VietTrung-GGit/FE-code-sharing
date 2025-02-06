@@ -93,6 +93,7 @@ export interface PostUpload {
   title: string;
   content: string;
   tags: string[];
+  visibility: 'public' | 'private';
   code_files: PostFile[];
 }
 
@@ -101,7 +102,7 @@ export const fetchPosts = async (
   page: number = 1,
   limit: number = 10,
   order: 'ascending' | 'descending' = 'descending',
-  criteria: 'date' | 'likes' | 'comments' = 'date',
+  criteria: string,
   search?: string,
   tags?: string[],
   type?: 'me' | 'stored',
@@ -110,7 +111,6 @@ export const fetchPosts = async (
     const response = await axiosInstance.get<PostResponse>(
       API_ENDPOINTS.FETCH_POSTS(page, limit, search, tags, order, criteria, type),
     );
-
     if (!response.data.posts) {
       console.log('No posts found, stopping further requests.');
       // Handle case where no posts are found (e.g., stop infinite scroll, set flag)
@@ -213,6 +213,12 @@ export const deletePost = async (postId: string) => {
 export const likePost = async (postId: string) => {
   const response = await axiosInstance.get(API_ENDPOINTS.LIKE_POST(postId));
   await createLikeNotification(postId);
+  return response.data;
+};
+
+// set private post
+export const setPostVisibility = async (postId: string, visibility: 'public' | 'private') => {
+  const response = await axiosInstance.get(API_ENDPOINTS.POST_VISIBILITY(postId, visibility));
   return response.data;
 };
 

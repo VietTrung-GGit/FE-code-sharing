@@ -12,6 +12,7 @@ import TagList from '../components/tagList';
 import PostBrief from '../components/postBrief';
 import GroupBrief from '../components/groupBrief';
 import ProjectBrief from '../components/projectBrief';
+import ProfileEdit from '../components/profileEdit';
 import QuickNav from '../components/quickNav';
 import CollapseMenu from '../components/collapseMenu';
 import { toast } from 'react-toastify';
@@ -31,15 +32,17 @@ interface Params extends Record<string, string | undefined> {
 function UserDashboard() {
   // const { user } = useUser();
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
-  const [activeDashboard, setActiveDashboard] = useState<
-    'posts' | 'users' | 'groups' | 'projects' | null
-  >('posts');
+  const [modeEditChange, setModeEditChange] = useState<'editprofile' | 'editpassword' | null>(null);
+  const [activeDashboard, setActiveDashboard] = useState<'Posts' | 'Users' | 'Groups' | 'Projects'>(
+    'Posts',
+  );
   const { type } = useParams<Params>();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const tagListRef = useRef<HTMLDivElement>(null);
   const sidebarButtonRef = useRef<HTMLButtonElement>(null);
   const tagListButtonRef = useRef<HTMLButtonElement>(null);
   const [showTaglistModal, setShowTaglistModal] = useState(false);
+  const [showProfileEditModal, setShowProfileEditModal] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const quickNavRef = useRef<HTMLDivElement>(null); // Ref for the modal content
   const quickNavButtonRef = useRef<HTMLButtonElement>(null);
@@ -278,6 +281,9 @@ function UserDashboard() {
   //
   const [showPostCreate, setShowPostCreate] = useState<boolean>(false);
   const { user } = useAuthUser();
+  const handleCloseEditModal = () => {
+    setShowProfileEditModal(false);
+  };
 
   const handleCreate = () => {
     setShowPostCreate(true);
@@ -286,13 +292,13 @@ function UserDashboard() {
   const handleCloseModal = () => {
     setShowPostCreate(false);
   };
-
+  //50vw-5rem
   return (
     <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
       <>
         <div className='mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
-          <div className='bg-Background/Bottom bg-center bg-cover rounded-3xl border-2 border-Primary/Dark border-solid box-border w-full lg:w-[calc(50vw-5rem)] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] flex flex-col items-center relative'>
-            <div className=' w-full flex justify-end mt-4 mr-14' ref={dropdownConfigRef}>
+          <div className='bg-Background/Bottom bg-center bg-cover rounded-3xl border-2 border-Primary/Dark border-solid box-border w-full lg:w-[calc(50vw-3rem)] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] flex flex-col items-center relative'>
+            <div className=' w-full flex justify-end mt-4 mr-20' ref={dropdownConfigRef}>
               <button
                 onClick={toggleDropdownConfig}
                 className='hover:text-gray-300 text-white text-3xl'
@@ -300,16 +306,19 @@ function UserDashboard() {
                 <IoIosMore />
               </button>
               {isDropdownConfigOpen && (
-                <div className='absolute right-4 top-14 w-48 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
+                <div className='absolute right-8 top-14 w-56 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
                   <ul className='py-1 my-3 ml-2'>
                     <li>
-                      <button className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
+                      <button
+                        className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                        onClick={() => {setShowProfileEditModal((prev) => !prev), setModeEditChange('editprofile')}}
+                      >
                         <BiSolidEdit className='text-2xl' />
-                        Edit profile
+                        Edit my profile
                       </button>
                     </li>
                     <li>
-                      <button className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
+                      <button className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4' onClick={() => {setShowProfileEditModal((prev) => !prev), setModeEditChange('editpassword')}}>
                         <CgPassword className='text-2xl' />
                         Change password
                       </button>
@@ -323,10 +332,21 @@ function UserDashboard() {
                   </ul>
                 </div>
               )}
+              {showProfileEditModal && (
+                <div className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'>
+                  <button
+                    onClick={handleCloseEditModal}
+                    className='absolute top-6 right-12 text-white text-3xl hover:text-Primary/Light'
+                  >
+                    ×
+                  </button>
+                  <ProfileEdit modeChange={modeEditChange}/>
+                </div>
+              )}
             </div>
 
             <div className='flex flex-row space-x-4 xsm:space-x-20 sm:space-x-0 xl:space-x-2 -mt-4 mb-44 xsm:mb-48 sm:mb-1 xl:-ml-5 lg:-ml-8 sm:-ml-8'>
-              <div className='sm:-mt-10 lg:-mt-4 flex flex-col h-[380px] items-center'>
+              <div className='sm:-mt-10 lg:-mt-6 flex flex-col h-[380px] items-center'>
                 <img
                   src={
                     user?.avatar ||
@@ -340,7 +360,7 @@ function UserDashboard() {
                     Follow
                   </button>
                 </div>
-                <div className='absolute flex items-center bottom-8 xsm:left-0 -left-2 sm:static space-x-2'>
+                <div className='absolute flex items-center bottom-12 xsm:left-16 -left-2 space-x-2'>
                   <IoIosMail className='text-Primary/Light text-3xl' />
 
                   <div className='flex flex-row '>
@@ -425,26 +445,26 @@ function UserDashboard() {
         <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
           <div className='flex flex-row justify-center gap-28 w-1/2'>
             <button
-              className={`${activeDashboard === 'posts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
-              onClick={() => setActiveDashboard('posts')}
+              className={`${activeDashboard === 'Posts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
+              onClick={() => setActiveDashboard('Posts')}
             >
               Posts
             </button>
             <button
-              className={`${activeDashboard === 'users' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
-              onClick={() => setActiveDashboard('users')}
+              className={`${activeDashboard === 'Users' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
+              onClick={() => setActiveDashboard('Users')}
             >
               Following
             </button>
             <button
-              className={`${activeDashboard === 'groups' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
-              onClick={() => setActiveDashboard('groups')}
+              className={`${activeDashboard === 'Groups' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
+              onClick={() => setActiveDashboard('Groups')}
             >
               Groups
             </button>
             <button
-              className={`${activeDashboard === 'projects' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
-              onClick={() => setActiveDashboard('projects')}
+              className={`${activeDashboard === 'Projects' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
+              onClick={() => setActiveDashboard('Projects')}
             >
               Projects
             </button>
@@ -452,18 +472,9 @@ function UserDashboard() {
         </div>
         <div className='flex justify-start -mt-10 sm:max-lg:-mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 relative'>
           <div className=' absolute left-96'>
-            {activeDashboard === 'posts' && (
-              <p className='text-2xl font-semibold text-white'>Posts (0)</p>
-            )}
-            {activeDashboard === 'users' && (
-              <p className='text-2xl font-semibold text-white'>Following (0)</p>
-            )}
-            {activeDashboard === 'groups' && (
-              <p className='text-2xl font-semibold text-white'>Groups (0)</p>
-            )}
-            {activeDashboard === 'projects' && (
-              <p className='text-2xl font-semibold text-white'>Projects (0)</p>
-            )}
+            <p className='text-2xl font-semibold text-white'>
+              {activeDashboard === 'Users' ? 'Following' : activeDashboard} (0)
+            </p>
           </div>
         </div>
       </>
@@ -481,7 +492,7 @@ function UserDashboard() {
             {/* Share Text Section */}
             <input
               className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-Primary/Light text-l'
-              placeholder='Search...'
+              placeholder={`Search for ${activeDashboard.toLowerCase()}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             ></input>
@@ -517,7 +528,7 @@ function UserDashboard() {
           </div>
         )}
       </div>
-      {activeDashboard === 'posts' && (
+      {activeDashboard === 'Posts' && (
         <>
           <div className='mb-5'>
             <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
@@ -609,17 +620,17 @@ function UserDashboard() {
           )}
         </>
       )}
-      {activeDashboard === 'users' && (
+      {activeDashboard === 'Users' && (
         <div className='mb-5'>
           <UserBrief />
         </div>
       )}
-      {activeDashboard === 'groups' && (
+      {activeDashboard === 'Groups' && (
         <div className='mb-5'>
           <GroupBrief />
         </div>
       )}
-      {activeDashboard === 'projects' && (
+      {activeDashboard === 'Projects' && (
         <div className='mb-5'>
           <ProjectBrief />
         </div>

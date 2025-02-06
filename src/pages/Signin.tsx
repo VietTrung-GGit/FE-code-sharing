@@ -14,7 +14,7 @@ function Signin() {
     const token = localStorage.getItem('accessToken');
     if (isAuthenticated && token) {
       // If the user is authenticated and the token is valid, redirect to feed
-      navigate('/feed');
+      navigate('/community');
     }
   }, [isAuthenticated, navigate]);
 
@@ -52,7 +52,7 @@ function Signin() {
     try {
       // Send data to the backend
       await login(formData.username, formData.password);
-      navigate('/feed/me'); // Redirect to dashboard after a short delay
+      navigate('/community/posts'); // Redirect to dashboard after a short delay
     } catch (error: any) {
       // Handle errors
       toast.error(error.response?.data?.message || 'An error occurred during sign-in.');

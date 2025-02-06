@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
+import { TbEye, TbLock } from 'react-icons/tb';
 import { useDropzone, Accept } from 'react-dropzone';
 import Editor from '@monaco-editor/react';
 import { formatDate, getEditorLanguage, acceptTypes } from '../utils/helpers';
@@ -32,6 +34,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
   const [files, setFiles] = useState<PostFile[]>([]); // Changed to PostFile[]
   const [activeTab, setActiveTab] = useState<number>(0);
   const [editingTab, setEditingTab] = useState<number | null>(null);
+  const [privacy, setPrivacy] = useState<'public' | 'private'>('public');
   const [content, setContent] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -47,12 +50,18 @@ const PostCreate: React.FC<PostCreateProps> = ({
 
   const MAX_FILES = 6;
 
+  // Toggle the privacy setting
+  const handlePrivacyChange = (setting: 'public' | 'private') => {
+    setPrivacy(setting);
+  };
+
   // Initialize form for edit mode if postData exists
   useEffect(() => {
     if (postData) {
       setTitle(postData.title);
       setContent(postData.content);
       setFiles(postData.files || []);
+      setPrivacy(postData.visibility);
       setSelectedTags(postData.tags || []);
     }
   }, [postData]);
@@ -136,10 +145,11 @@ const PostCreate: React.FC<PostCreateProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (title || content || selectedTags.length != 0 || files.length != 0) {
+    if (title || content || files.length != 0) {
       try {
         const postUploadData: PostUpload = {
           title,
+          visibility: privacy,
           content,
           tags: selectedTags,
           code_files: files.map((file) => ({
@@ -154,6 +164,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
             ...postData,
             title,
             content,
+            visibility: privacy,
             tags: selectedTags,
             files,
             editedAt: 'Recently',
@@ -381,7 +392,47 @@ const PostCreate: React.FC<PostCreateProps> = ({
 
       {/* Submit Button */}
       <div className='mt-auto'>
-        <div className='flex justify-end'>
+        <div className='flex justify-between space-x-2'>
+          <Menu as='div' className='relative inline-block text-left mt-4'>
+            <div>
+              <MenuButton className='inline-flex justify-center items-center w-28 px-4 py-2 font-medium text-white bg-Primary/Dark border border-Primary/Dark rounded-xl'>
+                {privacy === 'public' ? (
+                  <span className='flex items-center'>
+                    <TbEye className='inline mr-2 text-lg' /> Public
+                  </span>
+                ) : (
+                  <span className='flex items-center'>
+                    <TbLock className='inline mr-2 text-lg' /> Private
+                  </span>
+                )}
+              </MenuButton>
+            </div>
+
+            <MenuItems className='absolute w-max bottom-full mb-2  origin-bottom-left bg-white divide-y divide-gray-100 rounded-md shadow-lg'>
+              <div>
+                <MenuItem>
+                  <button
+                    onClick={() => handlePrivacyChange('public')}
+                    className='data-[active]:bg-Primary/Dark data-[active]:text-white  text-gray-900
+                   group flex rounded-md items-center w-full p-2 text-sm'
+                  >
+                    <TbEye className='text-lg mr-2' />
+                    <span className='font-semibold'>Public</span>: Everyone could view this post.
+                  </button>
+                </MenuItem>
+                <MenuItem>
+                  <button
+                    onClick={() => handlePrivacyChange('private')}
+                    className='data-[active]:bg-Primary/Dark data-[active]:text-white  text-gray-900
+                     group flex rounded-md items-center w-full p-2 text-sm'
+                  >
+                    <TbLock className='text-lg mr-2' />
+                    <span className='font-semibold'>Private</span>: Only you could view this post.
+                  </button>
+                </MenuItem>
+              </div>
+            </MenuItems>
+          </Menu>
           <button
             onClick={handleSubmit}
             className='w-24 py-2 mt-4 bg-Accent/Target text-white font-bold rounded-xl'

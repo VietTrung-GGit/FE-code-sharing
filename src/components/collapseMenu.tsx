@@ -1,7 +1,7 @@
 import React from 'react';
-import Sandwich from '../assets/sandwichicon.svg';
+import { IoMenuOutline } from 'react-icons/io5';
+import { TbPin } from 'react-icons/tb';
 import Logo from '../assets/logo.svg';
-import Filter from '../assets/filter.svg';
 
 // Base properties shared by all cases
 interface BaseProps {
@@ -50,7 +50,7 @@ function CollapseMenu(props: CollapseMenuProps) {
         onClick={onToggleSidebar}
         className={`p-2 transition-all duration-300 ease-in-out' `}
       >
-        <img src={Sandwich} alt='Sandwich icon' className='w-6' />
+        <IoMenuOutline className='text-white text-4xl' />
       </button>
 
       {/* Logo */}
@@ -63,7 +63,7 @@ function CollapseMenu(props: CollapseMenuProps) {
           onClick={props.onToggleQuickNav}
           className='p-2 transition-all duration-300 ease-in-out'
         >
-          <img src={Filter} alt='Filter icon' className='w-8' />
+          <TbPin className='text-white text-4xl' />
         </button>
       )}
     </header>

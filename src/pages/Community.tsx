@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { IoMdArrowDropdown } from 'react-icons/io';
 import { useDebounce } from '@uidotdev/usehooks';
 import Search from '../assets/search.svg';
 import Filter from '../assets/filter.svg';
@@ -15,9 +16,36 @@ import LoadingSpinner from '../components/loadingAnimate';
 import PostCreate from '../components/postCreate';
 import { Link } from 'react-router-dom';
 
-function Feed() {
+function Community() {
+  // const { user } = useUser();
   const [searchParams] = useSearchParams();
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
+  const location = useLocation();
+
+  const getActiveFilter = (): 'Posts' | 'Users' | 'Groups' | 'Projects' => {
+    const path = location.pathname.split('?')[0]; // Remove query parameters
+
+    switch (path) {
+      case '/community/posts':
+        return 'Posts';
+      case '/community/users':
+        return 'Users';
+      case '/community/groups':
+        return 'Groups';
+      case '/community/projects':
+        return 'Projects';
+      default:
+        return 'Posts'; // Default state
+    }
+  };
+
+  const [activeButtonFilter, setActiveButtonFilter] = useState<
+    'Posts' | 'Users' | 'Groups' | 'Projects'
+  >(getActiveFilter());
+
+  useEffect(() => {
+    setActiveButtonFilter(getActiveFilter());
+  }, [location.pathname]);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const tagListRef = useRef<HTMLDivElement>(null);
   const sidebarButtonRef = useRef<HTMLButtonElement>(null);
@@ -29,19 +57,8 @@ function Feed() {
   const quickNavRef = useRef<HTMLDivElement>(null); // Ref for the modal content
   const quickNavButtonRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
-  const location = useLocation();
-  const getActive = (): 'feed' | 'stored' => {
-    const path = location.pathname.split('?')[0]; // Remove query parameters
 
-    switch (path) {
-      case '/feed':
-        return 'feed';
-      case '/saves':
-        return 'stored';
-      default:
-        return 'feed';
-    }
-  };
+  // States
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -59,16 +76,14 @@ function Feed() {
     setLoading(true);
     try {
       console.log('Debounced search term call:', debouncedSearchTerm);
-      const tagsParam = searchParams.get('tags') || '';
       const postsResponse = await fetchPosts(
         page,
         6, // Limit: 6 posts per page
         (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
         (searchParams.get('criteria') as string) || 'date',
         debouncedSearchTerm,
-        tagsParam.split(','),
-        'me',
-        // getActive(),
+        searchParams.get('tags')?.split(',') || [],
+        undefined,
       );
 
       setHasMore(postsResponse.hasMore);
@@ -79,7 +94,6 @@ function Feed() {
       console.error('Error fetching posts:', error);
     }
   };
-
   useEffect(() => {
     setPage(1);
     setPosts([]);
@@ -88,10 +102,16 @@ function Feed() {
     // }
   }, [debouncedSearchTerm, searchParams]);
 
-  // useEffect(() => {
-  //   // This effect will run only when debouncedSearchTerm changes
-  //   console.log('Debounced search term:', debouncedSearchTerm);
-  // }, [debouncedSearchTerm]);
+  useEffect(() => {
+    if (activeButtonFilter) {
+      navigate(`/community/${activeButtonFilter.toLowerCase()}`);
+    }
+  }, [activeButtonFilter, navigate]);
+
+  useEffect(() => {
+    // This effect will run only on the first load
+    console.log('Page:', page);
+  }, [page]);
 
   useEffect(() => {
     if (hasMore && !firstLoad) {
@@ -102,7 +122,7 @@ function Feed() {
   }, [page]);
 
   const handleFilterChange = (querySortParam: string) => {
-    navigate(`/feed?${querySortParam}`);
+    navigate(`/community/posts?${querySortParam}`);
   };
   const handleCloseEditModal = () => {
     setShowEditModal(false);
@@ -244,13 +264,13 @@ function Feed() {
             {/* Share Text Section */}
             <input
               className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-Primary/Light text-l'
-              placeholder={`Search in newsfeed...`}
+              placeholder={`Search for ${activeButtonFilter.toLowerCase()}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             ></input>
 
             <button
-              className='hover:bg-Background/Middle rounded-lg hover:bg-gray-300 hover:bg-opacity-20 hidden lg:block '
+              className='hover:bg-Background/Middle rounded-lg hover:bg-gray-300 hover:bg-opacity-20 block '
               onClick={() => setShowTaglistModal(!showTaglistModal)}
             >
               <img src={Filter} alt='Filter Icon' className='w-9 h-9 rounded-full object-cover' />
@@ -265,7 +285,7 @@ function Feed() {
                     <TagList
                       onFilterChange={handleFilterChange}
                       feedShowTaglistModal={showTaglistModal}
-                      activeFilter={'Posts'} //change according to the button option, posts as default
+                      activeFilter={activeButtonFilter} //change according to the button option, posts as default
                       initialCriteria={searchParams.get('criteria') as string}
                       initialOrder={
                         (searchParams.get('order') as 'ascending' | 'descending') || 'descending'
@@ -325,6 +345,65 @@ function Feed() {
             )}
           </div>
         </div>
+        <>
+          <div className='mb-5'>
+            <div
+              className='flex justify-start flex-row  lg:ml-[400px] mx-6 sm:max-lg:mx-14 lg:mx-8'
+              ref={dropdownFilterRef}
+            >
+              <button
+                className='text-lg bg-Primary/Light text-Primary/Dark rounded-3xl font-semibold px-4 py-1 w-40 flex flex-row justify-center items-center'
+                onClick={toggleDropdownFilter}
+              >
+                {activeButtonFilter}
+                <div className='ml-2'>
+                  <IoMdArrowDropdown className='text-3xl' />
+                </div>
+              </button>
+              <div className='flex justify-center ml-4 mt-1'>
+                <p className='text-gray-600 text-lg font-semibold'>Searched/Filtered results</p>
+              </div>
+            </div>
+          </div>
+          {isDropdownFilterOpen && (
+            <div className='absolute left-[400px] top-[360px] w-40 bg-Primary/Light border rounded-3xl shadow-lg z-10'>
+              <ul className='py-1 my-3 ml-2'>
+                <li>
+                  <button
+                    className='block px-4 py-2 text-lg text-Primary/Dark font-semibold hover:bg-Primary/Target bg-Primary/Light w-36 text-left flex flex-row gap-4 border-b border-Primary/Dark'
+                    onMouseDown={() => setActiveButtonFilter('Posts')}
+                  >
+                    Posts
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className='block px-4 py-2 text-lg text-Primary/Dark font-semibold hover:bg-Primary/Target bg-Primary/Light w-36 text-left flex flex-row gap-4 border-b border-Primary/Dark'
+                    onMouseDown={() => setActiveButtonFilter('Users')}
+                  >
+                    Users
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className='block px-4 py-2 text-lg text-Primary/Dark font-semibold hover:bg-Primary/Target bg-Primary/Light w-36 text-left flex flex-row gap-4 border-b border-Primary/Dark'
+                    onMouseDown={() => setActiveButtonFilter('Groups')}
+                  >
+                    Groups
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className='block px-4 py-2 text-lg text-Primary/Dark font-semibold hover:bg-Primary/Target bg-Primary/Light w-36 text-left flex flex-row gap-4'
+                    onMouseDown={() => setActiveButtonFilter('Projects')}
+                  >
+                    Projects
+                  </button>
+                </li>
+              </ul>
+            </div>
+          )}
+        </>
       </>
 
       {/* Show LoadingSpinner during the first load */}
@@ -381,7 +460,7 @@ function Feed() {
       <div ref={sidebarRef}>
         <Sidebar
           isOpen={activeComponent === 'sidebar'}
-          state={getActive()}
+          state={'community'}
           onClose={() => setActiveComponent(null)}
         />
       </div>
@@ -405,5 +484,5 @@ function Feed() {
   );
 }
 
-export default Feed;
+export default Community;
 

@@ -39,25 +39,25 @@ function QuickNav({
             ></input>
           </div>
         </div> */}
-        <p className='text-left text-white text-2xl flex ml-10 font-semibold'>Navigation</p>
+        <p className='text-left text-white text-xl flex ml-10 font-semibold'>Navigation</p>
         <br />
         <div>
           <button>
-            <div className='inline-block flex-shrink-0 flex-row flex'>
+            <div className='inline-block flex-shrink-0 flex-row flex items-center space-x-2'>
               <img
                 src={
                   'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
                 }
                 alt='Profile Icon'
-                className='w-14 h-14 rounded-full object-cover'
+                className='w-10 h-10 rounded-full object-cover'
               />
               <p className='text-lg text-white'>Group name</p>
             </div>
           </button>
         </div>
-        <p className='text-left text-white text-2xl flex ml-10 font-semibold'>Popular</p>
+        <p className='text-left text-white text-xl flex ml-10 font-semibold'>Popular</p>
         <br />
-        <p className='text-left text-white text-2xl flex ml-10 font-semibold'>Navigation</p>
+        <p className='text-left text-white text-xl flex ml-10 font-semibold'>Recent</p>
         <br />
       </div>
     </>

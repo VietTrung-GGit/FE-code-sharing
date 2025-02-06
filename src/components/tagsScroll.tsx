@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { IoMdArrowDropleft, IoMdArrowDropright } from 'react-icons/io';
 
 interface TagsScrollProps {
   tags: string[];
@@ -7,39 +8,36 @@ interface TagsScrollProps {
 
 const TagsScroll: React.FC<TagsScrollProps> = ({
   tags,
-  containerClassName = 'flex gap-2 overflow-x-auto w-80 sm:w-64',
+  containerClassName = 'flex gap-[2px] overflow-x-auto w-[236px]',
 }) => {
   const scrollContainer = useRef<HTMLDivElement>(null);
 
   const scrollLeft = () => {
     if (scrollContainer.current) {
-      scrollContainer.current.scrollBy({ left: -88, behavior: 'smooth' });
+      scrollContainer.current.scrollBy({ left: -70, behavior: 'smooth' });
     }
   };
 
   const scrollRight = () => {
     if (scrollContainer.current) {
-      scrollContainer.current.scrollBy({ left: 88, behavior: 'smooth' });
+      scrollContainer.current.scrollBy({ left: 70, behavior: 'smooth' });
     }
   };
 
   const showButtons = tags.length > 3;
-  const alignmentClass = tags.length <= 3 ? 'justify-center sm:justify-end' : ' justify-start';
   return (
-    <div
-      className={`flex items-center space-x-1 justify-center xsm:w-auto ${showButtons ? 'sm:-mr-7' : 'xxsm:mr-2 mr-0'} `}
-    >
+    <div className={`flex items-center space-x-[2px] justify-start xsm:w-auto`}>
       {/* Left Scroll Button */}
       {showButtons && (
-        <button className='rounded-full hover:text-Primary/Light text-lg' onClick={scrollLeft}>
-          &lt;
+        <button className='hover:text-Primary/Light text-lg -ml-2' onClick={scrollLeft}>
+          <IoMdArrowDropleft />
         </button>
       )}
 
       {/* Scrollable Tags Container */}
       <div
         ref={scrollContainer}
-        className={`${containerClassName} no-scrollbar ${alignmentClass}`}
+        className={`${containerClassName} no-scrollbar justify-start space-x-1`}
         style={{
           scrollSnapType: 'x mandatory',
           scrollBehavior: 'smooth',
@@ -50,7 +48,7 @@ const TagsScroll: React.FC<TagsScrollProps> = ({
           tags.map((tagName, index) => (
             <span
               key={index}
-              className='bg-Primary/Light flex justify-center text-Primary/Dark text-sm px-2 rounded-3xl w-20 py-1 flex-shrink-0' // Fixed width for each tag
+              className='flex-shrink-0 bg-Primary/Light text-xs flex justify-center text-Primary/Dark text-sm px-2 w-16 rounded-xl py-[2px]'
             >
               {tagName}
             </span>
@@ -62,8 +60,8 @@ const TagsScroll: React.FC<TagsScrollProps> = ({
 
       {/* Right Scroll Button */}
       {showButtons && (
-        <button className='rounded-full hover:text-Primary/Light text-lg' onClick={scrollRight}>
-          &gt;
+        <button className='hover:text-Primary/Light text-lg' onClick={scrollRight}>
+          <IoMdArrowDropright />
         </button>
       )}
     </div>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { IoIosMore, IoIosMail, IoMdArrowDropdown } from 'react-icons/io';
 import { BiSolidEdit } from 'react-icons/bi';
 import { AiOutlineUserDelete } from 'react-icons/ai';
-import { MdOutlinePublicOff } from 'react-icons/md';
+import { MdOutlinePublicOff, MdOutlinePublic } from 'react-icons/md';
 import { TbFlag, TbFlagOff } from 'react-icons/tb';
 import { useDebounce } from '@uidotdev/usehooks';
 import Search from '../assets/search.svg';
@@ -33,8 +33,8 @@ function GroupDashboard() {
   // const { user } = useUser();
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
   const [activeDashboard, setActiveDashboard] = useState<
-    'posts' | 'members' | 'myposts' | 'projects' | 'pendposts' | null
-  >('posts');
+    'Posts' | 'Members' | 'My posts' | 'Projects' | 'Pending posts'
+  >('Posts');
   const { type } = useParams<Params>();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const tagListRef = useRef<HTMLDivElement>(null);
@@ -292,8 +292,8 @@ function GroupDashboard() {
     <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
       <>
         <div className='mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
-          <div className='bg-Background/Bottom bg-center bg-cover rounded-3xl border-2 border-Primary/Dark border-solid box-border w-full lg:w-[calc(50vw-5rem)] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] flex flex-col items-center relative'>
-            <div className=' w-full flex justify-end mt-4 mr-14' ref={dropdownConfigRef}>
+          <div className='bg-Background/Bottom bg-center bg-cover rounded-3xl border-2 border-Primary/Dark border-solid box-border w-full lg:w-[calc(50vw-3rem)] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] flex flex-col items-center relative'>
+            <div className=' w-full flex justify-end mt-4 mr-20' ref={dropdownConfigRef}>
               <button
                 onClick={toggleDropdownConfig}
                 className='hover:text-gray-300 text-white text-3xl'
@@ -301,18 +301,29 @@ function GroupDashboard() {
                 <IoIosMore />
               </button>
               {isDropdownConfigOpen && (
-                <div className='absolute right-4 top-14 w-48 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
+                <div className='absolute right-4 top-14 w-52 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
                   <ul className='py-1 my-3 ml-2'>
                     <li>
-                      <button className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
+                      <button className='block px-3 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
                         <BiSolidEdit className='text-2xl' />
-                        Edit profile
+                        Edit group profile
                       </button>
                     </li>
                     <li>
                       <button className='block px-4 py-2 text-red-500 hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
-                        <AiOutlineUserDelete className='text-2xl' />
-                        Delete account
+                        <svg
+                          width='19'
+                          height='20'
+                          viewBox='0 0 19 20'
+                          fill='none'
+                          xmlns='http://www.w3.org/2000/svg'
+                        >
+                          <path
+                            d='M18.8031 16.8001H13.2902C13.1819 16.8001 13.0933 16.8901 13.0933 17.0001V18.2001C13.0933 18.3101 13.1819 18.4 13.2902 18.4H18.8031C18.9114 18.4 19 18.3101 19 18.2001V17.0001C19 16.8901 18.9114 16.8001 18.8031 16.8001ZM6.14059 9.96029C6.11844 9.7428 6.10613 9.52281 6.10613 9.30031C6.10613 8.90283 6.14305 8.51534 6.21196 8.13785C6.22919 8.04785 6.18242 7.95535 6.10121 7.91786C5.76649 7.76536 5.45885 7.55537 5.19305 7.29037C4.87985 6.9819 4.63338 6.6105 4.46939 6.19986C4.3054 5.78923 4.22747 5.34838 4.24059 4.90544C4.26274 4.10297 4.58023 3.34049 5.13398 2.76551C5.74188 2.13302 6.55898 1.78803 7.42776 1.79803C8.21286 1.80553 8.97089 2.11302 9.54433 2.65801C9.73876 2.843 9.90612 3.048 10.0464 3.26799C10.0956 3.34549 10.1916 3.37799 10.2753 3.34799C10.7084 3.19549 11.1662 3.088 11.6363 3.038C11.7741 3.023 11.8529 2.873 11.7913 2.74801C10.9915 1.14055 9.35728 0.0305857 7.46714 0.000586576C4.73774 -0.0419122 2.46365 2.23052 2.46365 4.99794C2.46365 6.56789 3.17492 7.96785 4.28981 8.88533C3.50717 9.25282 2.78606 9.7603 2.16094 10.3953C0.812235 11.7627 0.0492842 13.5677 6.15431e-05 15.4951C-0.000595345 15.5218 0.00401196 15.5484 0.0136121 15.5732C0.0232123 15.598 0.037611 15.6207 0.0559598 15.6398C0.0743086 15.6589 0.0962362 15.6741 0.120451 15.6844C0.144665 15.6948 0.170677 15.7001 0.196952 15.7001H1.57765C1.68348 15.7001 1.77208 15.6151 1.77454 15.5076C1.8213 14.0577 2.39966 12.7002 3.41611 11.6702C4.13968 10.9353 5.02569 10.4253 5.99292 10.1778C6.0889 10.1528 6.15289 10.0603 6.14059 9.96029ZM17.228 9.30031C17.228 6.56539 15.0646 4.34296 12.382 4.30046C9.65508 4.25796 7.38346 6.5304 7.38346 9.30031C7.38346 10.8703 8.09719 12.2702 9.20962 13.1877C8.41887 13.56 7.69902 14.0712 7.0832 14.6977C5.7345 16.0651 4.97155 17.8701 4.92233 19.795C4.92167 19.8217 4.92628 19.8482 4.93588 19.8731C4.94548 19.8979 4.95987 19.9206 4.97822 19.9397C4.99657 19.9588 5.0185 19.974 5.04271 19.9843C5.06693 19.9947 5.09294 20 5.11922 20H6.49745C6.60328 20 6.69188 19.915 6.69434 19.8075C6.7411 18.3575 7.31947 17.0001 8.33592 15.9701C9.39666 14.8927 10.8044 14.3002 12.3057 14.3002C15.0228 14.3002 17.228 12.0627 17.228 9.30031ZM14.533 11.5627C13.9375 12.1677 13.1474 12.5002 12.3057 12.5002C11.464 12.5002 10.674 12.1677 10.0784 11.5627C9.78119 11.2624 9.54635 10.9046 9.38782 10.5104C9.22928 10.1161 9.15027 9.69361 9.15547 9.26782C9.16286 8.44784 9.48526 7.65536 10.0489 7.06788C10.6395 6.4529 11.4296 6.11041 12.2737 6.10041C13.1081 6.09291 13.9178 6.4229 14.5134 7.01538C15.1237 7.62286 15.4584 8.43534 15.4584 9.30031C15.456 10.1553 15.1286 10.9578 14.533 11.5627Z'
+                            fill='#F14444'
+                          />
+                        </svg>
+                        Delete group
                       </button>
                     </li>
                   </ul>
@@ -321,7 +332,7 @@ function GroupDashboard() {
             </div>
 
             <div className='flex flex-row space-x-4 xsm:space-x-20 sm:space-x-0 xl:space-x-2 -mt-4 mb-44 xsm:mb-48 sm:mb-1 xl:-ml-5 lg:-ml-8 sm:-ml-8'>
-              <div className='sm:-mt-10 lg:-mt-4 flex flex-col h-[380px] items-center'>
+              <div className='sm:-mt-10 lg:-mt-6 flex flex-col h-[380px] items-center'>
                 <img
                   src={
                     user?.avatar ||
@@ -412,32 +423,32 @@ function GroupDashboard() {
         <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
           <div className='flex flex-row justify-center gap-20 w-1/2'>
             <button
-              className={`${activeDashboard === 'posts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
-              onClick={() => setActiveDashboard('posts')}
+              className={`${activeDashboard === 'Posts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              onClick={() => setActiveDashboard('Posts')}
             >
               Posts
             </button>
             <button
-              className={`${activeDashboard === 'projects' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
-              onClick={() => setActiveDashboard('projects')}
+              className={`${activeDashboard === 'Projects' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              onClick={() => setActiveDashboard('Projects')}
             >
               Projects
             </button>
             <button
-              className={`${activeDashboard === 'members' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
-              onClick={() => setActiveDashboard('members')}
+              className={`${activeDashboard === 'Members' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              onClick={() => setActiveDashboard('Members')}
             >
               Members
             </button>
             <button
-              className={`${activeDashboard === 'myposts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
-              onClick={() => setActiveDashboard('myposts')}
+              className={`${activeDashboard === 'My posts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              onClick={() => setActiveDashboard('My posts')}
             >
               My posts
             </button>
             <button
-              className={`${activeDashboard === 'pendposts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
-              onClick={() => setActiveDashboard('pendposts')}
+              className={`${activeDashboard === 'Pending posts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              onClick={() => setActiveDashboard('Pending posts')}
             >
               Pending posts
             </button>
@@ -445,21 +456,7 @@ function GroupDashboard() {
         </div>
         <div className='flex justify-start -mt-10 sm:max-lg:-mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 relative'>
           <div className=' absolute left-96'>
-            {activeDashboard === 'posts' && (
-              <p className='text-2xl font-semibold text-white'>Posts (0)</p>
-            )}
-            {activeDashboard === 'myposts' && (
-              <p className='text-2xl font-semibold text-white'>My posts (0)</p>
-            )}
-            {activeDashboard === 'members' && (
-              <p className='text-2xl font-semibold text-white'>Members (0)</p>
-            )}
-            {activeDashboard === 'projects' && (
-              <p className='text-2xl font-semibold text-white'>Projects (0)</p>
-            )}
-            {activeDashboard === 'pendposts' && (
-              <p className='text-2xl font-semibold text-white'>Pending posts (0)</p>
-            )}
+            <p className='text-2xl font-semibold text-white'>{activeDashboard} (0)</p>
           </div>
         </div>
       </>
@@ -477,7 +474,7 @@ function GroupDashboard() {
             {/* Share Text Section */}
             <input
               className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-Primary/Light text-l'
-              placeholder='Search...'
+              placeholder={`Search for ${activeDashboard.toLowerCase()}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             ></input>
@@ -513,7 +510,7 @@ function GroupDashboard() {
           </div>
         )}
       </div>
-      {activeDashboard === 'posts' && (
+      {activeDashboard === 'Posts' && (
         <>
           <div className='mb-5'>
             <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
@@ -629,7 +626,7 @@ function GroupDashboard() {
         <div className='bg-Background/Bottom bg-cover rounded-3xl border-2 border-Primary/Dark lg:w-[22vw] xl:w-[19vw] lg:h-[420px] xl:h-[400px] mt-4 ml-[3rem] '>
           <div className='flex flex-col '>
             <div className='flex justify-center mx-2'>
-              <p className='text-white text-2xl font-semibold mt-12 text-center break-words'>
+              <p className='text-white text-2xl font-semibold mt-6 text-center break-words'>
                 Groupname's Dashboard
               </p>
             </div>
@@ -660,8 +657,13 @@ function GroupDashboard() {
             </div>
           </div>
           <div className='flex justify-center xl:ml-0'>
-            <button className='transition-colors duration-300 ease-in-out w-44 h-10 rounded-xl bg-Accent/Target text-lg text-white m-4 hover:bg-white hover:text-Accent/Target '>
+            <button className='transition-colors duration-300 ease-in-out w-44 h-8 rounded-xl bg-Accent/Target text-lg text-white m-4 hover:bg-white hover:text-Accent/Target '>
               Follow
+            </button>
+          </div>
+          <div className='flex justify-center xl:ml-0 -mt-4'>
+            <button className='transition-colors duration-300 ease-in-out w-44 h-8 rounded-xl bg-red-500 text-lg text-white m-4 hover:bg-white hover:text-red-500 '>
+              Leave
             </button>
           </div>
         </div>

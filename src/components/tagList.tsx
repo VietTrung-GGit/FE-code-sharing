@@ -12,33 +12,104 @@ function TagList({
   onFilterChange,
   feedShowTaglistModal,
   activeFilter,
+  initialOrder,
+  initialCriteria,
+  initialTags,
+  handleClose,
 }: {
   feedShowTaglistModal: boolean;
-  onFilterChange: (filters: { selectedTags: string[]; sortBy: string; order: string }) => void;
-  activeFilter: string | null;
+  onFilterChange: (querySortParam: string) => void;
+  activeFilter: string;
+  initialOrder: 'ascending' | 'descending';
+  initialCriteria: string;
+  initialTags: string[];
+  handleClose: () => void;
 }) {
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [activeButton, setActiveButton] = useState<'descending' | 'ascending' | null>('descending');
-  const [methodPostsButton, setMethodPostsButton] = useState<'likes' | 'date' | 'comments' | null>(
-    'date',
+  const [selectedTags, setSelectedTags] = useState<string[]>(initialTags);
+  const [order, setOrder] = useState<'ascending' | 'descending'>(initialOrder);
+  const [criteriaPosts, setCriteriaPosts] = useState<'date' | 'likes' | 'comments'>('date');
+  const [criteriaUsers, setCriteriaUsers] = useState<'datejoin' | 'likes' | 'followers'>(
+    'followers',
   );
-
-  const [order, setOrder] = useState<'ascending' | 'descending'>('descending');
-  const [criteriaPosts, setCriteriaPosts] = useState<'date' | 'likes' | 'followers'>('date');
-  const [criteriaUsers, setCriteriaUsers] = useState<'datejoin' | 'likes' | 'comments'>('datejoin');
-
   const [criteriaGroupProject, setCriteriaGroupProject] = useState<
     'datecreate' | 'posts' | 'members'
-  >('datecreate');
+  >('members');
 
-  const handleOrderStateClick = (newOrder: 'ascending' | 'descending') => {
-    setActiveButton(newOrder);
-    setOrder(newOrder);
+  useEffect(() => {
+    switch (activeFilter) {
+      case 'Posts':
+        if (
+          initialCriteria === 'date' ||
+          initialCriteria === 'likes' ||
+          initialCriteria === 'comments'
+        ) {
+          setCriteriaPosts(initialCriteria);
+        }
+        break;
+
+      case 'Users':
+        if (
+          initialCriteria === 'datejoin' ||
+          initialCriteria === 'likes' ||
+          initialCriteria === 'followers'
+        ) {
+          setCriteriaUsers(initialCriteria);
+        }
+        break;
+
+      case 'Groups':
+      case 'Projects':
+        if (
+          initialCriteria === 'datecreate' ||
+          initialCriteria === 'posts' ||
+          initialCriteria === 'members'
+        ) {
+          setCriteriaGroupProject(initialCriteria);
+        }
+        break;
+
+      default:
+        break;
+    }
+  }, []);
+
+  const getSortBy = () => {
+    switch (activeFilter) {
+      case 'Posts':
+        return criteriaPosts;
+      case 'Users':
+        return criteriaUsers;
+      case 'Groups':
+      case 'Projects':
+        return criteriaGroupProject;
+      default:
+        return '';
+    }
   };
-  const handleCriteriaPostsChange = (newCriteria: 'date' | 'likes' | 'comments') => {
-    setCriteriaPosts(newCriteria);
 
-    setMethodPostsButton(newCriteria);
+  // Function to generate query parameter string
+  const generateQueryParam = () => {
+    const params = new URLSearchParams();
+    if (selectedTags.length) params.append('tags', selectedTags.join(','));
+    const sortBy = getSortBy();
+    if (sortBy) params.append('criteria', sortBy);
+    if (order) params.append('order', order);
+    return params.toString();
+  };
+
+  // Function to handle filter submission
+  const handleSubmit = () => {
+    onFilterChange(generateQueryParam());
+    handleClose();
+  };
+
+  // Function to reset filters to default
+  const handleReset = () => {
+    setSelectedTags([]);
+    setCriteriaPosts('date');
+    setCriteriaUsers('followers');
+    setCriteriaGroupProject('members');
+    setOrder('descending');
   };
 
   const buttonsPosts: {
@@ -106,19 +177,20 @@ function TagList({
     svg: JSX.Element;
   }[] = [
     {
-      label: 'Date created',
-      criteriaKey: 'datecreate',
-      svg: <BiCalendar className='text-2xl' />,
+      label: 'Members',
+      criteriaKey: 'members',
+      svg: <HiUsers className='text-2xl' />,
     },
+
     {
       label: 'Posts',
       criteriaKey: 'posts',
       svg: <BsFileCodeFill className='text-2xl' />,
     },
     {
-      label: 'Members',
-      criteriaKey: 'members',
-      svg: <HiUsers className='text-2xl' />,
+      label: 'Date created',
+      criteriaKey: 'datecreate',
+      svg: <BiCalendar className='text-2xl' />,
     },
   ];
 
@@ -128,9 +200,9 @@ function TagList({
     svg: JSX.Element;
   }[] = [
     {
-      label: 'Date joined',
-      criteriaKey: 'datejoin',
-      svg: <BiCalendar className='text-2xl' />,
+      label: 'Followers',
+      criteriaKey: 'followers',
+      svg: <AiFillHeart className='text-2xl' />,
     },
     {
       label: 'Likes',
@@ -145,9 +217,9 @@ function TagList({
       ),
     },
     {
-      label: 'Followers',
-      criteriaKey: 'followers',
-      svg: <AiFillHeart className='text-2xl' />,
+      label: 'Date joined',
+      criteriaKey: 'datejoin',
+      svg: <BiCalendar className='text-2xl' />,
     },
   ];
 
@@ -158,58 +230,50 @@ function TagList({
   };
 
   // This function triggers when any filter or search query changes.
-  const handleFiltersChange = () => {
-    onFilterChange({
-      selectedTags: selectedTags || [],
-      sortBy: methodPostsButton || 'date', // Default to date if no sort method is selected
-      order: activeButton || 'descending', // Default to descending if no order is selected
-    });
-  };
 
   useEffect(() => {
-    handleFiltersChange();
     // Trigger filter change whenever state changes
-  }, [selectedTags, activeButton, methodPostsButton, criteriaPosts]);
+  }, [selectedTags, order, criteriaPosts, criteriaGroupProject, criteriaUsers, criteriaPosts]);
 
   return (
     <>
       <div
-        className={`fixed sm:fixed max-h-[800px] flex-col  ${feedShowTaglistModal ? 'top-20 right-[30vw]' : 'top-24 lg:mr-[1vw] sm:max-lg:top-24 lg:top-[calc(max(2rem,25vh-6rem))] right-0'} flex bg-Background/Bottom text-center w-[260px] lg:w-[600px] h-4/5 pt-16 pl-4 min-h-[400px] rounded-3xl border-Primary/Dark border-solid box-border border-2 z-40
+        className={`fixed sm:fixed flex-col  ${feedShowTaglistModal ? 'top-[80px] right-[30vw]' : 'top-24 lg:mr-[1vw] sm:max-lg:top-24 lg:top-[calc(max(2rem,25vh-6rem))] right-0'} flex bg-Background/Bottom text-center w-[600px] ${['Posts', 'My posts', 'Pending posts'].includes(activeFilter) ? 'h-[600px]' : 'h-[360px]'} pt-16 pl-4 min-h-[360px] rounded-3xl border-Primary/Dark border-solid box-border border-2 z-40
  translate-x-0 sm:static sm:max-xl:pl-4 xl:pl-6 `}
       >
         {/* */}
-        <p className='text-left text-white text-2xl flex ml-10 font-semibold'>
-          <div className=' inline-block fixed left-8 top-16'>
-            <img src={Filter} alt='Filter icon'></img>
-          </div>
-          Posts filter:
+        <p className='text-left text-white text-2xl font-semibold flex items-center gap-2 ml-10'>
+          <img src={Filter} alt='Filter icon' className='w-6 h-6' />
+          {activeFilter} filter:
         </p>
+
         <br />
         <div className='flex flex-row'>
           {/*ASC/DESC BUTTONS*/}
           <div className='mb-4 flex ml-20 flex-col space-y-4'>
-            <p className='text-white text-xl'>Order:</p>
-            <button className='w-[140px]' onClick={() => handleOrderStateClick('ascending')}>
-              <div className='w-8 inline-block fixed left-28'>
-                <img src={Ascend} alt='Ascending icon'></img>
-              </div>
-              <div className='w-28 inline-block ml-14'>
-                <p
-                  className={`text-left ${activeButton === 'ascending' ? 'text-Primary/Light' : 'text-white'} text-lg hover:text-Primary/Target`}
-                >
-                  Ascending
-                </p>
-              </div>
-            </button>
-            <button className='w-[140px] ' onClick={() => handleOrderStateClick('descending')}>
+            <p className='text-gray-500 text-xl'>Order:</p>
+
+            <button className='w-[140px] ' onClick={() => setOrder('descending')}>
               <div className='w-8 inline-block fixed left-28'>
                 <img src={Descend} alt='Descending icon'></img>
               </div>
               <div className='w-28 inline-block ml-14'>
                 <p
-                  className={`text-left ${activeButton === 'descending' ? 'text-Primary/Light' : 'text-white'} text-lg hover:text-Primary/Target`}
+                  className={`text-left ${order === 'descending' ? 'text-Primary/Light' : 'text-white'} text-lg hover:text-Primary/Target`}
                 >
                   Descending
+                </p>
+              </div>
+            </button>
+            <button className='w-[140px]' onClick={() => setOrder('ascending')}>
+              <div className='w-8 inline-block fixed left-28'>
+                <img src={Ascend} alt='Ascending icon'></img>
+              </div>
+              <div className='w-28 inline-block ml-14'>
+                <p
+                  className={`text-left ${order === 'ascending' ? 'text-Primary/Light' : 'text-white'} text-lg hover:text-Primary/Target`}
+                >
+                  Ascending
                 </p>
               </div>
             </button>
@@ -217,8 +281,8 @@ function TagList({
 
           {/*date,likes,comments*/}
           <div className='mb-2 flex flex-col space-y-4 ml-14'>
-            <p className='text-white text-xl'>Criteria:</p>
-            {activeFilter === 'posts' && (
+            <p className='text-gray-500 text-xl'>Criteria:</p>
+            {activeFilter == 'Posts' && (
               <>
                 {buttonsPosts.map(({ label, criteriaKey, svg }) => (
                   <button
@@ -228,7 +292,7 @@ function TagList({
                         ? 'text-Primary/Light hover:text-Primary/Target'
                         : 'text-white hover:text-gray-300'
                     }`}
-                    onClick={() => handleCriteriaPostsChange(criteriaKey)}
+                    onClick={() => setCriteriaPosts(criteriaKey)}
                   >
                     {svg}
                     <span className='text-lg'>{label}</span>
@@ -236,7 +300,7 @@ function TagList({
                 ))}
               </>
             )}
-            {activeFilter === 'users' && (
+            {activeFilter == 'Users' && (
               <>
                 {buttonsUsers.map(({ label, criteriaKey, svg }) => (
                   <button
@@ -246,7 +310,7 @@ function TagList({
                         ? 'text-Primary/Light hover:text-Primary/Target'
                         : 'text-white hover:text-gray-300'
                     }`}
-                    onClick={() => handleCriteriaMethodChange(criteriaKey)}
+                    onClick={() => setCriteriaUsers(criteriaKey)}
                   >
                     {svg}
                     <span className='text-lg'>{label}</span>
@@ -255,7 +319,7 @@ function TagList({
               </>
             )}
 
-            {(activeFilter === 'projects' || activeFilter === 'groups') && (
+            {(activeFilter === 'Projects' || activeFilter === 'Groups') && (
               <>
                 {buttonsGroupProject.map(({ label, criteriaKey, svg }) => (
                   <button
@@ -265,7 +329,7 @@ function TagList({
                         ? 'text-Primary/Light hover:text-Primary/Target'
                         : 'text-white hover:text-gray-300'
                     }`}
-                    onClick={() => handleCriteriaMethodChange(criteriaKey)}
+                    onClick={() => setCriteriaGroupProject(criteriaKey)}
                   >
                     {svg}
                     <span className='text-lg'>{label}</span>
@@ -275,12 +339,12 @@ function TagList({
             )}
           </div>
         </div>
-        {activeFilter === 'posts' && (
+        {activeFilter == 'Posts' && (
           <>
             {/*filter by tags*/}
             <div className='mb-4 lg:ml-6 xl:flex xl:ml-20'>
               <div className='w-32 -ml-6 inline-block sm:max-xl:-ml-6 xl:-ml-8'>
-                <p className='text-left text-white text-xl'>Tags:</p>
+                <p className='text-left text-gray-500 text-xl'>Tags:</p>
               </div>
             </div>
 
@@ -309,6 +373,15 @@ function TagList({
             </div>
           </>
         )}
+        {/* Submit and Reset Buttons */}
+        <div className='flex justify-center gap-4 mt-4'>
+          <button className='bg-blue-500 text-white px-4 py-2 rounded' onClick={handleSubmit}>
+            Apply Filter
+          </button>
+          <button className='bg-gray-500 text-white px-4 py-2 rounded' onClick={handleReset}>
+            Reset Filter
+          </button>
+        </div>
       </div>
     </>
   );

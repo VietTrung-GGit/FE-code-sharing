@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BiSolidEdit, BiTrashAlt } from 'react-icons/bi';
+import { Tooltip } from 'react-tooltip';
+import { TbEye, TbLockOpen, TbLock } from 'react-icons/tb';
 import Editor from '@monaco-editor/react';
 import PostDetail from '../components/postDetail';
 import TagsScroll from '../components/tagsScroll';
@@ -15,6 +17,7 @@ import {
   unstorePost,
   deletePost,
   fetchPostDetail,
+  setPostVisibility,
 } from '../services/postService';
 
 interface PostBriefProps {
@@ -22,7 +25,7 @@ interface PostBriefProps {
 }
 
 const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
-  const [post, setPost] = useState<Post | null>(null);
+  const [post, setPost] = useState<Post>(postData);
   const [activeTab, setActiveTab] = useState<number>(0);
   const [showPostDetail, setShowPostDetail] = useState<boolean>(false); // New state for modal visibility
   const [showPostCreate, setShowPostCreate] = useState<boolean>(false); // New state for modal visibility
@@ -30,11 +33,11 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
   const [visible, setVisible] = useState<boolean>(true);
   const [hasSaved, setHasSaved] = useState<boolean>(false);
   const [isTruncated, setIsTruncated] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const textRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     // Initialize the post state with the postData prop
-    setPost(postData);
     setHasLiked(postData.Liked);
     setHasSaved(postData.Stored);
   }, [postData]);
@@ -138,6 +141,27 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
   };
   const handleLikeClick = () => handleLike(true);
   const handleSaveClick = () => handleSave(true);
+  const handleClick = async () => {
+    // Calculate the new visibility
+    const newVisibility = post.visibility === 'public' ? 'private' : 'public';
+
+    // Update the local state first
+    setPost((prev) => ({ ...prev, visibility: newVisibility }));
+
+    try {
+      // Call the function to update visibility on the server
+      await setPostVisibility(post._id, newVisibility);
+    } catch (error) {
+      // If there's an error, reset the local state
+      setPost((prev) => ({
+        ...prev,
+        visibility: prev.visibility === 'public' ? 'private' : 'public',
+      }));
+
+      // Optionally, handle the error (e.g., show a toast notification)
+      toast.error('Error updating visibility: ', error ? error : '404');
+    }
+  };
 
   const handleDelete = async () => {
     if (!post) return;
@@ -213,11 +237,11 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
                   'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
                 } // Fallback for avatar
                 alt='Avatar'
-                className='w-12 h-12 rounded-full object-cover'
+                className='w-[52px] h-[52px] rounded-full object-cover'
               />
               <div>
-                <p className='font-bold text-lg'>{post ? post.authorname : ''}</p>
-                <p className='text-sm text-Accent/Light'>
+                <p className='font-bold text-md'>{post ? post.authorname : ''}</p>
+                <p className='text-xs text-Accent/Light'>
                   {post ? formatDate(post.createdAt) : 'Loading...'}&nbsp;
                   {post &&
                     post.editedAt &&
@@ -229,12 +253,11 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
                       </span>
                     )}
                 </p>
+                {post.tags.length > 0 && <TagsScroll tags={post.tags} />}
                 {/* Check if `updateat` is different from `createat` */}
               </div>
             </div>
-            <div className={`mt-2 sm:mt-0 w-full sm:w-auto `}>
-              {post.tags.length > 0 && <TagsScroll tags={post.tags} />}
-            </div>
+            <div className={`mt-2 sm:mt-0 w-full sm:w-auto `}></div>
           </div>
 
           {/* Title */}
@@ -243,21 +266,6 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
               <p className='w-full py-2 overflow-hidden break-all line-clamp-2'>{post.title}</p>
             </div>
           )}
-
-          {/* {post?.tags && post.tags.length > 0 && (
-            <div className='flex items-center gap-2'>
-              <div className='flex flex-wrap gap-2 flex-grow'>
-                {post.tags.map((tagName, index) => (
-                  <span
-                    key={index}
-                    className='bg-Primary/Light text-xs flex justify-center text-Primary/Dark text-sm w-min px-2 rounded-3xl py-1'
-                  >
-                    {tagName}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )} */}
 
           {/* Post Text */}
           <div className='flex items-center'>
@@ -323,17 +331,44 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
             {post.isAuthor ? (
               <div className='flex space-x-1 sm:space-x-4'>
                 <button
-                  onClick={handleEdit}
-                  className=' text-white rounded-lg hover:text-Accent/Light'
-                >
-                  <BiSolidEdit className='text-2xl' />
-                </button>
-
-                <button
                   onClick={() => setShowDeletePostModal(true)}
+                  data-tooltip-id='delete'
+                  data-tooltip-content='Delete post'
+                  data-tooltip-place='top' // Auto-adjusts the position
                   className='text-white rounded-lg hover:text-red-300'
                 >
                   <BiTrashAlt className='text-2xl' />
+                  <Tooltip id='delete' classNameArrow='noArrow' />
+                </button>
+
+                <button
+                  onClick={handleEdit}
+                  data-tooltip-id='edit'
+                  data-tooltip-content='Edit post'
+                  data-tooltip-place='top' // Auto-adjusts the position
+                  className=' text-white rounded-lg hover:text-Accent/Light'
+                >
+                  <BiSolidEdit className='text-2xl' />
+                  <Tooltip id='edit' classNameArrow='noArrow' />
+                </button>
+
+                <button
+                  onClick={handleClick}
+                  onMouseEnter={() => setHovered(true)}
+                  onMouseLeave={() => setHovered(false)}
+                  data-tooltip-id='setprivate'
+                  data-tooltip-content={`Set ${post.visibility === 'public' ? 'private' : 'public'}`}
+                  data-tooltip-place='top' // Auto-adjusts the position
+                  className='text-white rounded-lg hover:text-Primary/Light'
+                >
+                  {post.visibility === 'private' ? (
+                    <TbLock className=' text-2xl ' />
+                  ) : hovered ? (
+                    <TbLockOpen className=' text-2xl ' />
+                  ) : (
+                    <TbEye className=' text-2xl ' />
+                  )}
+                  <Tooltip id='setprivate' classNameArrow='noArrow' />
                 </button>
               </div>
             ) : (

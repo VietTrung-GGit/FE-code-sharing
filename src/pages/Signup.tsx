@@ -14,7 +14,7 @@ function Signup() {
     const token = localStorage.getItem('accessToken');
     if (isAuthenticated && token) {
       // If the user is authenticated and the token is valid, redirect to feed
-      navigate('/feed');
+      navigate('/community');
     }
   }, [isAuthenticated, navigate]);
   // State to hold form inputs
@@ -107,7 +107,7 @@ function Signup() {
                 name='password'
                 value={formData.password}
                 onChange={handleChange}
-                autoComplete="new-password"
+                autoComplete='new-password'
               />
               <br />
               <input

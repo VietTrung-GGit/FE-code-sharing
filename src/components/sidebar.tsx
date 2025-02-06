@@ -3,7 +3,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuthUser } from '../context/AuthUserContext';
 import Logo from '../assets/logo.svg';
 import { useNotifications } from '../context/NotificationContext';
-
+import { FaBell, FaRegStar, FaStar } from 'react-icons/fa';
+import { BiBookBookmark, BiSolidBookBookmark } from 'react-icons/bi';
+import { RiGlobalLine, RiGlobalFill } from 'react-icons/ri';
+import { AiOutlineHome, AiFillHome } from 'react-icons/ai';
+import { IoMdArrowDropdown } from 'react-icons/io';
 function Sidebar({
   isOpen,
   state,
@@ -17,6 +21,10 @@ function Sidebar({
   const { logout, user } = useAuthUser();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null); // Ref for the modal content
+  const buttonNotificationRef = useRef<HTMLButtonElement>(null);
+
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const modalNotificationRef = useRef<HTMLDivElement>(null); // Ref for the modal content
   const { totalNotifications } = useNotifications();
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -33,7 +41,26 @@ function Sidebar({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showLogoutModal]);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        modalNotificationRef.current &&
+        !modalNotificationRef.current.contains(event.target as Node) &&
+        buttonNotificationRef.current &&
+        !buttonNotificationRef.current.contains(event.target as Node)
+      ) {
+        setShowNotificationModal(false); // Close modal if clicked outside
+      }
+    };
 
+    if (showNotificationModal) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotificationModal]);
   const handleNavigation = (destination: string) => {
     navigate(destination);
     onClose(); // Close the sidebar after navigation
@@ -70,40 +97,92 @@ function Sidebar({
           </p>
           <button
             className={`m-2 ${totalNotifications > 0 ? ' bg-Accent/Target text-white' : 'bg-white text-Primary/Dark'} flex items-center space-x-4 rounded-3xl text-lg font-semibold min-w-[100px] px-2 py-1 hover:bg-opacity-80 `}
-            onClick={() => handleNavigation('/notifications')}
+            onClick={() => setShowNotificationModal((prev) => !prev)}
+            ref={buttonNotificationRef}
           >
-            <svg
-              width='23'
-              height='27'
-              viewBox='0 0 23 27'
-              fill='currentColor'
-              xmlns='http://www.w3.org/2000/svg'
-            >
-              <path
-                d='M11.5 27C12.2913 27.001 13.0633 26.7416 13.7086 26.2577C14.3539 25.7738 14.8405 25.0895 15.1008 24.3H7.89922C8.15946 25.0895 8.64605 25.7738 9.29137 26.2577C9.93669 26.7416 10.7087 27.001 11.5 27ZM20.4444 16.9911V10.8C20.4444 6.45705 17.6525 2.79855 13.8703 1.6983C13.4959 0.702 12.581 0 11.5 0C10.419 0 9.50411 0.702 9.12972 1.6983C5.3475 2.7999 2.55556 6.45705 2.55556 10.8V16.9911L0.37439 19.2955C0.255502 19.4207 0.161218 19.5695 0.0969646 19.7333C0.0327111 19.8971 -0.000242074 20.0727 1.33871e-06 20.25V21.6C1.33871e-06 21.958 0.134623 22.3014 0.374254 22.5546C0.613884 22.8078 0.938891 22.95 1.27778 22.95H21.7222C22.0611 22.95 22.3861 22.8078 22.6257 22.5546C22.8654 22.3014 23 21.958 23 21.6V20.25C23.0002 20.0727 22.9673 19.8971 22.903 19.7333C22.8388 19.5695 22.7445 19.4207 22.6256 19.2955L20.4444 16.9911Z'
-                fill='currentColor'
-              />
-            </svg>
+            <FaBell className='text-2xl' />
 
             <span>{`${totalNotifications}`}</span>
 
-            <svg
-              width='20'
-              height='10'
-              viewBox='0 0 20 10'
-              fill='none'
-              xmlns='http://www.w3.org/2000/svg'
-            >
-              <path d='M0 0L10 10L20 0H0Z' fill='currentColor' />
-            </svg>
+            <IoMdArrowDropdown className='text-2xl' />
           </button>
         </div>
-
+        {showNotificationModal && (
+          <div
+            className='absolute bg-Background/Bottom border-Primary/Dark border-solid box-border border-2 top-[350px] w-[280px] mx-1 rounded-3xl h-[380px] px-8 flex flex-col'
+            ref={modalNotificationRef}
+          >
+            <div className='flex'>
+              <p className='text-white text-xl font-semibold text-left'>Notifications</p>
+            </div>
+            <div className='flex flex-col'>
+              <p className='text-white text-left'>Notifications go here</p>
+              <p className='text-white text-left'>Notifications go here</p>
+              <p className='text-white text-left'>Notifications go here</p>
+              <p className='text-white text-left'>Notifications go here</p>
+            </div>
+            <div className='flex mx-12 absolute bottom-0'>
+              <button
+                className='transition-colors duration-300 ease-in-out w-28 h-8 rounded-xl bg-Primary/Light text-lg text-Primary/Dark mb-4 hover:bg-white hover:text-Accent/Target'
+                onClick={() => handleNavigation('/notifications')}
+              >
+                View all
+              </button>
+            </div>
+          </div>
+        )}
         {/* Navigation Buttons */}
-        <div className='flex flex-col my-8 ml-5 flex-grow overflow-y-auto scrollbar scrollbar-thin scrollbar-thumb-Primary/Dark scrollbar-track-Background/Middle'>
+        <div className='text-base flex flex-col my-8 ml-5 flex-grow overflow-y-auto scrollbar scrollbar-thin scrollbar-thumb-Primary/Dark scrollbar-track-Background/Middle'>
+          <button
+            className={`m-2 flex items-center space-x-2 ${state === 'feed' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
+            onClick={() => handleNavigation('/feed')}
+          >
+            {state === 'feed' ? (
+              <FaStar className='text-4xl' />
+            ) : (
+              <FaRegStar className='text-4xl' />
+            )}
+            <span>Feed</span>
+          </button>
+
+          <button
+            className={`m-2 flex items-center space-x-2 ${state === 'community' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
+            onClick={() => handleNavigation('/community/posts')}
+          >
+            {state === 'community' ? (
+              <RiGlobalFill className='text-4xl' />
+            ) : (
+              <RiGlobalLine className='text-4xl' />
+            )}
+            <span>Codemunity</span>
+          </button>
+          <button
+            className={`m-2 flex items-center space-x-2 ${state === 'home' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
+            onClick={() => handleNavigation('/home')}
+          >
+            {state === 'home' ? (
+              <AiFillHome className='text-4xl' />
+            ) : (
+              <AiOutlineHome className='text-4xl' />
+            )}
+            <span>Home</span>
+          </button>
+
+          <button
+            className={`m-2 flex items-center space-x-2 ${state === 'stored' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
+            onClick={() => handleNavigation('/saves')}
+          >
+            {state === 'stored' ? (
+              <BiSolidBookBookmark className='text-4xl' />
+            ) : (
+              <BiBookBookmark className='text-4xl' />
+            )}
+            <span>Saves</span>
+          </button>
+          {/*remove later*/}
           <button
             className={`m-2 flex items-center space-x-2 ${state === undefined ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
-            onClick={() => handleNavigation('/feed')}
+            onClick={() => handleNavigation('/project')}
           >
             <svg
               width='38'
@@ -117,72 +196,9 @@ function Sidebar({
                 fill='currentColor'
               />
             </svg>
-            <span>Feed</span>
+            <span>Project(wip)</span>
           </button>
-          <button
-            className={`m-2 flex items-center space-x-2 ${state === undefined ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
-            onClick={() => handleNavigation('/feed')}
-          >
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              width='31'
-              height='31'
-              viewBox='0 0 31 31'
-              fill='none'
-              stroke='currentColor'
-            >
-              <path
-                d='M2 15.5H9.5M2 15.5C2 22.9558 8.04416 29 15.5 29M2 15.5C2 8.04416 8.04416 2 15.5 2M9.5 15.5H21.5M9.5 15.5C9.5 22.9558 12.1863 29 15.5 29M9.5 15.5C9.5 8.04416 12.1863 2 15.5 2M21.5 15.5H29M21.5 15.5C21.5 8.04416 18.8137 2 15.5 2M21.5 15.5C21.5 22.9558 18.8137 29 15.5 29M29 15.5C29 8.04416 22.9558 2 15.5 2M29 15.5C29 22.9558 22.9558 29 15.5 29'
-                strokeWidth='3'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              />
-            </svg>
-            <span>Codemunity</span>
-          </button>
-          <button
-            className={`m-2 flex items-center space-x-2 ${state === 'home' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
-            onClick={() => handleNavigation('/home')}
-          >
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              width='30'
-              height='30'
-              viewBox='0 0 30 30'
-              fill='none'
-              stroke='currentColor'
-            >
-              <path
-                d='M28 23.2268V14.4004C28 13.5504 27.9993 13.1251 27.8937 12.7295C27.8001 12.379 27.6465 12.0472 27.4387 11.7474C27.2041 11.4092 26.878 11.1287 26.2246 10.5689L18.4246 3.88701C17.2113 2.84768 16.6047 2.32828 15.922 2.13063C15.3204 1.95646 14.6792 1.95646 14.0777 2.13063C13.3955 2.32814 12.7898 2.84704 11.5783 3.8848L3.77576 10.5689C3.12229 11.1287 2.79632 11.4092 2.56177 11.7474C2.35391 12.0472 2.19914 12.379 2.10558 12.7295C2 13.1251 2 13.5503 2 14.4004V23.2268C2 24.7093 2 25.4503 2.24739 26.035C2.57725 26.8147 3.20952 27.4349 4.00586 27.7578C4.60312 28 5.36027 28 6.87458 28C8.38889 28 9.14688 28 9.74414 27.7578C10.5405 27.4349 11.1726 26.8148 11.5024 26.0352C11.7498 25.4505 11.75 24.7092 11.75 23.2266V21.6357C11.75 19.8784 13.2051 18.4539 15 18.4539C16.7949 18.4539 18.25 19.8784 18.25 21.6357V23.2266C18.25 24.7092 18.25 25.4505 18.4974 26.0352C18.8272 26.8148 19.4595 27.4349 20.2559 27.7578C20.8531 28 21.6103 28 23.1246 28C24.6389 28 25.3969 28 25.9941 27.7578C26.7905 27.4349 27.4226 26.8147 27.7524 26.035C27.9998 25.4503 28 24.7093 28 23.2268Z'
-                strokeWidth='4'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              />
-            </svg>
-            <span>Home</span>
-          </button>
-
-          <button
-            className={`m-2 flex items-center space-x-2 ${state === 'stored' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
-            onClick={() => handleNavigation('/feed/stored')}
-          >
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              width='32'
-              height='36'
-              viewBox='0 0 32 36'
-              fill='none'
-              stroke='currentColor'
-            >
-              <path
-                d='M2 5.29412C2 3.47483 3.64162 2 5.66667 2H20.3333C22.3584 2 24 3.47483 24 5.29412V30L13 20.1176L2 30V5.29412Z'
-                strokeWidth='3'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              />
-            </svg>
-            <span>Saves</span>
-          </button>
+          {/**/}
           <button
             className={`m-2 flex items-center space-x-2 ${state === 'groups' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
             onClick={() => handleNavigation('/groups')}

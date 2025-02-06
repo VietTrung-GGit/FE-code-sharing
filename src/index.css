@@ -1,3 +1,8 @@
+:root {
+  --rt-color-white: #fff !important;
+  --rt-color-dark: #13191f !important;
+}
+
 @tailwind base;
 /*HTML elements*/
 @tailwind components;
@@ -13,6 +18,8 @@ body {
   /* Applies the custom sans-serif font globally */
 }
 
+/* Global Tooltip Styling */
+
 /* Override Monaco editor's background color */
 .monaco-editor .monaco-editor-background {
   background-color: #1b2329 !important;
@@ -22,6 +29,10 @@ body {
 .monaco-editor .margin {
   background-color: #1b2329 !important;
   /* Line number margin background */
+}
+
+.noArrow {
+  display: none;
 }
 
 /* Custom Toast Styles */

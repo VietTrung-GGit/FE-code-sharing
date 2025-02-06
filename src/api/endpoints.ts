@@ -29,15 +29,16 @@ export const API_ENDPOINTS = {
   LEAVE_PROJECT: (projectId: string) => `/project/${projectId}/leave`,
 
   //Post_related
-  POST_DETAILS: (postId: string) => `/posts/${postId}`,
-
+  POST_DETAILS: (postId: string) => `/post/${postId}`,
+  POST_VISIBILITY: (postId: string, state: 'public' | 'private') =>
+    `/post/setState/${postId}?state=${state}`,
   FETCH_POSTS: (
     page: number = 1,
     limit: number = 10,
     search: string = '',
     tags: string[] = [],
     order: 'ascending' | 'descending' = 'ascending',
-    criteria: 'date' | 'likes' | 'comments' = 'date',
+    criteria: string,
     type: 'me' | 'stored' | undefined = undefined,
   ) => {
     const queryParams = new URLSearchParams();
