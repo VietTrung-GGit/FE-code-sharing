@@ -83,7 +83,7 @@ function Sidebar({
           <img src={Logo} alt='CoDash Logo' className='w-10 h-auto' />
         </div>
 
-        <div className='flex flex-col mx-12 mt-0 items-center lg:mt-[calc(max(2rem,30vh-8rem))] '>
+        <div className='flex flex-col mx-12 mt-0 items-center lg:mt-[calc(max(2rem,30vh-8rem))]'>
           <img
             src={
               user?.avatar ||
@@ -96,15 +96,19 @@ function Sidebar({
             {user?.displayname || 'Display name'}
           </p>
           <button
-            className={`m-2 ${totalNotifications > 0 ? ' bg-Accent/Target text-white' : 'bg-white text-Primary/Dark'} flex items-center space-x-4 rounded-3xl text-lg font-semibold min-w-[100px] px-2 py-1 hover:bg-opacity-80 `}
-            onClick={() => setShowNotificationModal((prev) => !prev)}
-            ref={buttonNotificationRef}
+            className={`m-2 ${totalNotifications > 0 ? ' bg-Accent/Target text-white' : 'bg-white text-Primary/Dark'} flex items-center space-x-4 rounded-3xl text-lg font-semibold min-w-[100px] px-2 py-1 hover:bg-opacity-80 relative `}
+            onClick={() => handleNavigation('/notifications')}
           >
             <FaBell className='text-2xl' />
 
             <span>{`${totalNotifications}`}</span>
-
-            <IoMdArrowDropdown className='text-2xl' />
+            <button
+              className=' absolute right-1'
+              onClick={() => setShowNotificationModal((prev) => !prev)}
+              ref={buttonNotificationRef}
+            >
+              <IoMdArrowDropdown className='text-3xl text-Primary/Dark hover:text-Primary/Target' />
+            </button>
           </button>
         </div>
         {showNotificationModal && (
@@ -123,7 +127,7 @@ function Sidebar({
             </div>
             <div className='flex mx-12 absolute bottom-0'>
               <button
-                className='transition-colors duration-300 ease-in-out w-28 h-8 rounded-xl bg-Primary/Light text-lg text-Primary/Dark mb-4 hover:bg-white hover:text-Accent/Target'
+                className='transition-colors duration-300 ease-in-out w-28 h-8 rounded-xl bg-Primary/Light text-lg font-semibold text-Primary/Dark mb-4 hover:bg-Primary/Target'
                 onClick={() => handleNavigation('/notifications')}
               >
                 View all
@@ -201,7 +205,7 @@ function Sidebar({
           {/**/}
           <button
             className={`m-2 flex items-center space-x-2 ${state === 'groups' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
-            onClick={() => handleNavigation('/groups')}
+            onClick={() => handleNavigation('/group')}
           >
             <svg
               width='36'

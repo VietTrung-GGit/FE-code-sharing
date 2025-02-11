@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { UserDataFull, followUser, unfollowUser } from '../services/userService';
-
+import { IoIosMore, IoIosMail, IoMdArrowDropdown } from 'react-icons/io';
+import { AiOutlineUserDelete } from 'react-icons/ai';
+import { GrUserAdmin } from 'react-icons/gr';
 interface UserBriefProps {
   userData?: UserDataFull;
 }
@@ -18,7 +20,7 @@ const mockUser: UserDataFull = {
 const UserBrief: React.FC<UserBriefProps> = ({ userData }) => {
   const [user, setUser] = useState<UserDataFull>(mockUser);
   const [isFollowing, setIsFollowing] = useState(false);
-
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   useEffect(() => {
     if (userData) {
       setUser(userData);
@@ -49,7 +51,33 @@ const UserBrief: React.FC<UserBriefProps> = ({ userData }) => {
 
   return (
     <div className='flex justify-center items-center relative'>
-      <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] mb-10 mt-5 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+      <div className='relative bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] mb-10 mt-5 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+        <div className='absolute right-0 top-0'>
+          <button
+            className='hover:text-gray-300 text-white text-3xl'
+            onClick={() => setIsDropdownOpen((prev) => !prev)}
+          >
+            <IoIosMore />
+          </button>
+          {isDropdownOpen && (
+            <div className='absolute -right-40 top-14 w-56 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
+              <ul className='py-1 my-3 ml-2'>
+                <li>
+                  <button className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
+                    <GrUserAdmin className='text-2xl' />
+                    Assign as an admin
+                  </button>
+                </li>
+                <li>
+                  <button className='block px-4 py-2 text-red-500 hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
+                    <AiOutlineUserDelete className='text-2xl ' />
+                    Remove from group
+                  </button>
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
         <div className='flex flex-row w-full items-center space-x-4'>
           <div className='inline-block flex-shrink-0'>
             <img

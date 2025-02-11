@@ -3,6 +3,10 @@ import CollapseMenu from '../components/collapseMenu';
 import { useParams, useNavigate } from 'react-router-dom';
 import { IoIosMore } from 'react-icons/io';
 import { FaCircle } from 'react-icons/fa';
+import { AiFillHeart, AiOutlineHeart } from 'react-icons/ai';
+import { BsFillGearFill, BsGear } from 'react-icons/bs';
+import { BiCategory, BiSolidCategory } from 'react-icons/bi';
+import { HiUsers, HiOutlineUsers } from 'react-icons/hi';
 import LoadingSpinner from '../components/loadingAnimate';
 import { toast } from 'react-toastify';
 import { io } from 'socket.io-client';
@@ -24,6 +28,10 @@ interface Params extends Record<string, string | undefined> {
 }
 function Notifications() {
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
+  const [buttonRead, setButtonRead] = useState<'all' | 'unread'>('all');
+  const [buttonFilter, setButtonFilter] = useState<'all' | 'system' | 'following' | 'groups'>(
+    'all',
+  );
   const { type } = useParams<Params>();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const quickNavRef = useRef<HTMLDivElement>(null);
@@ -143,23 +151,7 @@ function Notifications() {
     <div className='bg-Background/Middle relative min-h-screen flex flex-col'>
       <div className='flex flex-row'>
         <div className='flex ml-96 flex-col'>
-          <div className='text-white mt-10 ml-4 space-x-2 inline-block flex lg:w-full '>
-            <svg
-              width='31'
-              height='35'
-              viewBox='0 0 31 35'
-              fill='none'
-              xmlns='http://www.w3.org/2000/svg'
-            >
-              <path
-                d='M10.8018 26.1111H5.48109C3.50922 26.1111 2.52329 26.1111 2.31584 25.9428C2.08279 25.7537 2.02585 25.6422 2.0006 25.3251C1.97815 25.0428 2.58242 23.9559 3.791 21.7825C5.03882 19.5383 6.09838 16.2707 6.09838 11.6444C6.09838 9.08658 7.0889 6.63348 8.85203 4.82479C10.6152 3.01611 13.0065 2 15.5 2C17.9934 2 20.3847 3.01611 22.1478 4.82479C23.9111 6.63348 24.9016 9.08658 24.9016 11.6444C24.9016 16.2707 25.9611 19.5383 27.209 21.7825C28.4174 23.9559 29.0218 25.0428 28.9994 25.3251C28.9742 25.6422 28.9171 25.7537 28.6841 25.9428C28.4767 26.1111 27.4908 26.1111 25.5189 26.1111H20.2008M10.8018 26.1111L10.7992 27.8333C10.7992 30.6869 12.9039 33 15.5 33C18.0962 33 20.2008 30.6869 20.2008 27.8333V26.1111M10.8018 26.1111H20.2008'
-                stroke='currentColor'
-                stroke-width='3'
-                stroke-linecap='round'
-                stroke-linejoin='round'
-              />
-            </svg>
-
+          <div className='text-white mt-10 ml-6 space-x-2 inline-block flex lg:w-full '>
             <span className='text-3xl font-semibold'>Notifications</span>
             <div className='flex justify-center flex-end'>
               <button
@@ -172,7 +164,22 @@ function Notifications() {
           </div>
           <div className='mb-6'>
             <div className='flex flex-col'>
-              <div className='flex justify-center mt-8'>
+              <div className='flex gap-24 ml-6 mt-6 '>
+                <button
+                  className={`${buttonRead === 'all' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
+                  onClick={() => setButtonRead('all')}
+                >
+                  All
+                </button>
+
+                <button
+                  className={`${buttonRead === 'unread' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
+                  onClick={() => setButtonRead('unread')}
+                >
+                  Unread (1)
+                </button>
+              </div>
+              <div className='flex justify-center mt-4'>
                 <p className='font-semibold text-lg text-white'>Recent</p>
               </div>
 
@@ -183,7 +190,7 @@ function Notifications() {
                     className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-4 flex bg-Background/Bottom text-center mt-28 p-12 w-full h-28 border-Primary/Dark border-solid box-border border-2 rounded-3xl mb-
     sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-full sm:max-lg:mt-28`}
                   >
-                    <div className='ml-[565px] -mt-10 absolute'>
+                    <div className='ml-[530px] -mt-10 absolute'>
                       <Menu as='div' className='absolute'>
                         {/* The button that triggers the dropdown */}
                         <MenuButton className='px-4 py-2 text-white text-3xl rounded hover:text-gray-300'>
@@ -191,7 +198,9 @@ function Notifications() {
                         </MenuButton>
 
                         {/* Dropdown menu */}
-                        <MenuItems className='absolute -right-48 top-4 w-48 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
+                        <MenuItems
+                          className={`absolute -right-44 top-8 w-48 bg-Background/Bottom border rounded-3xl border-2 ${!notification.isRead ? 'border-Primary/Light' : 'border-Primary/Dark'} shadow-lg z-10`}
+                        >
                           <ul className='py-1 my-3 ml-2'>
                             {/* Mark as Read option */}
                             {!notification.isRead && (
@@ -281,22 +290,51 @@ function Notifications() {
           </div>
         </div>
 
-        <div className='flex flex-col ml-32 mt-28'>
-          <div className='flex gap-24 mb-4 ml-2'>
-            <button className='text-white text-lg font-semibold  hover:text-gray-300'>All</button>
+        <div className='fixed top-48 right-24 flex flex-col w-[280px] bg-Background/Bottom border-Primary/Dark border-solid box-border border-2 rounded-3xl h-[236px]'>
+          <div className=' flex flex-col gap-3 py-2 px-14 '>
+            <button
+              className={`${buttonFilter === 'all' ? 'text-Primary/Light' : 'text-white'} hover:text-Primary/Light hover:bg-Background/Middle rounded-md px-4 py-2 text-lg flex flex-row gap-4`}
+              onClick={() => setButtonFilter('all')}
+            >
+              {buttonFilter === 'all' ? (
+                <BiSolidCategory className='text-3xl' />
+              ) : (
+                <BiCategory className='text-3xl' />
+              )}
+              All
+            </button>
 
-            <button className='text-white text-lg font-semibold  hover:text-gray-300'>
-              Unread (1)
-            </button>
-          </div>
-          <div className=' flex flex-col gap-4'>
-            <button className='text-Primary/Light hover:text-Primary/Target px-4 py-2 text-lg bg-Background/Bottom border-Primary/Dark border-solid box-border border-2 rounded-3xl text-white'>
-              Following
-            </button>
-            <button className='text-Primary/Light hover:text-Primary/Target px-4 py-2 text-lg bg-Background/Bottom border-Primary/Dark border-solid box-border border-2 rounded-3xl text-white'>
+            <button
+              className={`${buttonFilter === 'system' ? 'text-Primary/Light' : 'text-white'} hover:text-Primary/Light hover:bg-Background/Middle rounded-md px-4 py-2 text-lg flex flex-row gap-4`}
+              onClick={() => setButtonFilter('system')}
+            >
+              {buttonFilter === 'system' ? (
+                <BsFillGearFill className='text-3xl' />
+              ) : (
+                <BsGear className='text-3xl' />
+              )}
               System
             </button>
-            <button className='text-Primary/Light hover:text-Primary/Target px-4 py-2 text-lg bg-Background/Bottom border-Primary/Dark border-solid box-border border-2 rounded-3xl text-white'>
+            <button
+              className={`${buttonFilter === 'following' ? 'text-Primary/Light' : 'text-white'} hover:text-Primary/Light hover:bg-Background/Middle rounded-md px-4 py-2 text-lg flex flex-row gap-4`}
+              onClick={() => setButtonFilter('following')}
+            >
+              {buttonFilter === 'following' ? (
+                <AiFillHeart className='text-3xl' />
+              ) : (
+                <AiOutlineHeart className='text-3xl' />
+              )}
+              Following
+            </button>
+            <button
+              className={`${buttonFilter === 'groups' ? 'text-Primary/Light' : 'text-white'} hover:text-Primary/Light hover:bg-Background/Middle rounded-md px-4 py-2 text-lg flex flex-row gap-4`}
+              onClick={() => setButtonFilter('groups')}
+            >
+              {buttonFilter === 'groups' ? (
+                <HiUsers className='text-3xl' />
+              ) : (
+                <HiOutlineUsers className='text-3xl' />
+              )}
               Groups
             </button>
           </div>

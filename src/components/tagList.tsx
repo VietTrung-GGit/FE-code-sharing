@@ -374,12 +374,18 @@ function TagList({
           </>
         )}
         {/* Submit and Reset Buttons */}
-        <div className='flex justify-center gap-4 mt-4'>
-          <button className='bg-blue-500 text-white px-4 py-2 rounded' onClick={handleSubmit}>
-            Apply Filter
+        <div className='flex justify-center gap-8 mb-4 mr-8'>
+          <button
+            className='bg-Primary/Light hover:bg-Primary/Target  font-semibold text-Primary/Dark px-4 py-2 rounded'
+            onClick={handleSubmit}
+          >
+            Apply filter
           </button>
-          <button className='bg-gray-500 text-white px-4 py-2 rounded' onClick={handleReset}>
-            Reset Filter
+          <button
+            className='bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded'
+            onClick={handleReset}
+          >
+            Reset filter
           </button>
         </div>
       </div>

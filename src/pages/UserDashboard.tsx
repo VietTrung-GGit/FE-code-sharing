@@ -50,6 +50,7 @@ function UserDashboard() {
 
   // States
   const [posts, setPosts] = useState<Post[]>([]);
+  const [own, setOwn] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -297,28 +298,40 @@ function UserDashboard() {
     <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
       <>
         <div className='mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
-          <div className='bg-Background/Bottom bg-center bg-cover rounded-3xl border-2 border-Primary/Dark border-solid box-border w-full lg:w-[calc(50vw-3rem)] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] flex flex-col items-center relative'>
-            <div className=' w-full flex justify-end mt-4 mr-20' ref={dropdownConfigRef}>
+          <div className='bg-Background/Bottom bg-center bg-cover rounded-3xl border-2 border-Primary/Dark border-solid box-border w-full lg:w-[calc(50vw-2.6rem)] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] flex flex-col items-center relative'>
+            <div
+              className=' w-full flex justify-end mt-4 xsm:mt-2 sm:mt-4 sm:mt-6'
+              ref={dropdownConfigRef}
+            >
               <button
                 onClick={toggleDropdownConfig}
-                className='hover:text-gray-300 text-white text-3xl'
+                className='hover:text-gray-300 text-white text-3xl mx-[calc(10vw-2.2rem)] xsm:mx-[calc(10vw-2.6rem)] sm:mx-[calc(10vw-3.4rem)] lg:mx-[calc(10vw-5.2rem)] xl:mx-[calc(10vw-6.8rem)]'
               >
                 <IoIosMore />
               </button>
               {isDropdownConfigOpen && (
-                <div className='absolute right-8 top-14 w-56 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
+                <div className='absolute sm:-right-[50px] lg:-right-40 top-14 w-56 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
                   <ul className='py-1 my-3 ml-2'>
                     <li>
                       <button
                         className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
-                        onClick={() => {setShowProfileEditModal((prev) => !prev), setModeEditChange('editprofile')}}
+                        onClick={() => {
+                          setShowProfileEditModal((prev) => !prev),
+                            setModeEditChange('editprofile');
+                        }}
                       >
                         <BiSolidEdit className='text-2xl' />
                         Edit my profile
                       </button>
                     </li>
                     <li>
-                      <button className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4' onClick={() => {setShowProfileEditModal((prev) => !prev), setModeEditChange('editpassword')}}>
+                      <button
+                        className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                        onClick={() => {
+                          setShowProfileEditModal((prev) => !prev),
+                            setModeEditChange('editpassword');
+                        }}
+                      >
                         <CgPassword className='text-2xl' />
                         Change password
                       </button>
@@ -340,13 +353,13 @@ function UserDashboard() {
                   >
                     ×
                   </button>
-                  <ProfileEdit modeChange={modeEditChange}/>
+                  <ProfileEdit modeChange={modeEditChange} />
                 </div>
               )}
             </div>
 
-            <div className='flex flex-row space-x-4 xsm:space-x-20 sm:space-x-0 xl:space-x-2 -mt-4 mb-44 xsm:mb-48 sm:mb-1 xl:-ml-5 lg:-ml-8 sm:-ml-8'>
-              <div className='sm:-mt-10 lg:-mt-6 flex flex-col h-[380px] items-center'>
+            <div className='flex flex-row space-x-4 xsm:space-x-10 sm:-space-x-1 xl:space-x-2 -mt-6 xsm:-mt-6 sm:-mt-2 lg:-mt-6 mb-44 xsm:mb-48 sm:mb-1 xl:-ml-5 lg:-ml-8 sm:-ml-8'>
+              <div className=' sm:-mt-10 lg:-mt-6 flex flex-col h-[380px] items-center'>
                 <img
                   src={
                     user?.avatar ||
@@ -360,18 +373,18 @@ function UserDashboard() {
                     Follow
                   </button>
                 </div>
-                <div className='absolute flex items-center bottom-12 xsm:left-16 -left-2 space-x-2'>
-                  <IoIosMail className='text-Primary/Light text-3xl' />
+                <div className=' flex items-center lg:mt-10 xl:mt-4 space-x-2 hidden sm:block'>
+                  <IoIosMail className='text-Primary/Light text-3xl sm:inline-block' />
 
-                  <div className='flex flex-row '>
-                    <a href='mailto:example@gmail.com' className='text-white '>
+                  <div className='flex flex-row sm:inline-block'>
+                    <a href='mailto:example@gmail.com' className='text-white'>
                       example@gmail.com
                     </a>
                   </div>
                 </div>
               </div>
 
-              <div className='flex flex-col space-y-4 mb-6 sm:mb-8 lg:mb-10 ml-4 xsm:ml-20 sm:ml-0'>
+              <div className='flex flex-col space-y-4 mb-6 sm:mb-6 lg:mb-10 ml-4 xsm:ml-20 sm:ml-0'>
                 <div className='flex flex-row sm:-mt-4 lg:mt-0'>
                   <div className='flex flex-col'>
                     <div className=''>
@@ -379,12 +392,21 @@ function UserDashboard() {
                         {user?.displayname || 'Display name'}
                       </p>
                     </div>
-                    <div className='-mt-6 lg:-mt-8 xl:-mt-6'>
+                    <div className='-mt-7 xsm:-mt-6 lg:-mt-8 xl:-mt-6'>
                       <p className='text-Primary/Light mt-8 text-lg lg:text-base xl:text-lg break-words'>
                         @{user?.username || 'Username'}
                       </p>
                     </div>
-                    <div className='flex sm:hidden xsm:mt-10 mt-8'>
+                    <div className=' flex items-center mt-0 xsm:mt-1 space-x-2 block sm:hidden'>
+                      <IoIosMail className='text-Primary/Light text-3xl' />
+
+                      <div className='flex flex-row'>
+                        <a href='mailto:example@gmail.com' className='text-white '>
+                          example@gmail.com
+                        </a>
+                      </div>
+                    </div>
+                    <div className='flex sm:hidden xsm:mt-4 mt-2'>
                       <button className='transition-colors duration-300 ease-in-out w-36 h-8 rounded-xl bg-Accent/Target text-lg text-white mb-4 hover:bg-white hover:text-Accent/Targetr'>
                         Follow
                       </button>
@@ -392,17 +414,17 @@ function UserDashboard() {
                   </div>
                 </div>
 
-                <div className='bg-Background/Middle sm:w-[40vw] lg:w-[21vw] xl:w-[24vw] h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static'>
+                <div className='bg-Background/Middle sm:w-[42vw] lg:w-[21vw] xl:w-[24vw] h-3/5 max-h-[300px] xsm:h-1/2 sm:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static '>
                   <p className='text-Primary/Light p-4'>bio</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8 lg:hidden'>
+        <div className='flex justify-center xsm:mx-8 sm:max-lg:mx-14 lg:mx-8 lg:hidden'>
           <div
             className={`bg-Background/Bottom bg-center bg-cover border-2 h-36  border-Primary/Dark px-6 py-4 w-full flex items-center justify-center rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl  lg:mt-4 lg:rounded-3xl
-        border-solid box-border text-center mt-16 `}
+        border-solid box-border text-center mt-8 sm:max-lg:mt-16 `}
           >
             <div className='flex flex-col items-center'>
               <div className='flex mx-2 mb-4'>
@@ -442,8 +464,8 @@ function UserDashboard() {
           </div>
         </div>
 
-        <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
-          <div className='flex flex-row justify-center gap-28 w-1/2'>
+        <div className='flex justify-center mt-8 sm:max-lg:mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
+          <div className='flex flex-row justify-center gap-8 xsm:gap-14 sm:gap-24 lg:gap-16 xl:gap-28 2xl:gap-36 w-1/2'>
             <button
               className={`${activeDashboard === 'Posts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
               onClick={() => setActiveDashboard('Posts')}
@@ -470,8 +492,8 @@ function UserDashboard() {
             </button>
           </div>
         </div>
-        <div className='flex justify-start -mt-10 sm:max-lg:-mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 relative'>
-          <div className=' absolute left-96'>
+        <div className='flex lg:justify-center mt-2 xsm:mt-2 sm:max-lg:mt-4 lg:mt-6 mx-6 sm:max-lg:mx-20 lg:mx-20'>
+          <div className='flex w-1/2 mb-10 lg:mb-0 ml-8 sm:ml-0'>
             <p className='text-2xl font-semibold text-white'>
               {activeDashboard === 'Users' ? 'Following' : activeDashboard} (0)
             </p>
@@ -481,8 +503,8 @@ function UserDashboard() {
 
       <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-2 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
         <div
-          className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-full flex items-center justify-between rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl lg:mt-4 lg:rounded-3xl
-        border-solid box-border mb-5 text-center mt-28 `}
+          className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 flex items-center justify-between rounded-3xl
+          border-solid box-border mb-5 text-center mt-2  `}
         >
           <div className='flex flex-row w-full items-center space-x-4 mx-4'>
             <div className='inline-block flex-shrink-0 w-9 h-9 items-center justify-center flex'>
@@ -498,7 +520,7 @@ function UserDashboard() {
             ></input>
 
             <button
-              className='hover:bg-Background/Middle rounded-lg hover:bg-gray-300 hover:bg-opacity-20 hidden lg:block '
+              className='hover:bg-Background/Middle rounded-lg hover:bg-gray-300 hover:bg-opacity-20 block '
               onClick={() => setShowTaglistModal(!showTaglistModal)}
             >
               <img src={Filter} alt='Filter Icon' className='w-9 h-9 rounded-full object-cover' />
@@ -532,11 +554,7 @@ function UserDashboard() {
         <>
           <div className='mb-5'>
             <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-              <div
-                className='bg-Background/Bottom border-2 h-40  border-Primary/Dark px-6 py-4 w-full flex items-center justify-between rounded-3xl shadow-md lg:w-1/2 sm:max-lg:rounded-3xl lg:rounded-b-3xl lg:mt-0
-        border-solid box-border mb-5 rounded-3xl text-center mt-0 p-14 mt-6
-        sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12'
-              >
+              <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 mb-5 mt-5 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
                 <div className='flex flex-row w-full items-center space-x-4'>
                   <div className='inline-block flex-shrink-0'>
                     <img
@@ -639,7 +657,7 @@ function UserDashboard() {
       <div ref={sentinelRef} style={{ height: '50px' }} />
 
       <div className=' fixed flex flex-col top-12 lg:right-2 xl:right-4 sm:max-lg:invisible invisible lg:visible'>
-        <div className='bg-Background/Bottom bg-cover rounded-3xl border-2 border-Primary/Dark lg:w-[22vw] xl:w-[19vw] lg:h-[420px] xl:h-[400px] mt-4 ml-[3rem] '>
+        <div className='bg-Background/Bottom bg-cover rounded-3xl border-2 border-Primary/Dark lg:w-[22vw] xl:w-[19vw] h-[400px] mt-4 ml-[3rem] '>
           <div className='flex flex-col'>
             <div className='flex justify-center mx-2'>
               <p className='text-white text-2xl font-semibold mt-16 text-center break-words'>

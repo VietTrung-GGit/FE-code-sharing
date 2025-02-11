@@ -360,7 +360,7 @@ function Feed() {
 
           {/* Display posts if available */}
           {posts.length > 0 && (
-            <div id='posts-container' className={` mx-6 sm:max-lg:mx-14 lg:mx-8 `}>
+            <div id='posts-container' className={` mx-6 sm:max-lg:mx-14 lg:mx-10 `}>
               {posts.map((post) => (
                 <div key={post._id} className='post'>
                   <PostBrief postData={post} />

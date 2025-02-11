@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { IoIosMore, IoIosMail, IoMdArrowDropdown } from 'react-icons/io';
 import { BiSolidEdit } from 'react-icons/bi';
-import { AiOutlineUserDelete } from 'react-icons/ai';
-import { MdOutlinePublicOff } from 'react-icons/md';
-import { TbFlag, TbFlagOff } from 'react-icons/tb';
+import ProjectBoard from '../components/projectBoard';
 import { useDebounce } from '@uidotdev/usehooks';
 import Search from '../assets/search.svg';
 import UserBrief from '../components/userBrief';
@@ -69,6 +67,7 @@ function ProjectDashboard() {
   const debouncedSelectedTags = useDebounce(selectedTags, 800);
   const debouncedOrder = useDebounce<'ascending' | 'descending'>(order, 600);
   const debouncedCriteria = useDebounce<'date' | 'likes' | 'comments'>(criteria, 600);
+
   const fetchAndUpdatePosts = async () => {
     setLoading(true);
     try {
@@ -294,7 +293,7 @@ function ProjectDashboard() {
     <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
       <>
         <div className='mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
-          <div className='bg-Background/Bottom bg-center bg-cover rounded-3xl border-2 border-Primary/Dark border-solid box-border w-full lg:w-[calc(50vw-3rem)] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] flex flex-col items-center relative'>
+          <div className='bg-Background/Bottom bg-center bg-cover rounded-3xl border-2 border-Primary/Dark border-solid box-border w-full lg:w-[calc(50vw-2.6rem)] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] flex flex-col items-center relative'>
             <div className=' w-full flex justify-end mt-4 mr-20' ref={dropdownConfigRef}>
               <button
                 onClick={toggleDropdownConfig}
@@ -303,7 +302,7 @@ function ProjectDashboard() {
                 <IoIosMore />
               </button>
               {isDropdownConfigOpen && (
-                <div className='absolute right-8 top-14 w-56 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
+                <div className='absolute -right-40 top-14 w-56 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
                   <ul className='py-1 my-3 ml-2'>
                     <li>
                       <button className='block px-3 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
@@ -469,12 +468,7 @@ function ProjectDashboard() {
           </div>
 
           <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8 mt-2'>
-            <div
-              className={`bg-Background/Bottom bg-center bg-cover border-2 h-96  border-Primary/Dark px-6 py-4 w-full flex flex-col items-center justify-center rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl  lg:mt-4 lg:rounded-3xl
-        border-solid box-border text-center mt-16 `}
-            >
-              section
-            </div>
+            <ProjectBoard />
           </div>
 
           <div className='mb-5'>
@@ -497,11 +491,11 @@ function ProjectDashboard() {
             </div>
           </div>
           {isDropdownFilterOpen && (
-            <div className='absolute left-[400px] top-[1086px] w-40 bg-Primary/Light border rounded-3xl shadow-lg z-10'>
+            <div className='absolute left-[400px] top-[1110px] w-40 bg-white border rounded-3xl shadow-lg z-10'>
               <ul className='py-1 my-3 ml-2'>
                 <li>
                   <button
-                    className='block px-4 py-2 text-lg text-Primary/Dark font-semibold hover:bg-Primary/Target bg-Primary/Light w-36 text-left flex flex-row gap-4 border-b border-Primary/Dark'
+                    className={`block px-4 py-2 text-lg text-Primary/Dark font-semibold ${activeButtonFilter === 'Posts' ? 'bg-Primary/Light' : 'hover:bg-gray-300 bg-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
                     onMouseDown={() => setActiveButtonFilter('Posts')}
                   >
                     Posts
@@ -509,7 +503,7 @@ function ProjectDashboard() {
                 </li>
                 <li>
                   <button
-                    className='block px-4 py-2 text-lg text-Primary/Dark font-semibold hover:bg-Primary/Target bg-Primary/Light w-36 text-left flex flex-row gap-4'
+                    className={`block px-4 py-2 text-lg text-Primary/Dark font-semibold ${activeButtonFilter === 'Participants' ? 'bg-Primary/Light' : 'hover:bg-gray-300 bg-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
                     onMouseDown={() => setActiveButtonFilter('Participants')}
                   >
                     Participants
@@ -522,8 +516,8 @@ function ProjectDashboard() {
       )}
       <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-2 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
         <div
-          className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-full flex items-center justify-between rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl lg:mt-4 lg:rounded-3xl
-        border-solid box-border mb-5 text-center mt-28 `}
+          className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
+          border-solid box-border mb-5 text-center mt-2  `}
         >
           <div className='flex flex-row w-full items-center space-x-4 mx-4'>
             <div className='inline-block flex-shrink-0 w-9 h-9 items-center justify-center flex'>
@@ -573,11 +567,7 @@ function ProjectDashboard() {
         <>
           <div className='mb-5'>
             <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-              <div
-                className='bg-Background/Bottom border-2 h-40  border-Primary/Dark px-6 py-4 w-full flex items-center justify-between rounded-3xl shadow-md lg:w-1/2 sm:max-lg:rounded-3xl lg:rounded-b-3xl lg:mt-0
-        border-solid box-border mb-5 rounded-3xl text-center mt-0 p-14 mt-6
-        sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12'
-              >
+              <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] mb-5 mt-5 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
                 <div className='flex flex-row w-full items-center space-x-4'>
                   <div className='inline-block flex-shrink-0'>
                     <img

@@ -65,6 +65,9 @@ export interface Comment {
   editedAt: string;
   __v: number;
   isAuthor: boolean;
+  Liked: boolean;
+  totalLikes: number;
+  totalComments: number;
 }
 
 export interface PostRequest {
@@ -72,6 +75,15 @@ export interface PostRequest {
   content: string;
   tags: string[];
   code_files: File[];
+}
+
+export interface CommentUpload {
+  _id: string;
+  code: string;
+  text: string;
+  authorname: string;
+  avatar: string;
+  postId: string;
 }
 
 export interface CommentRequest {
@@ -138,8 +150,11 @@ export const fetchPosts = async (
 export const fetchPostDetail = async (postId: string): Promise<Post> => {
   try {
     // Fetch post details
-    const postResponse = await axiosInstance.get<Post>(API_ENDPOINTS.FETCH_POST_DETAIL(postId));
-    const postDetail = postResponse.data;
+    const postResponse = await axiosInstance.get<{ post: Post[] }>(
+      API_ENDPOINTS.FETCH_POST_DETAIL(postId),
+    );
+    console.log(postResponse);
+    const postDetail = postResponse.data.post[0];
 
     if (postDetail.files && Array.isArray(postDetail.files)) {
       // Fetch and overwrite file content using the helper function
@@ -159,6 +174,7 @@ export const createPost = async (postData: PostUpload): Promise<string> => {
 
   // Append title, content, and tags
   formData.append('title', postData.title);
+  formData.append('visibility', postData.visibility);
   formData.append('content', postData.content);
   postData.tags.forEach((tag) => formData.append('tags[]', tag)); // Send tags as an array
 
@@ -185,6 +201,7 @@ export const updatePost = async (postId: string, postData: PostUpload): Promise<
 
   // Append title, content, and tags
   formData.append('title', postData.title);
+  formData.append('visibility', postData.visibility);
   formData.append('content', postData.content);
   postData.tags.forEach((tag) => formData.append('tags[]', tag)); // Send tags as an array
 
@@ -216,6 +233,13 @@ export const likePost = async (postId: string) => {
   return response.data;
 };
 
+// Like a comment
+export const likeComment = async (commentId: string) => {
+  const response = await axiosInstance.get(API_ENDPOINTS.LIKE_COMMENT(commentId));
+  await createLikeNotification(commentId);
+  return response.data;
+};
+
 // set private post
 export const setPostVisibility = async (postId: string, visibility: 'public' | 'private') => {
   const response = await axiosInstance.get(API_ENDPOINTS.POST_VISIBILITY(postId, visibility));
@@ -225,6 +249,12 @@ export const setPostVisibility = async (postId: string, visibility: 'public' | '
 // Unlike a post
 export const unlikePost = async (postId: string) => {
   const response = await axiosInstance.get(API_ENDPOINTS.UNLIKE_POST(postId));
+  return response.data;
+};
+
+// Unlike a comment
+export const unlikeComment = async (commentId: string) => {
+  const response = await axiosInstance.get(API_ENDPOINTS.UNLIKE_COMMENT(commentId));
   return response.data;
 };
 
@@ -249,7 +279,6 @@ export const createComment = async (
     API_ENDPOINTS.CREATE_COMMENT(postId),
     commentData,
   );
-  await createCommentNotification(response.data.commentId);
   return response.data.commentId;
 };
 
@@ -267,21 +296,14 @@ export const fetchComments = async (
 };
 
 // Edit a comment on a post
-export const updateComment = async (
-  postId: string,
-  commentId: string,
-  commentData: CommentRequest,
-) => {
-  const response = await axiosInstance.put(
-    API_ENDPOINTS.UPDATE_COMMENT(postId, commentId),
-    commentData,
-  );
+export const updateComment = async (commentId: string, commentData: CommentRequest) => {
+  const response = await axiosInstance.put(API_ENDPOINTS.UPDATE_COMMENT(commentId), commentData);
   return response.data;
 };
 
 // Delete a comment on a post
-export const deleteComment = async (postId: string, commentId: string) => {
-  const response = await axiosInstance.delete(API_ENDPOINTS.DELETE_COMMENT(postId, commentId));
+export const deleteComment = async (commentId: string) => {
+  const response = await axiosInstance.delete(API_ENDPOINTS.DELETE_COMMENT(commentId));
   return response.data;
 };
 

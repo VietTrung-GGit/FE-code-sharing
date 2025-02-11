@@ -21,3 +21,80 @@ export const leaveProject = async (projectId: string) => {
   return response.data;
 };
 
+// Create a new project in a group
+export const createProject = async (
+  groupId: string,
+  projectData: { name: string; description: string },
+): Promise<string> => {
+  const response = await axiosInstance.post<string>(
+    API_ENDPOINTS.PROJECT_CREATE(groupId),
+    projectData,
+  );
+  return response.data;
+};
+
+// Update an existing project
+export const updateProject = async (
+  projectId: string,
+  projectData: { name: string; description: string },
+): Promise<string> => {
+  const response = await axiosInstance.put<string>(
+    API_ENDPOINTS.PROJECT_UPDATE(projectId),
+    projectData,
+  );
+  return response.data;
+};
+
+// Delete a project
+export const deleteProject = async (projectId: string): Promise<string> => {
+  const response = await axiosInstance.delete<string>(API_ENDPOINTS.PROJECT_DELETE(projectId));
+  return response.data;
+};
+
+// Fetch full project data
+export const getProjectFullData = async (projectId: string): Promise<any> => {
+  const response = await axiosInstance.get(API_ENDPOINTS.PROJECT_FULL_DATA(projectId));
+  return response.data;
+};
+
+// Invite a user to a project
+export const inviteToProject = async (projectId: string, userId: string): Promise<string> => {
+  const response = await axiosInstance.post<string>(API_ENDPOINTS.PROJECT_INVITE(projectId), {
+    userId,
+  });
+  return response.data;
+};
+
+// Remove a member from a project
+export const removeProjectMember = async (
+  projectId: string,
+  removedUserId: string,
+): Promise<string> => {
+  const response = await axiosInstance.delete<string>(
+    API_ENDPOINTS.PROJECT_REMOVE_MEMBER(projectId, removedUserId),
+  );
+  return response.data;
+};
+
+// Assign an admin to a project
+export const assignProjectAdmin = async (
+  projectId: string,
+  assignAdminUserId: string,
+): Promise<string> => {
+  const response = await axiosInstance.post<string>(
+    API_ENDPOINTS.PROJECT_ASSIGN_ADMIN(projectId, assignAdminUserId),
+  );
+  return response.data;
+};
+
+// Remove an admin from a project
+export const removeProjectAdmin = async (
+  projectId: string,
+  removeAdminUserId: string,
+): Promise<string> => {
+  const response = await axiosInstance.delete<string>(
+    API_ENDPOINTS.PROJECT_REMOVE_ADMIN(projectId, removeAdminUserId),
+  );
+  return response.data;
+};
+

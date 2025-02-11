@@ -19,6 +19,7 @@ import { toast } from 'react-toastify';
 import { useAuthUser } from '../context/AuthUserContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Post, fetchPosts } from '../services/postService';
+import { GroupData, getGroupFullData } from '../services/groupService';
 import LoadingSpinner from '../components/loadingAnimate';
 import PostCreate from '../components/postCreate';
 import { Link } from 'react-router-dom';
@@ -30,7 +31,7 @@ interface Params extends Record<string, string | undefined> {
 }
 
 function GroupDashboard() {
-  // const { user } = useUser();
+  const { groupId } = useParams<{ groupId: string }>();
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
   const [activeDashboard, setActiveDashboard] = useState<
     'Posts' | 'Members' | 'My posts' | 'Projects' | 'Pending posts'
@@ -48,6 +49,11 @@ function GroupDashboard() {
 
   // States
   const [posts, setPosts] = useState<Post[]>([]);
+  const [description, setDescription] = useState<string>('Group description');
+  const [title, setTitle] = useState<string>('Group name');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [privacy, setPrivacy] = useState(false);
+  const [moderation, setModeration] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -102,35 +108,24 @@ function GroupDashboard() {
     }
   }, [type, debouncedSearchTerm, debouncedSelectedTags, debouncedOrder, debouncedCriteria]);
 
-  // useEffect(() => {
-  //   // This effect will run only when debouncedSearchTerm changes
-  //   console.log('Debounced search term:', debouncedSearchTerm);
-  // }, [debouncedSearchTerm]);
-
   useEffect(() => {
-    // This effect will run only when debouncedSelectedTags changes
-    console.log('Debounced selected tags:', debouncedSelectedTags);
-  }, [debouncedSelectedTags]);
+    if (!groupId) return;
 
-  // useEffect(() => {
-  //   // This effect will run only when debouncedOrder changes
-  //   console.log('Debounced order:', debouncedOrder);
-  // }, [debouncedOrder]);
+    const fetchGroupData = async () => {
+      try {
+        const data = await getGroupFullData(groupId);
+        setTitle(data.name || '');
+        setDescription(data.bio || '');
+        setPrivacy(data.privacy ?? false);
+        setModeration(data.moderation ?? false);
+        // Handle avatar file if needed
+      } catch (error) {
+        console.error('Error fetching group data:', error);
+      }
+    };
 
-  // useEffect(() => {
-  //   // This effect will run only when debouncedCriteria changes
-  //   console.log('Debounced criteria:', debouncedCriteria);
-  // }, [debouncedCriteria]);
-
-  // useEffect(() => {
-  //   // This effect will run only when type changes
-  //   console.log('Type:', type);
-  // }, [type]);
-
-  // useEffect(() => {
-  //   // This effect will run only when hasMore changes
-  //   console.log('Has more:', hasMore);
-  // }, [hasMore]);
+    fetchGroupData();
+  }, [groupId]);
 
   useEffect(() => {
     // This effect will run only on the first load
@@ -292,7 +287,7 @@ function GroupDashboard() {
     <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
       <>
         <div className='mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
-          <div className='bg-Background/Bottom bg-center bg-cover rounded-3xl border-2 border-Primary/Dark border-solid box-border w-full lg:w-[calc(50vw-3rem)] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] flex flex-col items-center relative'>
+          <div className='bg-Background/Bottom bg-center bg-cover rounded-3xl border-2 border-Primary/Dark border-solid box-border w-full lg:w-[calc(50vw-2.6rem)] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] flex flex-col items-center relative'>
             <div className=' w-full flex justify-end mt-4 mr-20' ref={dropdownConfigRef}>
               <button
                 onClick={toggleDropdownConfig}
@@ -301,7 +296,7 @@ function GroupDashboard() {
                 <IoIosMore />
               </button>
               {isDropdownConfigOpen && (
-                <div className='absolute right-4 top-14 w-52 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
+                <div className='absolute -right-40 top-14 w-52 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
                   <ul className='py-1 my-3 ml-2'>
                     <li>
                       <button className='block px-3 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
@@ -358,7 +353,7 @@ function GroupDashboard() {
                   <div className='flex flex-col'>
                     <div className=''>
                       <p className='text-white font-semibold mt-6 text-3xl sm:text-3xl lg:text-2xl xl:text-3xl break-words'>
-                        Groupname
+                        {title}
                       </p>
                     </div>
 
@@ -371,7 +366,7 @@ function GroupDashboard() {
                 </div>
 
                 <div className='bg-Background/Middle sm:w-[40vw] lg:w-[21vw] xl:w-[24vw] h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static'>
-                  <p className='text-Primary/Light p-4'>team</p>
+                  <p className='text-Primary/Light p-4'>{description}</p>
                 </div>
               </div>
             </div>
@@ -463,8 +458,8 @@ function GroupDashboard() {
 
       <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-2 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
         <div
-          className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-full flex items-center justify-between rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl lg:mt-4 lg:rounded-3xl
-        border-solid box-border mb-5 text-center mt-28 `}
+          className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
+          border-solid box-border mb-5 text-center mt-2 `}
         >
           <div className='flex flex-row w-full items-center space-x-4 mx-4'>
             <div className='inline-block flex-shrink-0 w-9 h-9 items-center justify-center flex'>
@@ -510,15 +505,11 @@ function GroupDashboard() {
           </div>
         )}
       </div>
-      {activeDashboard === 'Posts' && (
+      {['Posts', 'My posts', 'Pending posts'].includes(activeDashboard) && (
         <>
           <div className='mb-5'>
             <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-              <div
-                className='bg-Background/Bottom border-2 h-40  border-Primary/Dark px-6 py-4 w-full flex items-center justify-between rounded-3xl shadow-md lg:w-1/2 sm:max-lg:rounded-3xl lg:rounded-b-3xl lg:mt-0
-        border-solid box-border mb-5 rounded-3xl text-center mt-0 p-14 mt-6
-        sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12'
-              >
+              <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] mb-5 mt-5 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
                 <div className='flex flex-row w-full items-center space-x-4'>
                   <div className='inline-block flex-shrink-0'>
                     <img
@@ -602,23 +593,19 @@ function GroupDashboard() {
           )}
         </>
       )}
-      {/*
-      {activeDashboard === 'users' && (
+
+      {activeDashboard === 'Members' && (
         <div className='mb-5'>
           <UserBrief />
         </div>
       )}
-      {activeDashboard === 'groups' && (
-        <div className='mb-5'>
-          <GroupBrief />
-        </div>
-      )}
-      {activeDashboard === 'projects' && (
+
+      {activeDashboard === 'Projects' && (
         <div className='mb-5'>
           <ProjectBrief />
         </div>
       )}
-    */}
+
       {/* Sentinel for infinite scroll */}
       <div ref={sentinelRef} style={{ height: '50px' }} />
 

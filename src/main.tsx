@@ -34,7 +34,7 @@ if (root) {
           <Routes>
             <Route path='/' element={<Landing />} />
             <Route path='/signin' element={<Signin />} />
-            <Route path='/signup' element={<Signup />} />
+            <Route path='/signup' element={<UserDashboard />} />
             <Route path='/test' element={<Test />} />
             <Route path='/pass-reset' element={<PassReset />} />
             <Route path='/pass-new/:token' element={<PassNew />} />
@@ -111,6 +111,14 @@ if (root) {
               }
             />
             <Route
+              path='/project/:projectId'
+              element={
+                <ProtectedRoute>
+                  <ProjectDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path='/project'
               element={
                 <ProtectedRoute>
@@ -121,9 +129,9 @@ if (root) {
             <Route
               path='/user/:userId'
               element={
-                <ProtectedRoute>
-                  <UserDashboard />
-                </ProtectedRoute>
+                //<ProtectedRoute>
+                <UserDashboard />
+                //</ProtectedRoute>
               }
             />
             <Route
@@ -143,7 +151,15 @@ if (root) {
               }
             />
             <Route
-              path='/groups'
+              path='/group/:groupId'
+              element={
+                <ProtectedRoute>
+                  <GroupDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path='/group'
               element={
                 <ProtectedRoute>
                   <GroupDashboard />

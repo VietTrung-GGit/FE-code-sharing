@@ -1,19 +1,21 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
+import EmojiPicker from 'emoji-picker-react';
+import { Theme } from 'emoji-picker-react';
+import CommentItem from './comment';
 import { formatNumber, formatDate, getEditorLanguage } from '../utils/helpers';
-import { getUserFullData } from '../services/userService';
+import { useAuthUser } from '../context/AuthUserContext';
 import { toast } from 'react-toastify';
 import { IoCodeDownload } from 'react-icons/io5';
 import {
   Post,
+  CommentUpload,
   Comment,
   createComment,
   likePost,
   unlikePost,
   storePost,
   unstorePost,
-  updateComment,
-  deleteComment,
   fetchComments,
 } from '../services/postService';
 
@@ -25,14 +27,6 @@ interface PostDetailProps {
   propsaved?: boolean;
   commentDelete?: (down: boolean) => void;
   closeModal: () => void;
-}
-interface CommentUpload {
-  _id: string;
-  code: string;
-  text: string;
-  authorname: string;
-  avatar: string;
-  postId: string;
 }
 
 const PostDetail: React.FC<PostDetailProps> = ({
@@ -46,6 +40,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
 }) => {
   const [post, setPost] = useState<Post>(proppost);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [showPicker, setShowPicker] = useState(false);
   const [activeTab, setActiveTab] = useState<number>(0);
   const [newCommentText, setNewCommentText] = useState<string>('');
   const [newCommentCode, setNewCommentCode] = useState<string>('');
@@ -54,10 +49,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(
-    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
-  );
-  const [displayname, setDisplayName] = useState<string | null>(null);
+  const { user } = useAuthUser();
   const downloadTextFile = (content: string, title: string): void => {
     // Create a Blob with the content as text and the type 'text/plain'
     const blob = new Blob([content], { type: 'text/plain' });
@@ -85,27 +77,14 @@ const PostDetail: React.FC<PostDetailProps> = ({
     URL.revokeObjectURL(url);
   };
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userData = await getUserFullData();
-        setAvatarUrl(userData.avatar);
-        setDisplayName(userData.displayname);
-      } catch (error) {
-        console.error('Failed to fetch user data:', error);
-      }
-    };
-
     // Disable body scroll
     document.body.style.overflow = 'hidden';
-
-    // Fetch user data
-    fetchUserData();
-
     // Cleanup to restore scroll behavior when component is unmounted or modal is closed
     return () => {
       document.body.style.overflow = 'auto';
     };
   }, []);
+
   const parentRef = useRef<HTMLDivElement | null>(null);
   const observer = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -240,10 +219,10 @@ const PostDetail: React.FC<PostDetailProps> = ({
           _id: responseComments || '',
           code: newCommentCode,
           text: newCommentText,
-          authorname:
-            displayname ||
+          authorname: user?.displayname || 'Display Name',
+          avatar:
+            user?.avatar ||
             'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
-          avatar: avatarUrl || '',
           postId: post._id,
         };
         console.log('Comment posted successfully:');
@@ -253,12 +232,15 @@ const PostDetail: React.FC<PostDetailProps> = ({
           _id: responseComments,
           code: newCommentCode,
           text: newCommentText,
-          authorname: displayname || '',
-          avatar: avatarUrl || '',
+          authorname: user?.displayname || '',
+          avatar: user?.avatar || '',
           author: '0',
           postId: post._id,
           createdAt: 'Recently', // Pass formatted date string
           updatedAt: 'Recently', // Pass formatted date string
+          Liked: false,
+          totalLikes: 0,
+          totalComments: 0,
           editedAt: '',
           __v: 0,
           isAuthor: true,
@@ -285,72 +267,55 @@ const PostDetail: React.FC<PostDetailProps> = ({
     }
   };
 
-  const [editingComment, setEditingComment] = useState<number | null>(null);
+  // const [editingComment, setEditingComment] = useState<number | null>(null);
   const [editedText, setEditedText] = useState<string>('');
   const [editedCode, setEditedCode] = useState<string>('');
 
-  const handleEdit = (index: number, commentText: string, commentCode: string) => {
-    setEditingComment(index);
-    setEditedText(commentText);
-    setEditedCode(commentCode);
-  };
+  // const handleEdit = (index: number, commentText: string, commentCode: string) => {
+  //   setEditingComment(index);
+  //   setEditedText(commentText);
+  //   setEditedCode(commentCode);
+  // };
 
-  const handleSaveComment = async (index: number) => {
-    if (comments) {
-      const updatedComments = [...comments];
-      updatedComments[index] = {
-        ...updatedComments[index],
-        text: editedText,
-        code: editedCode,
-        editedAt: 'Recently',
-      };
-      setComments(updatedComments);
+  // const handleSaveComment = async (index: number) => {
+  //   if (comments) {
+  //     const updatedComments = [...comments];
+  //     updatedComments[index] = {
+  //       ...updatedComments[index],
+  //       text: editedText,
+  //       code: editedCode,
+  //       editedAt: 'Recently',
+  //     };
+  //     setComments(updatedComments);
 
-      setEditingComment(null);
-      setEditedText('');
-      setEditedCode('');
-      try {
-        // Send API request to update the comment
-        await updateComment(post._id, comments[index]._id, {
-          text: editedText || '',
-          code: editedCode || '',
-        });
+  //     setEditingComment(null);
+  //     setEditedText('');
+  //     setEditedCode('');
+  //     try {
+  //       // Send API request to update the comment
+  //       await updateComment(comments[index]._id, {
+  //         text: editedText || '',
+  //         code: editedCode || '',
+  //       });
 
-        // Update the comment content in the UI after successful response
-      } catch (error) {
-        toast.error('Failed saving comment!');
-        console.error('Failed to save comment:', error);
-      }
-    }
-  };
+  //       // Update the comment content in the UI after successful response
+  //     } catch (error) {
+  //       toast.error('Failed saving comment!');
+  //       console.error('Failed to save comment:', error);
+  //     }
+  //   }
+  // };
 
-  const handleCancelEdit = () => {
-    setEditingComment(null);
-    setEditedText('');
-    setEditedCode('');
-  };
+  // const handleCancelEdit = () => {
+  //   setEditingComment(null);
+  //   setEditedText('');
+  //   setEditedCode('');
+  // };
 
-  const handleDelete = async (commentId: string, index: number) => {
-    // Remove the comment immediately from the UI
-    const removedComment = comments[index]; // Save the comment in case of rollback
-    setComments((prevComments) => prevComments?.filter((_, i) => i !== index) ?? []);
+  const handleDeleteComment = (index: number) => {
     handleCommentChange(true);
     commentDelete(true);
-    try {
-      // Call API to delete the comment
-      await deleteComment(post._id, commentId);
-    } catch (error) {
-      console.error('Failed to delete comment:', error);
-      toast.error('Failed deleting comment!');
-      commentDelete(false);
-      // Revert optimistic UI update in case of an error
-      setComments((prevComments) => {
-        const updatedComments = prevComments ? [...prevComments] : [];
-        updatedComments.splice(index, 0, removedComment); // Restore the deleted comment
-        return updatedComments;
-      });
-      handleCommentChange(false); // Revert the comment count
-    }
+    setComments((prevComments) => prevComments.filter((_, i) => i !== index));
   };
 
   return (
@@ -535,123 +500,13 @@ const PostDetail: React.FC<PostDetailProps> = ({
 
             <div className='space-y-2'>
               {comments.map((comment, index) => (
-                <div key={index} className='bg-Background/Light p-4 rounded'>
-                  <div className='flex justify-between items-center mb-2'>
-                    <div className='flex items-center gap-4'>
-                      <img
-                        src={
-                          comment.avatar ||
-                          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMwAAADACAMAAAB/Pny7AAAAMFBMVEXh4eGjo6OgoKDk5OTd3d2mpqbY2Ni1tbXV1dXIyMipqamurq69vb3Pz8/CwsKdnZ2sOJR4AAAE30lEQVR4nO2d2ZaDIAxAK2FH9P//dsDavdMKCoSe3KeZeeKeACImmdOJIAiCIAiCIAiCIAiC+GEAXn/qkjB6LrU3C15LvvypS+CkzaQcG9jCwJyajO5TR/rRiShxJfwi3Ohl65GlAtwocS9yExLK8J6iA2Dcq8cNZ/rZDECq4U1Q7sIzKNmHDYC3n0zOWN9DcOA0vlsrr2tn7GBf4+MGlUVn5K3H+g2uNroEG4XbBjbHZY0N6pk2JbgEm6n1eD8AJskl2Bi8odEizWUYhG495v9IWPzX0GDdBCBtwaw2E8qJBtLmyFiUBxsY01UiI0IZ0DmBiaHRCG2m5K3sjED4sMnYytbQ4NvQwGcGJoTGo5tnOfvyGhp08yx7lmGcZ9rlyzhsZ5r8JRMXTevRP2HyXYbBtB79E/nrH98OkPSG+SKD7TZgn0zr0T+yY2fGtzeTDMnU4Jc2gJ96zvzWCWDLZ4z/sMjOZiD3nJqxXdDsOM+gO82kXzPfyaC7cAadvWgQ3jX90u1M2Jxz782wbcyRzP0s7GWtR/6OKS8y2B7/Z/jHrIz/cAhXzClzd8a3L6+ASpdRSF3CRBOpH2gFzkkWAZ8aGHx35jcSlw3aBbMyfU7OelBBuivfsdmmA5cT32gTXPAu/htmy5daZjEeyd6g3fzNZbaY97F74GuuBps6SAO8APJz9iy2l/7PAHj1z/uNUF3kmj4AoCdll9T5dWrFn6yadHcqEQCup1E5KxasU+OkeZcqCxCEpF/KNLyXQaRbk5XVoH8RgiAIgiAIgiCITnnzOtbjG9ryXsm51Nr7y2uz91pLzvt66QxD5Vx7Ey8znBUDY3OAsUFYFy81jNdBqQOheIOhfdQQ5wYNTzeZy59EVPIa9/1GFDEXj4+3s6uRQXrzFENiRme/eTwaWTcadAECkEZlZgJZZSQinRATN2wNyLsQDQ5JWw0ArYav32O+MQ8KwR20NHberbLozNa0TAmKF+M2f3o9w5iNF+uNZPQo5sNUFp1ZjC1KtiCqHBeVqw6LOrWjI4+cYI86dqq8dowro3LWcRU/q4NUqelLiTqiXscgn1dfnqRTKaUedtUwbKdKxpM65Bn5nVn9jksFG17PJdqUzHuCXaVl6TBV8nST2fMjn4LVaLnp/vkUKxTYU72US7mqp8xk/30USuTc0Ywhn1JtHPILsXbZFFk1lbflq0yRh01+Udk+bIl5Vul8+UqJedZmyRRaND8VmZ/aAH7rOdNmopU6nPHqh+ZwbC72SlP9pFmyInVTJ+YjKVrLkV4ht4+ydSlZjT9zKd4wFPb0ZEl0qdBhc6x1b1ahGw2cMop+c1A1vmykdcvOpVaXbajx8KzWMbx8bOp2Py+7Q1du3lT2u0bt+u0dvWa/0aAXban7zVadm8bjv2wy0axx2+f/MpNDze/Mz8hDgxPC0jZ7xh93zcGUb52oJSdxTFaTqJ2Y8RY97k8HYnOTDKA3gFb7kk8YU4h6nIF3+dFhs8PVtgEgd2OLW1j7hMYnAPgUM5qTRAbhJqypzaf4H/SGra1ahvi/9RCn0cOJ+7U/w0eRc88Gz7EXbQSfJYfeitdSgHMxwNKzwWj0JmdimcZapWFXgVXMXqo0EM+uV5axrvUzZuVaP9OVyY2nmgVsJQwEQRAEQRAEQRAEQRDEkfwBfaQ7JeMptiMAAAAASUVORK5CYII='
-                        }
-                        alt='Avatar'
-                        className='w-8 h-8 rounded-full object-cover'
-                      />
-                      <div>
-                        <p className='font-semibold'>{comment.authorname}</p>
-                        <span className='text-sm text-Accent/Light'>
-                          {' '}
-                          {post ? formatDate(comment.createdAt) : 'Loading...'}&nbsp;
-                        </span>
-                        {comment &&
-                          comment.editedAt &&
-                          (comment.editedAt == 'Recently' ||
-                            Math.abs(
-                              new Date(comment.createdAt).getTime() -
-                                new Date(comment.editedAt).getTime(),
-                            ) > 100) && (
-                            <span className='text-xs text-white'>
-                              (Edited: {formatDate(comment.editedAt)})
-                            </span>
-                          )}
-                      </div>
-                    </div>
-                    {comment.isAuthor && (
-                      <div className='flex space-x-2'>
-                        {editingComment === index ? (
-                          <>
-                            <button
-                              className='text-sm text-Accent/Light hover:text-white'
-                              onClick={() => handleSaveComment(index)}
-                            >
-                              Submit
-                            </button>
-                            <button
-                              className='text-sm text-Accent/Light hover:text-white'
-                              onClick={handleCancelEdit}
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              className='text-sm text-Accent/Light hover:text-white'
-                              onClick={() =>
-                                handleEdit(index, comment.text || '', comment.code || '')
-                              }
-                            >
-                              Edit
-                            </button>
-                            <button
-                              className='text-sm text-red-200 hover:text-white'
-                              onClick={() => handleDelete(comment._id, index)}
-                            >
-                              Delete
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {editingComment === index ? (
-                    <>
-                      <textarea
-                        className='w-full p-2 border border-Primary/Dark bg-Background/Middle rounded mb-2'
-                        value={editedText}
-                        onChange={(e) => setEditedText(e.target.value)}
-                        placeholder='Edit your comment'
-                      />
-                      <Editor
-                        height='10vh'
-                        width='100%'
-                        language='markdown'
-                        value={editedCode}
-                        theme='vs-dark'
-                        options={{
-                          readOnly: false,
-                          minimap: { enabled: false },
-                          fontSize: 14,
-                          wordWrap: 'on',
-                          scrollBeyondLastLine: false,
-                          renderValidationDecorations: 'off',
-                        }}
-                        onChange={(value) => setEditedCode(value || '')}
-                      />
-                    </>
-                  ) : (
-                    <>
-                      {comment.text && <p className='mb-2'>{comment.text}</p>}
-                      {comment.code && (
-                        <Editor
-                          height='10vh'
-                          width='100%'
-                          language='markdown'
-                          value={comment.code}
-                          theme='vs-dark'
-                          options={{
-                            readOnly: true,
-                            minimap: { enabled: false },
-                            fontSize: 14,
-                            wordWrap: 'on',
-                            scrollBeyondLastLine: false,
-                            renderValidationDecorations: 'off',
-                          }}
-                        />
-                      )}
-                    </>
-                  )}
-                </div>
+                <CommentItem
+                  key={comment._id}
+                  comment={comment}
+                  index={index}
+                  onDelete={handleDeleteComment}
+                  level={1}
+                />
               ))}
             </div>
           </div>
@@ -668,20 +523,36 @@ const PostDetail: React.FC<PostDetailProps> = ({
           <div className='flex justify-center gap-4'>
             <img
               src={
-                avatarUrl ||
+                user?.avatar ||
                 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
               }
               alt='Avatar'
               className='w-8 h-8 rounded-full object-cover'
             />
             <div className='w-full'>
-              <textarea
-                className='w-full p-2 bg-Background/Bottom resize-none border-Background/Middle border-2'
-                rows={3}
-                placeholder='Share your thought...'
-                value={newCommentText}
-                onChange={(e) => setNewCommentText(e.target.value)}
-              />
+              <div className='relative flex items-center mb-1'>
+                <textarea
+                  className='w-full p-2 bg-Background/Bottom resize-none border-Background/Middle border-2'
+                  rows={2}
+                  placeholder='Share your thought...'
+                  value={newCommentText}
+                  onChange={(e) => setNewCommentText(e.target.value)}
+                />
+                <button
+                  onClick={() => setShowPicker(!showPicker)}
+                  className='absolute top-1 right-2 z-40 text-lg hidden lg:block'
+                >
+                  😀
+                </button>
+                {showPicker && (
+                  <div className='absolute bottom-full right-0 mb-2 z-50 bg-gray-800 rounded-lg shadow-lg'>
+                    <EmojiPicker
+                      theme={Theme.DARK}
+                      onEmojiClick={(emoji) => setNewCommentText((prev) => prev + emoji.emoji)}
+                    />
+                  </div>
+                )}
+              </div>
               <Editor
                 height='10vh'
                 width='100%'

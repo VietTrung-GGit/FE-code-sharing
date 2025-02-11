@@ -85,6 +85,16 @@ export const API_ENDPOINTS = {
     return `/post/unlike/${postId}`;
   },
 
+  // Like a comment by comment ID
+  LIKE_COMMENT: (commentId: string) => {
+    return `/comment/like/${commentId}`;
+  },
+
+  // Unlike a comment by comment ID
+  UNLIKE_COMMENT: (commentId: string) => {
+    return `/comment/unlike/${commentId}`;
+  },
+
   // Store a post by post ID
   STORE_POST: (postId: string) => {
     return `/post/store/${postId}`;
@@ -96,8 +106,8 @@ export const API_ENDPOINTS = {
   },
 
   // Comment on a post by post ID
-  CREATE_COMMENT: (postId: string) => {
-    return `/post/${postId}/comment/create`;
+  CREATE_COMMENT: (hostId: string) => {
+    return `comment/create/${hostId}`;
   },
 
   // Fetch comments for a post by post ID, with pagination, order, and limit
@@ -111,17 +121,48 @@ export const API_ENDPOINTS = {
     queryParams.append('page', String(page));
     queryParams.append('limit', String(limit));
     queryParams.append('order', order);
-    return `/post/detail/${postId}/comment?${queryParams.toString()}`;
+    return `/comment/getComments/${postId}?${queryParams.toString()}`;
   },
 
   // Edit a comment by post ID and comment ID
-  UPDATE_COMMENT: (postId: string, commentId: string) => {
-    return `/post/${postId}/comment/edit/${commentId}`;
+  UPDATE_COMMENT: (commentId: string) => {
+    return `comment/edit/${commentId}`;
   },
 
   // Delete a comment by post ID and comment ID
-  DELETE_COMMENT: (postId: string, commentId: string) => {
-    return `/post/${postId}/comment/delete/${commentId}`;
+  DELETE_COMMENT: (commentId: string) => {
+    return `comment/delete/${commentId}`;
   },
+
+  // Group-related
+  GROUP_CREATE: '/group/create',
+  GROUP_UPDATE: (groupId: string) => `/group/update/${groupId}`,
+  GROUP_DELETE: (groupId: string) => `/group/delete/${groupId}`,
+  GROUP_FULL_DATA: (groupId: string) => `/group/fullData/${groupId}`,
+  GROUP_INVITE: (groupId: string) => `/group/invite/${groupId}`,
+  GROUP_REMOVE_MEMBER: (groupId: string, removedUserId: string) =>
+    `/group/removeMember/${groupId}/${removedUserId}`,
+  GROUP_JOIN: (groupId: string) => `/group/join/${groupId}`,
+  GROUP_LEAVE: (groupId: string) => `/group/leave/${groupId}`,
+  GROUP_ASSIGN_ADMIN: (groupId: string, assignAdminUserId: string) =>
+    `/group/assignAdmin/${groupId}/${assignAdminUserId}`,
+  GROUP_ASSIGN_CREATOR: (groupId: string, assignCreatorUserId: string) =>
+    `/group/assignCreator/${groupId}/${assignCreatorUserId}`,
+  GROUP_CONFIRM_INVITE: (groupId: string) => `/group/confirmInvite/${groupId}`,
+
+  // Project-related
+  PROJECT_CREATE: (groupId: string) => `/project/create/${groupId}`,
+  PROJECT_UPDATE: (projectId: string) => `/project/update/${projectId}`,
+  PROJECT_DELETE: (projectId: string) => `/project/delete/${projectId}`,
+  PROJECT_FULL_DATA: (projectId: string) => `/project/fullData/${projectId}`,
+  PROJECT_INVITE: (projectId: string) => `/project/invite/${projectId}`,
+  PROJECT_REMOVE_MEMBER: (projectId: string, removedUserId: string) =>
+    `/project/removeMember/${projectId}/${removedUserId}`,
+  PROJECT_JOIN: (projectId: string) => `/project/join/${projectId}`,
+  PROJECT_LEAVE: (projectId: string) => `/project/leave/${projectId}`,
+  PROJECT_ASSIGN_ADMIN: (projectId: string, assignAdminUserId: string) =>
+    `/project/assignAdmin/${projectId}/${assignAdminUserId}`,
+  PROJECT_REMOVE_ADMIN: (projectId: string, removeAdminUserId: string) =>
+    `/project/removeAdmin/${projectId}/${removeAdminUserId}`,
 };
 

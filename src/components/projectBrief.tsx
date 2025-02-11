@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { ProjectDataBrief, joinProject, leaveProject } from '../services/projectService';
-
+import { IoIosMore, IoIosMail, IoMdArrowDropdown } from 'react-icons/io';
 interface ProjectBriefProps {
   projectData?: ProjectDataBrief;
 }
@@ -22,6 +22,7 @@ const mockProject: ProjectDataBrief = {
 const ProjectBrief: React.FC<ProjectBriefProps> = ({ projectData }) => {
   const [project, setProject] = useState<ProjectDataBrief>(mockProject);
   const [joined, setJoined] = useState<boolean>(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (projectData) {
@@ -53,7 +54,26 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ projectData }) => {
 
   return (
     <div className='flex justify-center items-center relative'>
-      <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] mb-10 mt-5 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+      <div className='relative bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] mb-10 mt-5 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+        <div className='absolute right-0 top-0'>
+          <button
+            className='hover:text-gray-300 text-white text-3xl'
+            onClick={() => setIsDropdownOpen((prev) => !prev)}
+          >
+            <IoIosMore />
+          </button>
+          {isDropdownOpen && (
+            <div className='absolute -right-40 top-14 w-56 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
+              <ul className='py-1 my-3 ml-2'>
+                <li>
+                  <button className='block px-4 py-2 text-red-500 hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
+                    Delete project
+                  </button>
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
         <div className='flex items-center w-full space-x-4'>
           {/* Project Avatar */}
           <div className='flex-shrink-0'>
