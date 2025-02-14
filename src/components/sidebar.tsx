@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useAuthUser } from '../context/AuthUserContext';
 import Logo from '../assets/logo.svg';
@@ -73,7 +73,7 @@ function Sidebar({
   return (
     <div>
       <div
-        className={`relative top-24 left-0 lg:border-y-0 bg-Background/Bottom text-center w-[266px] lg:w-[23vw] xl:w-[20vw]
+        className={`top-24 left-0 lg:border-y-0 bg-Background/Bottom text-center w-[266px] lg:w-[23vw] xl:w-[20vw]
            h-4/5  p-1 fixed flex flex-col border-Primary/Dark border-solid box-border z-40 rounded-r-3xl border-y-2 border-r-2
         transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -84,34 +84,31 @@ function Sidebar({
         </div>
 
         <div className='flex flex-col mx-12 mt-0 items-center lg:mt-[calc(max(2rem,30vh-8rem))]'>
-          <img
-            src={
-              user?.avatar ||
-              'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-            }
-            alt='Profile Icon'
-            className='h-20 w-20 xl:h-24 xl:w-24 rounded-full object-cover'
-          />
-          <p className='text-white mt-6 font-semibold text-lg sm:max-xl:text-lg xl:text-xl w-56 break-words'>
-            {user?.displayname || 'Display name'}
-          </p>
+          <Link to={`/user/${user?._id ?? '#'}`} className='flex flex-col items-center'>
+            {' '}
+            <img
+              src={
+                user?.avatar ||
+                'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+              }
+              alt='Profile Icon'
+              className='h-20 w-20 xl:h-24 xl:w-24 rounded-full object-cover'
+            />
+            <p className='text-white my-3 font-semibold text-lg sm:max-xl:text-lg xl:text-xl w-56 break-words'>
+              {user?.displayname || 'Display name'}
+            </p>
+          </Link>
+
           <button
-            className={`m-2 ${totalNotifications > 0 ? ' bg-Accent/Target text-white' : 'bg-white text-Primary/Dark'} flex items-center space-x-4 rounded-3xl text-lg font-semibold min-w-[100px] px-2 py-1 hover:bg-opacity-80 relative `}
+            className={`m-2 ${totalNotifications > 0 ? ' bg-Accent/Target text-white' : 'bg-white text-Primary/Dark'} flex items-center space-x-4 rounded-3xl text-lg font-semibold w-[80px] px-2 py-1 hover:bg-opacity-80 relative `}
             onClick={() => handleNavigation('/notifications')}
           >
             <FaBell className='text-2xl' />
 
             <span>{`${totalNotifications}`}</span>
-            <button
-              className=' absolute right-1'
-              onClick={() => setShowNotificationModal((prev) => !prev)}
-              ref={buttonNotificationRef}
-            >
-              <IoMdArrowDropdown className='text-3xl text-Primary/Dark hover:text-Primary/Target' />
-            </button>
           </button>
         </div>
-        {showNotificationModal && (
+        {/* {showNotificationModal && (
           <div
             className='absolute bg-Background/Bottom border-Primary/Dark border-solid box-border border-2 top-[350px] w-[280px] mx-1 rounded-3xl h-[380px] px-8 flex flex-col'
             ref={modalNotificationRef}
@@ -134,7 +131,7 @@ function Sidebar({
               </button>
             </div>
           </div>
-        )}
+        )} */}
         {/* Navigation Buttons */}
         <div className='text-base flex flex-col my-8 ml-5 flex-grow overflow-y-auto scrollbar scrollbar-thin scrollbar-thumb-Primary/Dark scrollbar-track-Background/Middle'>
           <button
@@ -162,7 +159,7 @@ function Sidebar({
           </button>
           <button
             className={`m-2 flex items-center space-x-2 ${state === 'home' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
-            onClick={() => handleNavigation('/home')}
+            onClick={() => user && handleNavigation(`/user/${user._id}`)}
           >
             {state === 'home' ? (
               <AiFillHome className='text-4xl' />
@@ -174,7 +171,7 @@ function Sidebar({
 
           <button
             className={`m-2 flex items-center space-x-2 ${state === 'stored' ? 'text-green-500' : 'text-white hover:text-Accent/Light'}`}
-            onClick={() => handleNavigation('/saves')}
+            onClick={() => user && handleNavigation(`/saves`)}
           >
             {state === 'stored' ? (
               <BiSolidBookBookmark className='text-4xl' />

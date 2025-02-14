@@ -54,7 +54,7 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ projectData }) => {
 
   return (
     <div className='flex justify-center items-center relative'>
-      <div className='relative bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] mb-10 mt-5 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+      <div className='relative bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] my-3 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
         <div className='absolute right-0 top-0'>
           <button
             className='hover:text-gray-300 text-white text-3xl'

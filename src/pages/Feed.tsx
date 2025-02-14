@@ -67,8 +67,7 @@ function Feed() {
         (searchParams.get('criteria') as string) || 'date',
         debouncedSearchTerm,
         tagsParam.split(','),
-        'me',
-        // getActive(),
+        getActive(),
       );
 
       setHasMore(postsResponse.hasMore);
@@ -231,12 +230,12 @@ function Feed() {
 
   return (
     <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
-      <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-2 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
+      <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-0 mx-6 sm:max-lg:mx-14 lg:mx-8'>
         <div
-          className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-full flex items-center justify-between rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl lg:mt-0 lg:border-t-0 lg:rounded-none lg:rounded-b-3xl
-        border-solid box-border mb-5 text-center mt-28 `}
+          className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl  sm:max-lg:rounded-3xl lg:mt-0 lg:border-t-0 lg:rounded-none lg:rounded-b-3xl
+        border-solid box-border mb-3 text-center mt-28 `}
         >
-          <div className='flex flex-row w-full items-center space-x-4 mx-4'>
+          <div className='flex flex-row w-full items-center space-x-4 mx-4 mt-0'>
             <div className='inline-block flex-shrink-0 w-9 h-9 items-center justify-center flex'>
               <img src={Search} alt='Search Icon' className='w-9 h-9 rounded-full object-cover' />
             </div>
@@ -244,13 +243,13 @@ function Feed() {
             {/* Share Text Section */}
             <input
               className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-Primary/Light text-l'
-              placeholder={`Search in newsfeed...`}
+              placeholder={`Search for posts...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             ></input>
 
             <button
-              className='hover:bg-Background/Middle rounded-lg hover:bg-gray-300 hover:bg-opacity-20 hidden lg:block '
+              className='hover:bg-Background/Middle rounded-lg hover:bg-gray-300 hover:bg-opacity-20 block '
               onClick={() => setShowTaglistModal(!showTaglistModal)}
             >
               <img src={Filter} alt='Filter Icon' className='w-9 h-9 rounded-full object-cover' />
@@ -265,7 +264,7 @@ function Feed() {
                     <TagList
                       onFilterChange={handleFilterChange}
                       feedShowTaglistModal={showTaglistModal}
-                      activeFilter={'Posts'} //change according to the button option, posts as default
+                      activeFilter='Posts' //change according to the button option, posts as default
                       initialCriteria={searchParams.get('criteria') as string}
                       initialOrder={
                         (searchParams.get('order') as 'ascending' | 'descending') || 'descending'
@@ -279,51 +278,43 @@ function Feed() {
             )}
           </div>
         </div>
-
-        {showPostCreate && (
-          <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
-            <PostCreate closeModal={handleCloseModal} onPostCreated={refetchPosts} />
-          </div>
-        )}
       </div>
       <>
-        <div className='mb-5'>
-          <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-            <div
-              className='bg-Background/Bottom border-2 h-40  border-Primary/Dark px-6 py-4 w-full flex items-center justify-between rounded-3xl shadow-md lg:w-1/2 sm:max-lg:rounded-3xl lg:rounded-b-3xl lg:mt-0
-        border-solid box-border mb-5 rounded-3xl text-center mt-0 p-14 mt-6
-        sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12'
-            >
-              <div className='flex flex-row w-full items-center space-x-4'>
-                <div className='inline-block flex-shrink-0'>
-                  <img
-                    src={
-                      user?.avatar ||
-                      'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                    }
-                    alt='Profile Icon'
-                    className='w-16 h-16 rounded-full object-cover'
-                  />
-                </div>
-
-                {/* Share Text Section */}
-                <button
-                  className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6 overflow-hidden whitespace-nowrap'
-                  onClick={handleCreate}
-                >
-                  <p className='text-left text-Primary/Light text-l overflow-hidden'>
-                    Share your code...
-                  </p>
-                </button>
+        <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
+          <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+            <div className='flex flex-row w-full items-center space-x-4'>
+              <div className='inline-block flex-shrink-0'>
+                <img
+                  src={
+                    user?.avatar ||
+                    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+                  }
+                  alt='Profile Icon'
+                  className='w-[52px] h-[52px] rounded-full object-cover'
+                />
               </div>
+
+              {/* Share Text Section */}
+              <button
+                className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6 overflow-hidden whitespace-nowrap'
+                onClick={handleCreate}
+              >
+                <p className='text-left text-Primary/Light text-sm overflow-hidden'>
+                  Share your code...
+                </p>
+              </button>
             </div>
-
-            {showPostCreate && (
-              <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
-                <PostCreate closeModal={handleCloseModal} onPostCreated={refetchPosts} />
-              </div>
-            )}
           </div>
+
+          {showPostCreate && (
+            <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
+              <PostCreate
+                closeModal={handleCloseModal}
+                onPostCreated={refetchPosts}
+                {...(refId ? { postRefId: refId } : {})}
+              />
+            </div>
+          )}
         </div>
       </>
 

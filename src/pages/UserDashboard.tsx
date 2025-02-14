@@ -1,42 +1,53 @@
 import { useState, useEffect, useRef } from 'react';
+import { useDebounce } from '@uidotdev/usehooks';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
+
 import { IoIosMore, IoIosMail, IoMdArrowDropdown } from 'react-icons/io';
 import { BiSolidEdit } from 'react-icons/bi';
 import { AiOutlineUserDelete } from 'react-icons/ai';
 import { CgPassword } from 'react-icons/cg';
-import { useDebounce } from '@uidotdev/usehooks';
+
+import { useAuthUser } from '../context/AuthUserContext';
+
+import { formatNumber, formatDateSimple } from '../utils/helpers';
+
+import { Post, fetchUserPosts } from '../services/postService';
+import {
+  getUserPublicData,
+  UserPublicData,
+  followUser,
+  unfollowUser,
+} from '../services/userService';
+
 import Search from '../assets/search.svg';
-import UserBrief from '../components/userBrief';
 import Filter from '../assets/filter.svg';
+
 import Sidebar from '../components/sidebar';
+import QuickNav from '../components/quickNav';
+import CollapseMenu from '../components/collapseMenu';
+import UserBrief from '../components/userBrief';
+import ProfileEdit from '../components/profileEdit';
 import TagList from '../components/tagList';
 import PostBrief from '../components/postBrief';
 import GroupBrief from '../components/groupBrief';
 import ProjectBrief from '../components/projectBrief';
-import ProfileEdit from '../components/profileEdit';
-import QuickNav from '../components/quickNav';
-import CollapseMenu from '../components/collapseMenu';
-import { toast } from 'react-toastify';
-import { useAuthUser } from '../context/AuthUserContext';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Post, fetchPosts } from '../services/postService';
-import LoadingSpinner from '../components/loadingAnimate';
 import PostCreate from '../components/postCreate';
+import LoadingSpinner from '../components/loadingAnimate';
+
 import { Link } from 'react-router-dom';
-
-type PostType = 'stored' | 'me' | undefined;
-
-interface Params extends Record<string, string | undefined> {
-  type: PostType;
-}
 
 function UserDashboard() {
   // const { user } = useUser();
+  const [searchParams] = useSearchParams();
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
   const [modeEditChange, setModeEditChange] = useState<'editprofile' | 'editpassword' | null>(null);
   const [activeDashboard, setActiveDashboard] = useState<'Posts' | 'Users' | 'Groups' | 'Projects'>(
     'Posts',
   );
-  const { type } = useParams<Params>();
+  const { userId } = useParams<string>();
+  const { user } = useAuthUser();
+  const [host, setHost] = useState<UserPublicData | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const tagListRef = useRef<HTMLDivElement>(null);
   const sidebarButtonRef = useRef<HTMLButtonElement>(null);
@@ -47,8 +58,6 @@ function UserDashboard() {
   const quickNavRef = useRef<HTMLDivElement>(null); // Ref for the modal content
   const quickNavButtonRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
-
-  // States
   const [posts, setPosts] = useState<Post[]>([]);
   const [own, setOwn] = useState(false);
   const [page, setPage] = useState(1);
@@ -65,84 +74,131 @@ function UserDashboard() {
   const dropdownFilterRef = useRef<HTMLDivElement>(null);
   const [buttonText, setButtonText] = useState<'Follow' | 'Unfollow' | 'Followed' | null>(null);
   const [buttonClicked, setButtonClicked] = useState(false);
-
   const debouncedSearchTerm = useDebounce(searchTerm, 600);
   const debouncedSelectedTags = useDebounce(selectedTags, 800);
   const debouncedOrder = useDebounce<'ascending' | 'descending'>(order, 600);
   const debouncedCriteria = useDebounce<'date' | 'likes' | 'comments'>(criteria, 600);
-  const fetchAndUpdatePosts = async () => {
-    setLoading(true);
-    try {
-      console.log('Debounced search term call:', debouncedSearchTerm);
-      const postsResponse = await fetchPosts(
-        page,
-        6, // Limit: 6 posts per page
-        debouncedOrder,
-        debouncedCriteria,
-        debouncedSearchTerm,
-        debouncedSelectedTags,
-        type,
-      );
 
-      setHasMore(postsResponse.hasMore);
-      setPosts((prevPosts) => [...prevPosts, ...postsResponse.posts]);
-      setLoading(false);
-      setFirstLoad(false);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
+  const fetchAndUpdatePosts = async () => {
+    if (userId) {
+      setLoading(true);
+      try {
+        console.log('Debounced search term call:', debouncedSearchTerm);
+        const postsResponse = await fetchUserPosts(
+          userId,
+          page,
+          6, // Limit: 6 posts per page
+          (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
+          (searchParams.get('criteria') as string) || 'date',
+          debouncedSearchTerm,
+          searchParams.get('tags')?.split(',') || [],
+        );
+
+        setHasMore(postsResponse.hasMore);
+        setPosts((prevPosts) => [...prevPosts, ...postsResponse.posts]);
+        setLoading(false);
+        setFirstLoad(false);
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+      }
     }
   };
-  const validTypes: PostType[] = ['stored', 'me', undefined];
-  useEffect(() => {
-    if (!validTypes.includes(type)) {
-      toast.error('Invalid page!');
-      navigate('/feed');
-    } else {
-      setPage(1);
-      setPosts([]);
-      setHasMore(true);
-      fetchAndUpdatePosts();
+
+  const fetchAndUpdateUsers = async () => {
+    if (userId) {
+      setLoading(true);
+      try {
+        const usersResponse = await fetchUserFollowers(
+          userId,
+          page,
+          6,
+          (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
+          (searchParams.get('criteria') as 'dateJoined' | 'followers' | 'likes') || 'dateJoined',
+          debouncedSearchTerm,
+        );
+        setHasMore(usersResponse.hasMore);
+        setUsers((prevUsers) => [...prevUsers, ...usersResponse.users]);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      } finally {
+        setLoading(false);
+        setFirstLoad(false);
+      }
     }
-  }, [type, debouncedSearchTerm, debouncedSelectedTags, debouncedOrder, debouncedCriteria]);
+  };
 
-  // useEffect(() => {
-  //   // This effect will run only when debouncedSearchTerm changes
-  //   console.log('Debounced search term:', debouncedSearchTerm);
-  // }, [debouncedSearchTerm]);
+  const fetchAndUpdateGroups = async () => {
+    if (userId) {
+      setLoading(true);
+      try {
+        const groupsResponse = await fetchUserGroups(
+          userId,
+          page,
+          6, // Limit: 6 posts per page
+          (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
+          (searchParams.get('criteria') as 'dateCreated' | 'members' | 'posts') || 'members',
+          debouncedSearchTerm,
+        );
+        setHasMore(groupsResponse.hasMore);
+        setGroups((prevGroups) => [...prevGroups, ...groupsResponse.groups]);
+      } catch (error) {
+        console.error('Error fetching groups:', error);
+      } finally {
+        setLoading(false);
+        setFirstLoad(false);
+      }
+    }
+  };
+
+  const fetchAndUpdateProjects = async () => {
+    if (userId) {
+      if (host) {
+        setLoading(true);
+        try {
+          const projectsResponse = await fetchUserProjects(
+            userId,
+            page,
+            6,
+            (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
+            (searchParams.get('criteria') as 'dateCreated' | 'members' | 'posts') || 'members',
+            debouncedSearchTerm,
+          );
+          setHasMore(projectsResponse.hasMore);
+          setProjects((prevProjects) => [...prevProjects, ...projectsResponse.projects]);
+        } catch (error) {
+          console.error('Error fetching projects:', error);
+        } finally {
+          setLoading(false);
+          setFirstLoad(false);
+        }
+      }
+    }
+  };
 
   useEffect(() => {
-    // This effect will run only when debouncedSelectedTags changes
-    console.log('Debounced selected tags:', debouncedSelectedTags);
-  }, [debouncedSelectedTags]);
+    setPage(1);
+    setHasMore(true);
 
-  // useEffect(() => {
-  //   // This effect will run only when debouncedOrder changes
-  //   console.log('Debounced order:', debouncedOrder);
-  // }, [debouncedOrder]);
+    // Reset the corresponding data array
+    if (activeButtonFilter === 'Posts') setPosts([]);
+    if (activeButtonFilter === 'Users') setUsers([]);
+    if (activeButtonFilter === 'Groups') setGroups([]);
+    if (activeButtonFilter === 'Projects') setProjects([]);
 
-  // useEffect(() => {
-  //   // This effect will run only when debouncedCriteria changes
-  //   console.log('Debounced criteria:', debouncedCriteria);
-  // }, [debouncedCriteria]);
-
-  // useEffect(() => {
-  //   // This effect will run only when type changes
-  //   console.log('Type:', type);
-  // }, [type]);
-
-  // useEffect(() => {
-  //   // This effect will run only when hasMore changes
-  //   console.log('Has more:', hasMore);
-  // }, [hasMore]);
+    // Fetch data based on active filter
+    if (activeButtonFilter === 'Posts') fetchAndUpdatePosts();
+    if (activeButtonFilter === 'Users') fetchAndUpdateUsers();
+    if (activeButtonFilter === 'Groups') fetchAndUpdateGroups();
+    if (activeButtonFilter === 'Projects') fetchAndUpdateProjects();
+  }, [activeButtonFilter, debouncedSearchTerm, searchParams]);
 
   useEffect(() => {
-    // This effect will run only on the first load
-    console.log('First load:', firstLoad);
-  }, [firstLoad]);
-
-  useEffect(() => {
-    // This effect will run only on the first load
-    console.log('Page:', page);
+    if (hasMore && !firstLoad) {
+      if (activeButtonFilter === 'Posts') fetchAndUpdatePosts();
+      if (activeButtonFilter === 'Users') fetchAndUpdateUsers();
+      if (activeButtonFilter === 'Groups') fetchAndUpdateGroups();
+      if (activeButtonFilter === 'Projects') fetchAndUpdateProjects();
+    }
   }, [page]);
 
   useEffect(() => {
@@ -151,20 +207,34 @@ function UserDashboard() {
 
       fetchAndUpdatePosts();
     }
-  }, [page]);
+  }, []);
 
-  const handleFilterChange = (filters: {
-    selectedTags: string[];
-    sortBy: string;
-    order: string;
-  }) => {
-    setSelectedTags(filters.selectedTags);
-    setOrder(filters.order as 'ascending' | 'descending');
-    setCriteria(filters.sortBy as 'date' | 'likes' | 'comments');
-    setPage(1);
-    setPosts([]);
-    setHasMore(true);
-    setFirstLoad(true);
+  useEffect(() => {
+    if (userId === user?._id) {
+      setOwn(true);
+      setHost(user);
+      return;
+    }
+
+    const fetchData = async () => {
+      if (!userId) return;
+
+      try {
+        setLoading(true);
+        const data = await getUserPublicData(userId);
+        setHost(data.user);
+        setLoading(false);
+        console.log(data); // Log the fetched data directly
+      } catch (error) {
+        toast.error('Failed to load post');
+      }
+    };
+
+    fetchData();
+  }, [userId]);
+
+  const handleFilterChange = (querySortParam: string) => {
+    navigate(`/community/posts?${querySortParam}`);
   };
 
   const observer = useRef<IntersectionObserver | null>(null);
@@ -235,7 +305,7 @@ function UserDashboard() {
     };
   }, []);
   //// Toggle dropdown visibility
-  const toggleDropdownConfig = () => setIsDropdownConfigOpen((prev) => !prev);
+
   const toggleDropdownFilter = () => setIsDropdownFilterOpen((prev) => !prev);
 
   // Close dropdown when clicking outside
@@ -280,8 +350,11 @@ function UserDashboard() {
   }, [showTaglistModal]);
 
   //
+  const handleCloseTagModal = () => {
+    setShowTaglistModal(false);
+  };
   const [showPostCreate, setShowPostCreate] = useState<boolean>(false);
-  const { user } = useAuthUser();
+
   const handleCloseEditModal = () => {
     setShowProfileEditModal(false);
   };
@@ -293,25 +366,26 @@ function UserDashboard() {
   const handleCloseModal = () => {
     setShowPostCreate(false);
   };
-  //50vw-5rem
+  useEffect(() => {
+    {
+      own && setHost(user);
+    }
+  }, [user]);
   return (
     <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
       <>
-        <div className='mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
-          <div className='bg-Background/Bottom bg-center bg-cover rounded-3xl border-2 border-Primary/Dark border-solid box-border w-full lg:w-[calc(50vw-2.6rem)] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] flex flex-col items-center relative'>
-            <div
-              className=' w-full flex justify-end mt-4 xsm:mt-2 sm:mt-4 sm:mt-6'
-              ref={dropdownConfigRef}
-            >
+        <div className='mx-8 xsm:mx-8 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
+          <div className='bg-Background/Bottom text-white justify-center w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[620px] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] border-Primary/Dark border-2 rounded-3xl lg:p-5 relative flex items-center'>
+            <div className='absolute right-3 top-2' ref={dropdownConfigRef}>
               <button
-                onClick={toggleDropdownConfig}
-                className='hover:text-gray-300 text-white text-3xl mx-[calc(10vw-2.2rem)] xsm:mx-[calc(10vw-2.6rem)] sm:mx-[calc(10vw-3.4rem)] lg:mx-[calc(10vw-5.2rem)] xl:mx-[calc(10vw-6.8rem)]'
+                onClick={() => setIsDropdownConfigOpen(!isDropdownConfigOpen)}
+                className='hover:text-gray-300 text-white text-3xl'
               >
                 <IoIosMore />
               </button>
               {isDropdownConfigOpen && (
-                <div className='absolute sm:-right-[50px] lg:-right-40 top-14 w-56 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
-                  <ul className='py-1 my-3 ml-2'>
+                <div className='absolute sm:-right-[50px] lg:-right-40 w-40 md:w-52 bg-Background/Bottom border rounded-xl border-2 border-Primary/Dark shadow-lg z-10'>
+                  <ul className=' py-2 text-sm'>
                     <li>
                       <button
                         className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
@@ -320,7 +394,7 @@ function UserDashboard() {
                             setModeEditChange('editprofile');
                         }}
                       >
-                        <BiSolidEdit className='text-2xl' />
+                        <BiSolidEdit className='text-lg lg:text-xl' />
                         Edit my profile
                       </button>
                     </li>
@@ -332,13 +406,13 @@ function UserDashboard() {
                             setModeEditChange('editpassword');
                         }}
                       >
-                        <CgPassword className='text-2xl' />
+                        <CgPassword className='text-lg lg:text-xl' />
                         Change password
                       </button>
                     </li>
                     <li>
-                      <button className='block px-4 py-2 text-red-500 hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
-                        <AiOutlineUserDelete className='text-2xl' />
+                      <button className='text-sm block px-4 py-2 text-red-500 hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
+                        <AiOutlineUserDelete className='text-lg lg:text-xl' />
                         Delete account
                       </button>
                     </li>
@@ -347,29 +421,23 @@ function UserDashboard() {
               )}
               {showProfileEditModal && (
                 <div className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'>
-                  <button
-                    onClick={handleCloseEditModal}
-                    className='absolute top-6 right-12 text-white text-3xl hover:text-Primary/Light'
-                  >
-                    ×
-                  </button>
-                  <ProfileEdit modeChange={modeEditChange} />
+                  <ProfileEdit modeChange={modeEditChange} closeModal={handleCloseEditModal} />
                 </div>
               )}
             </div>
 
-            <div className='flex flex-row space-x-4 xsm:space-x-10 sm:-space-x-1 xl:space-x-2 -mt-6 xsm:-mt-6 sm:-mt-2 lg:-mt-6 mb-44 xsm:mb-48 sm:mb-1 xl:-ml-5 lg:-ml-8 sm:-ml-8'>
+            <div className='flex flex-row justify-center space-x-4 xsm:space-x-10 sm:space-x-4 xl:space-x-2 mt-10 xsm:mt-8 sm:-mt-2 lg:-mt-1 mb-44 xsm:mb-48 sm:mb-0 lg:-ml-2 xl:-ml-4'>
               <div className=' sm:-mt-10 lg:-mt-6 flex flex-col h-[380px] items-center'>
                 <img
                   src={
-                    user?.avatar ||
+                    host?.avatar ||
                     'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
                   }
                   alt='Profile Icon'
-                  className='w-32 h-32 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-56 xl:w-56 rounded-full object-cover mt-8 mx-0 sm:mx-8 sm:mt-14 xl:mx-6 mb-5'
+                  className='w-28 h-28 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-56 xl:w-56 rounded-full object-cover mt-8 mx-0 sm:mx-0 sm:mt-14 lg:mx-2 xl:mx-4 mb-5 flex-shrink-0'
                 />
                 <div className='flex hidden sm:block lg:hidden'>
-                  <button className='transition-colors duration-300 ease-in-out w-36 h-8 rounded-xl bg-Accent/Target text-lg text-white mb-4 hover:bg-white hover:text-Accent/Targetr'>
+                  <button className='transition-colors duration-300 ease-in-out w-36 h-8 rounded-xl bg-Accent/Target text-lg text-white mb-4 hover:bg-white hover:text-Accent/Target'>
                     Follow
                   </button>
                 </div>
@@ -377,115 +445,133 @@ function UserDashboard() {
                   <IoIosMail className='text-Primary/Light text-3xl sm:inline-block' />
 
                   <div className='flex flex-row sm:inline-block'>
-                    <a href='mailto:example@gmail.com' className='text-white'>
-                      example@gmail.com
+                    <a href={host?.email ? `mailto:${host.email}` : '#'} className='text-white'>
+                      {host?.email || 'Email'}
                     </a>
                   </div>
                 </div>
               </div>
 
-              <div className='flex flex-col space-y-4 mb-6 sm:mb-6 lg:mb-10 ml-4 xsm:ml-20 sm:ml-0'>
+              <div className='flex flex-col space-y-4 mb-6 sm:mb-6 lg:mb-10 ml-4 xsm:ml-20 sm:ml-0 xsm:mt-4 sm:mt-0'>
                 <div className='flex flex-row sm:-mt-4 lg:mt-0'>
                   <div className='flex flex-col'>
                     <div className=''>
-                      <p className='text-white font-semibold mt-6 text-3xl sm:text-3xl lg:text-2xl xl:text-3xl break-words'>
-                        {user?.displayname || 'Display name'}
+                      <p className='text-white font-semibold mt-6 text-2xl  sm:text-3xl  break-words'>
+                        {host?.displayname || 'Display name'}
                       </p>
                     </div>
-                    <div className='-mt-7 xsm:-mt-6 lg:-mt-8 xl:-mt-6'>
-                      <p className='text-Primary/Light mt-8 text-lg lg:text-base xl:text-lg break-words'>
-                        @{user?.username || 'Username'}
+                    <div className='-mt-8 xsm:-mt-8 lg:-mt-8 xl:-mt-6'>
+                      <p className='text-Primary/Light mt-8 text-md sm:text-lg lg:text-xl break-words'>
+                        @{host?.username || 'Username'}
                       </p>
                     </div>
-                    <div className=' flex items-center mt-0 xsm:mt-1 space-x-2 block sm:hidden'>
-                      <IoIosMail className='text-Primary/Light text-3xl' />
+                    <div className=' flex items-center mt-1 xsm:mt-1 sm:space-x-2 block sm:hidden text-xs sm:text-lg lg:text-xl '>
+                      <IoIosMail className='text-Primary/Light text-xl' />
 
                       <div className='flex flex-row'>
-                        <a href='mailto:example@gmail.com' className='text-white '>
-                          example@gmail.com
+                        <a
+                          href={host?.email ? `mailto:${host.email}` : '#'}
+                          className='text-white text-sm'
+                        >
+                          {host?.email || 'Email'}
                         </a>
                       </div>
                     </div>
-                    <div className='flex sm:hidden xsm:mt-4 mt-2'>
-                      <button className='transition-colors duration-300 ease-in-out w-36 h-8 rounded-xl bg-Accent/Target text-lg text-white mb-4 hover:bg-white hover:text-Accent/Targetr'>
+                    <div className='flex sm:hidden xsm:mt-4 mt-3'>
+                      <button className='w-28 transition-colors duration-300 ease-in-out py-0 px-4 rounded-xl bg-Accent/Target text-lg sm:text-lg text-white mb-4 hover:bg-white hover:text-Accent/Target'>
                         Follow
                       </button>
                     </div>
                   </div>
                 </div>
 
-                <div className='bg-Background/Middle sm:w-[42vw] lg:w-[21vw] xl:w-[24vw] h-3/5 max-h-[300px] xsm:h-1/2 sm:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static '>
-                  <p className='text-Primary/Light p-4'>bio</p>
+                <div className='bg-Background/Middle sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] xsm:h-1/2 sm:h-full rounded-xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static '>
+                  <p className='text-white p-4'>{host?.story || "I'm here to share my codes!"}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div className='flex justify-center xsm:mx-8 sm:max-lg:mx-14 lg:mx-8 lg:hidden'>
+        <div className='flex justify-center mx-8 xsm:mx-8 sm:max-lg:mx-14 lg:mx-8 lg:hidden'>
           <div
             className={`bg-Background/Bottom bg-center bg-cover border-2 h-36  border-Primary/Dark px-6 py-4 w-full flex items-center justify-center rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl  lg:mt-4 lg:rounded-3xl
         border-solid box-border text-center mt-8 sm:max-lg:mt-16 `}
           >
-            <div className='flex flex-col items-center'>
-              <div className='flex mx-2 mb-4'>
-                <p className='text-white xsm:text-2xl text-xl font-semibold text-center break-words'>
-                  {user?.username || 'Username'}'s Dashboard
-                </p>
-              </div>
-              <div className='flex flex-row gap-4 xsm:gap-8 sm:gap-20 '>
-                <div className='flex flex-col'>
-                  <p className='text-white xsm:text-xl text-lg flex justify-center'>1000</p>
-                  <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
-                    Posts
+            {host && (
+              <div className='flex flex-col items-center'>
+                <div className='flex mx-2 mb-4'>
+                  <p className='text-white xsm:text-2xl text-xl font-semibold text-center break-words'>
+                    {host?.username || 'Username'}'s Dashboard
                   </p>
-                </div>
 
-                <div className='flex flex-col'>
-                  <p className='text-white xsm:text-xl text-lg flex justify-center'>321K</p>
-                  <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
-                    Likes
+                  <p className='text-white xsm:text-2xl text-xl font-semibold text-center break-words'>
+                    Joined in {formatDateSimple(host.createdAt)}
                   </p>
                 </div>
+                <div className='flex flex-row gap-4 xsm:gap-8 sm:gap-20 '>
+                  <div className='flex flex-col'>
+                    <p className='text-white xsm:text-xl text-lg flex justify-center'>
+                      {formatNumber(host?.totalPosts) || 0}
+                    </p>
 
-                <div className='flex flex-col'>
-                  <p className='text-white xsm:text-xl text-lg flex justify-center'>123K</p>
-                  <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
-                    Followers
-                  </p>
-                </div>
-                <div className='flex flex-col'>
-                  <p className='text-white xsm:text-xl text-lg flex justify-center'>2</p>
-                  <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
-                    Following
-                  </p>
+                    <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
+                      Posts
+                    </p>
+                  </div>
+
+                  <div className='flex flex-col'>
+                    <p className='text-white xsm:text-xl text-lg flex justify-center'>
+                      {formatNumber(host?.totalLikes) || 0}
+                    </p>
+                    <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
+                      Likes
+                    </p>
+                  </div>
+
+                  <div className='flex flex-col'>
+                    <p className='text-white xsm:text-xl text-lg flex justify-center'>
+                      {formatNumber(host?.totalFollowers) || 0}
+                    </p>
+                    <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
+                      Followers
+                    </p>
+                  </div>
+                  <div className='flex flex-col'>
+                    <p className='text-white xsm:text-xl text-lg flex justify-center'>
+                      {formatNumber(host?.totalFollowing) || 0}
+                    </p>
+                    <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
+                      Following
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
         <div className='flex justify-center mt-8 sm:max-lg:mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
           <div className='flex flex-row justify-center gap-8 xsm:gap-14 sm:gap-24 lg:gap-16 xl:gap-28 2xl:gap-36 w-1/2'>
             <button
-              className={`${activeDashboard === 'Posts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
+              className={`${activeDashboard === 'Posts' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
               onClick={() => setActiveDashboard('Posts')}
             >
               Posts
             </button>
             <button
-              className={`${activeDashboard === 'Users' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
+              className={`${activeDashboard === 'Users' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
               onClick={() => setActiveDashboard('Users')}
             >
               Following
             </button>
             <button
-              className={`${activeDashboard === 'Groups' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
+              className={`${activeDashboard === 'Groups' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
               onClick={() => setActiveDashboard('Groups')}
             >
               Groups
             </button>
             <button
-              className={`${activeDashboard === 'Projects' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
+              className={`${activeDashboard === 'Projects' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
               onClick={() => setActiveDashboard('Projects')}
             >
               Projects
@@ -535,7 +621,13 @@ function UserDashboard() {
                     <TagList
                       onFilterChange={handleFilterChange}
                       feedShowTaglistModal={showTaglistModal}
-                      activeFilter={activeDashboard}
+                      activeFilter={activeDashboard} //change according to the button option, posts as default
+                      initialCriteria={searchParams.get('criteria') as string}
+                      initialOrder={
+                        (searchParams.get('order') as 'ascending' | 'descending') || 'descending'
+                      }
+                      initialTags={searchParams.get('tags')?.split(',') || []}
+                      handleClose={handleCloseTagModal}
                     />
                   </div>
                 </div>
@@ -620,10 +712,7 @@ function UserDashboard() {
 
               {/* Display posts if available */}
               {posts.length > 0 && (
-                <div
-                  id='posts-container'
-                  className={` mx-6 sm:max-lg:mx-14 lg:mx-8 ${type === 'stored' ? 'mt-28 sm:max-lg:mt-28 lg:mt-0' : ''}`}
-                >
+                <div id='posts-container' className='mx-6 sm:max-lg:mx-14 lg:mx-8'>
                   {posts.map((post) => (
                     <div key={post._id} className='post'>
                       <PostBrief postData={post} />
@@ -657,64 +746,65 @@ function UserDashboard() {
       <div ref={sentinelRef} style={{ height: '50px' }} />
 
       <div className=' fixed flex flex-col top-12 lg:right-2 xl:right-4 sm:max-lg:invisible invisible lg:visible'>
-        <div className='bg-Background/Bottom bg-cover rounded-3xl border-2 border-Primary/Dark lg:w-[22vw] xl:w-[19vw] h-[400px] mt-4 ml-[3rem] '>
-          <div className='flex flex-col'>
-            <div className='flex justify-center mx-2'>
-              <p className='text-white text-2xl font-semibold mt-16 text-center break-words'>
-                {user?.username || 'Username'}'s Dashboard
+        {host && (
+          <div className='bg-Background/Bottom bg-cover rounded-3xl border-2 border-Primary/Dark lg:w-[22vw] xl:w-[19vw] h-[400px] mt-4 ml-[3rem] '>
+            <div className='flex flex-col'>
+              <div className='flex justify-center mx-2'>
+                <p className='text-Primary/Light text-2xl font-semibold mt-16 text-center break-words'>
+                  @{host?.username || 'Username'}
+                </p>
+              </div>
+              <p className='text-gray-500 xsm:text-md text-sm font-semibold text-center break-words'>
+                Joined in {formatDateSimple(host.createdAt)}
               </p>
-            </div>
-            <br />
-            <div className='flex flex-row justify-center gap-8 mb-5'>
-              <div className='flex flex-col'>
-                <p className='text-white text-xl flex justify-center'>1000</p>
-                <p className='text-Primary/Light text-xl flex justify-center'>Posts</p>
-              </div>
+              <br />
+              <div className='flex flex-row justify-center gap-10 mb-5'>
+                <div className='flex flex-col'>
+                  <p className='text-white text-xl flex justify-end'>
+                    {formatNumber(host?.totalPosts) || 0}
+                  </p>
+                  <p className='text-Primary/Light text-xl flex justify-center'>Posts</p>
+                </div>
 
-              <div className='flex flex-col'>
-                <p className='text-white text-xl flex justify-center'>321K</p>
-                <p className='text-Primary/Light text-xl flex justify-center'>Likes</p>
+                <div className='flex flex-col'>
+                  <p className='text-white text-xl flex justify-start'>
+                    {formatNumber(host?.totalLikes) || 0}
+                  </p>
+                  <p className='text-Primary/Light text-xl flex justify-center'>Likes</p>
+                </div>
+              </div>
+              <div className='flex flex-row justify-center gap-10 mb-5'>
+                <div className='flex flex-col'>
+                  <p className='text-white text-xl flex justify-end'>
+                    {formatNumber(host?.totalFollowers) || 0}
+                  </p>
+                  <p className='text-Primary/Light text-xl flex justify-center'>Followers</p>
+                </div>
+                <div className='flex flex-col'>
+                  <p className='text-white text-xl flex justify-start'>
+                    {formatNumber(host?.totalFollowing) || 0}
+                  </p>
+                  <p className='text-Primary/Light text-xl flex justify-center'>Following</p>
+                </div>
               </div>
             </div>
-            <div className='flex flex-row justify-center gap-8 mb-5'>
-              <div className='flex flex-col'>
-                <p className='text-white text-xl flex justify-center'>123K</p>
-                <p className='text-Primary/Light text-xl flex justify-center'>Followers</p>
-              </div>
-              <div className='flex flex-col'>
-                <p className='text-white text-xl flex justify-center'>2</p>
-                <p className='text-Primary/Light text-xl flex justify-center'>Following</p>
-              </div>
+            <div className='flex justify-center lg:-mt-4 xl:ml-0'>
+              <button className='transition-colors duration-300 ease-in-out w-44 h-10 rounded-xl bg-Accent/Target text-lg text-white m-4 hover:bg-white hover:text-Accent/Target '>
+                Follow
+              </button>
             </div>
           </div>
-          <div className='flex justify-center lg:-mt-4 xl:ml-0'>
-            <button className='transition-colors duration-300 ease-in-out w-44 h-10 rounded-xl bg-Accent/Target text-lg text-white m-4 hover:bg-white hover:text-Accent/Target '>
-              Follow
-            </button>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Sidebar */}
       <div ref={sidebarRef}>
         <Sidebar
           isOpen={activeComponent === 'sidebar'}
-          state={type}
+          state={own ? 'home' : 'community'}
           onClose={() => setActiveComponent(null)}
         />
       </div>
-
-      {/* TagList 
-
-      <div ref={tagListRef} className={`flex lg:invisible`}>
-        <TagList
-          isOpen={activeComponent === 'taglist'}
-          onClose={() => setActiveComponent(null)}
-          onFilterChange={handleFilterChange}
-          feedShowTaglistModal={false}
-        />
-      </div>*/}
-      {/* TagList */}
 
       <div className='flex lg:invisible'>
         <QuickNav

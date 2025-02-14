@@ -3,6 +3,9 @@ import { IoMdArrowDropdown } from 'react-icons/io';
 import { useDebounce } from '@uidotdev/usehooks';
 import { AiFillPlusCircle } from 'react-icons/ai';
 import GroupCreate from '../components/groupCreate';
+import GroupBrief from '../components/groupBrief';
+import UserBrief from '../components/userBrief';
+import ProjectBrief from '../components/projectBrief';
 import Search from '../assets/search.svg';
 import Filter from '../assets/filter.svg';
 import Sidebar from '../components/sidebar';
@@ -13,6 +16,9 @@ import CollapseMenu from '../components/collapseMenu';
 import { useAuthUser } from '../context/AuthUserContext';
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Post, fetchPosts } from '../services/postService';
+import { fetchUsers, UserBriefData } from '../services/userService';
+import { fetchGroups, GroupDataBrief } from '../services/groupService';
+import { fetchProjects, ProjectDataBrief } from '../services/projectService';
 import LoadingSpinner from '../components/loadingAnimate';
 import PostCreate from '../components/postCreate';
 import { Link } from 'react-router-dom';
@@ -42,10 +48,6 @@ function Community() {
     }
   };
 
-  const [activeButtonFilter, setActiveButtonFilter] = useState<
-    'Posts' | 'Users' | 'Groups' | 'Projects'
-  >(getActiveFilter());
-
   useEffect(() => {
     setActiveButtonFilter(getActiveFilter());
   }, [location.pathname]);
@@ -62,7 +64,7 @@ function Community() {
   const navigate = useNavigate();
 
   // States
-  const [posts, setPosts] = useState<Post[]>([]);
+
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -75,6 +77,15 @@ function Community() {
   const dropdownFilterRef = useRef<HTMLDivElement>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 600);
+
+  const [activeButtonFilter, setActiveButtonFilter] = useState<
+    'Posts' | 'Users' | 'Groups' | 'Projects'
+  >(getActiveFilter());
+
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [users, setUsers] = useState<UserBriefData[]>([]);
+  const [groups, setGroups] = useState<GroupDataBrief[]>([]);
+  const [projects, setProjects] = useState<ProjectDataBrief[]>([]);
   const fetchAndUpdatePosts = async () => {
     setLoading(true);
     try {
@@ -97,13 +108,91 @@ function Community() {
       console.error('Error fetching posts:', error);
     }
   };
+  const fetchAndUpdateUsers = async () => {
+    setLoading(true);
+    try {
+      const usersResponse = await fetchUsers(
+        page,
+        6,
+        (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
+        (searchParams.get('criteria') as 'dateJoined' | 'followers' | 'likes') || 'dateJoined',
+        debouncedSearchTerm,
+      );
+      setHasMore(usersResponse.hasMore);
+      setUsers((prevUsers) => [...prevUsers, ...usersResponse.users]);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
+      setFirstLoad(false);
+    }
+  };
+
+  const fetchAndUpdateGroups = async () => {
+    setLoading(true);
+    try {
+      const groupsResponse = await fetchGroups(
+        page,
+        6, // Limit: 6 posts per page
+        (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
+        (searchParams.get('criteria') as 'dateCreated' | 'members' | 'posts') || 'members',
+        debouncedSearchTerm,
+      );
+      setHasMore(groupsResponse.hasMore);
+      setGroups((prevGroups) => [...prevGroups, ...groupsResponse.groups]);
+    } catch (error) {
+      console.error('Error fetching groups:', error);
+    } finally {
+      setLoading(false);
+      setFirstLoad(false);
+    }
+  };
+
+  const fetchAndUpdateProjects = async () => {
+    setLoading(true);
+    try {
+      const projectsResponse = await fetchProjects(
+        page,
+        6, // Limit: 6 posts per page
+        (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
+        (searchParams.get('criteria') as 'dateCreated' | 'members' | 'posts') || 'members',
+        debouncedSearchTerm,
+      );
+      setHasMore(projectsResponse.hasMore);
+      setProjects((prevProjects) => [...prevProjects, ...projectsResponse.projects]);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    } finally {
+      setLoading(false);
+      setFirstLoad(false);
+    }
+  };
+
   useEffect(() => {
     setPage(1);
-    setPosts([]);
     setHasMore(true);
-    fetchAndUpdatePosts();
-    // }
-  }, [debouncedSearchTerm, searchParams]);
+
+    // Reset the corresponding data array
+    if (activeButtonFilter === 'Posts') setPosts([]);
+    if (activeButtonFilter === 'Users') setUsers([]);
+    if (activeButtonFilter === 'Groups') setGroups([]);
+    if (activeButtonFilter === 'Projects') setProjects([]);
+
+    // Fetch data based on active filter
+    if (activeButtonFilter === 'Posts') fetchAndUpdatePosts();
+    if (activeButtonFilter === 'Users') fetchAndUpdateUsers();
+    if (activeButtonFilter === 'Groups') fetchAndUpdateGroups();
+    if (activeButtonFilter === 'Projects') fetchAndUpdateProjects();
+  }, [activeButtonFilter, debouncedSearchTerm, searchParams]);
+
+  useEffect(() => {
+    if (hasMore && !firstLoad) {
+      if (activeButtonFilter === 'Posts') fetchAndUpdatePosts();
+      if (activeButtonFilter === 'Users') fetchAndUpdateUsers();
+      if (activeButtonFilter === 'Groups') fetchAndUpdateGroups();
+      if (activeButtonFilter === 'Projects') fetchAndUpdateProjects();
+    }
+  }, [page]);
 
   const handleCloseGroupModal = () => {
     setShowGroupCreate(false); // Close the modal when the close button is clicked
@@ -115,21 +204,8 @@ function Community() {
     }
   }, [activeButtonFilter, navigate]);
 
-  useEffect(() => {
-    // This effect will run only on the first load
-    console.log('Page:', page);
-  }, [page]);
-
-  useEffect(() => {
-    if (hasMore && !firstLoad) {
-      console.log('2');
-
-      fetchAndUpdatePosts();
-    }
-  }, [page]);
-
   const handleFilterChange = (querySortParam: string) => {
-    navigate(`/community/posts?${querySortParam}`);
+    navigate(`/community/${activeButtonFilter.toLowerCase()}?${querySortParam}`);
   };
   const handleCloseEditModal = () => {
     setShowEditModal(false);
@@ -241,10 +317,20 @@ function Community() {
   }, [showTaglistModal]);
 
   //
+
   const [showPostCreate, setShowPostCreate] = useState<boolean>(false);
+  const [refId, setRefId] = useState<string>('');
   const { user } = useAuthUser();
 
   const handleCreate = () => {
+    setRefId('');
+    setShowPostCreate(true);
+  };
+
+  const handleShare = (postId?: string) => {
+    if (postId) {
+      setRefId(postId);
+    }
     setShowPostCreate(true);
   };
 
@@ -261,7 +347,7 @@ function Community() {
       <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-0 mx-6 sm:max-lg:mx-14 lg:mx-8'>
         <div
           className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl  sm:max-lg:rounded-3xl lg:mt-0 lg:border-t-0 lg:rounded-none lg:rounded-b-3xl
-        border-solid box-border mb-5 text-center mt-28 `}
+        border-solid box-border mb-3 text-center mt-28 `}
         >
           <div className='flex flex-row w-full items-center space-x-4 mx-4 mt-0'>
             <div className='inline-block flex-shrink-0 w-9 h-9 items-center justify-center flex'>
@@ -306,64 +392,49 @@ function Community() {
             )}
           </div>
         </div>
-
-        {showPostCreate && (
-          <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
-            <PostCreate closeModal={handleCloseModal} onPostCreated={refetchPosts} />
-          </div>
-        )}
       </div>
       <>
-        <div className='mb-5'>
-          <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-            <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] mb-5 mt-5 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
-              <div className='flex flex-row w-full items-center space-x-4'>
-                <div className='inline-block flex-shrink-0'>
-                  <img
-                    src={
-                      user?.avatar ||
-                      'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                    }
-                    alt='Profile Icon'
-                    className='w-[52px] h-[52px] rounded-full object-cover'
-                  />
-                </div>
-
-                {/* Share Text Section */}
-                <button
-                  className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6 overflow-hidden whitespace-nowrap'
-                  onClick={handleCreate}
-                >
-                  <p className='text-left text-Primary/Light text-sm overflow-hidden'>
-                    Share your code...
-                  </p>
-                </button>
-              </div>
-            </div>
-
-            {showPostCreate && (
-              <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
-                <PostCreate closeModal={handleCloseModal} onPostCreated={refetchPosts} />
-              </div>
-            )}
-          </div>
-        </div>
         <>
-          <div className='flex justify-center items-center relative mb-5 mx-6 sm:max-lg:mx-14 lg:mx-10'>
+          <div className='flex justify-center items-center relative my-3 mx-6 sm:max-lg:mx-14 lg:mx-10'>
             <div
               className='flex flex-row justify-between items-center w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] '
               ref={dropdownFilterRef}
             >
               {/* Filter Button */}
-              <button
-                className='ml-2 text-lg bg-Primary/Light text-Primary/Dark rounded-3xl font-semibold px-4 py-1 w-36 flex flex-row justify-center items-center'
-                onClick={toggleDropdownFilter}
-              >
-                {activeButtonFilter}
-                <div className='ml-2'>
-                  <IoMdArrowDropdown className='text-3xl' />
-                </div>
-              </button>
+              <div className='relative'>
+                <button
+                  className='ml-2 text-lg bg-Primary/Light text-Primary/Dark rounded-2xl font-semibold px-4 py-1 w-36 flex flex-row justify-center items-center'
+                  onClick={toggleDropdownFilter}
+                >
+                  {activeButtonFilter}
+                  <div className='ml-2'>
+                    <IoMdArrowDropdown className='text-3xl' />
+                  </div>
+                </button>
+                {isDropdownFilterOpen && (
+                  <div className='ml-2 absolute left-0 top-full mt-2 w-36 bg-white border rounded-2xl shadow-lg z-10'>
+                    <ul className='py-2 my-1 flex flex-col items-center'>
+                      {(['Posts', 'Users', 'Groups', 'Projects'] as const).map((item) => (
+                        <li key={item} className='w-full'>
+                          <button
+                            className={`block px-8 py-1 text-left text-lg text-Primary/Dark font-semibold w-full flex justify-start items-center transition-colors ${
+                              activeButtonFilter === item
+                                ? 'bg-Primary/Light'
+                                : 'hover:bg-gray-300 bg-white'
+                            }`}
+                            onClick={() => {
+                              setActiveButtonFilter(item);
+                              toggleDropdownFilter();
+                            }}
+                          >
+                            {item}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
 
               {/* New Group Button (Only when filter is 'groups') */}
               {activeButtonFilter === 'Groups' && (
@@ -371,7 +442,7 @@ function Community() {
                   onClick={() => {
                     setShowGroupCreate(true);
                   }}
-                  className='mr-2 transition-colors duration-300 ease-in-out w-28 rounded-3xl bg-Accent/Target text-lg text-white hover:bg-white hover:text-Accent/Target  flex flex-row gap-2 px-6 py-[2px] items-center'
+                  className='mr-2 transition-colors duration-300 ease-in-out w-28 rounded-2xl bg-Accent/Target text-lg text-white hover:bg-white hover:text-Accent/Target  flex flex-row gap-2 px-6 py-[2px] items-center'
                 >
                   <p>New</p>
                   <AiFillPlusCircle className=' text-3xl mt-1' />
@@ -379,44 +450,6 @@ function Community() {
               )}
             </div>
           </div>
-          {isDropdownFilterOpen && (
-            <div className='absolute left-[400px] top-[360px] w-40 bg-white border rounded-3xl shadow-lg z-10'>
-              <ul className='py-1 my-3 ml-2'>
-                <li>
-                  <button
-                    className={`block px-4 py-2 text-lg text-Primary/Dark font-semibold ${activeButtonFilter === 'Posts' ? 'bg-Primary/Light' : 'hover:bg-gray-300 bg-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
-                    onMouseDown={() => setActiveButtonFilter('Posts')}
-                  >
-                    Posts
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className={`block px-4 py-2 text-lg text-Primary/Dark font-semibold ${activeButtonFilter === 'Users' ? 'bg-Primary/Light' : 'hover:bg-gray-300 bg-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
-                    onMouseDown={() => setActiveButtonFilter('Users')}
-                  >
-                    Users
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className={`block px-4 py-2 text-lg text-Primary/Dark font-semibold ${activeButtonFilter === 'Groups' ? 'bg-Primary/Light' : 'hover:bg-gray-300 bg-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
-                    onMouseDown={() => setActiveButtonFilter('Groups')}
-                  >
-                    Groups
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className={`block px-4 py-2 text-lg text-Primary/Dark font-semibold ${activeButtonFilter === 'Projects' ? 'bg-Primary/Light' : 'hover:bg-gray-300 bg-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
-                    onMouseDown={() => setActiveButtonFilter('Projects')}
-                  >
-                    Projects
-                  </button>
-                </li>
-              </ul>
-            </div>
-          )}
         </>
       </>
 
@@ -426,37 +459,110 @@ function Community() {
       ) : (
         <>
           {/* Show NothingPost only after the first load, no posts, and not loading */}
-          {!loading && posts.length === 0 && (
-            <div className='mb-5'>
-              <div className='flex justify-center mx-0 lg:mx-6'>
-                <div
-                  className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-8 flex bg-Background/Bottom text-center p-12 w-full h-40 border-Primary/Dark border-solid box-border border-2 rounded-3xl
+          {!loading &&
+            ((activeButtonFilter === 'Posts' && posts.length === 0) ||
+              (activeButtonFilter === 'Users' && users.length === 0) ||
+              (activeButtonFilter === 'Groups' && groups.length === 0) ||
+              (activeButtonFilter === 'Projects' && projects.length === 0)) && (
+              <div className='mb-5'>
+                <div className='flex justify-center mx-0 lg:mx-6'>
+                  <div
+                    className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-8 flex bg-Background/Bottom text-center p-12 w-full h-40 border-Primary/Dark border-solid box-border border-2 rounded-3xl
     sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-1/2 mt-4`}
-                >
-                  <div className='h-auto'>
-                    <p className='text-left text-white text-l -mt-2 xsmnopost:mt-2 sm:mt-2 xl:mt-4'>
-                      Nothing here... Go explore{' '}
-                      <Link to='/feed' className='text-Accent/Target cursor-pointer inline'>
-                        Codemunity
-                      </Link>{' '}
-                      or{' '}
-                      <Link to='/feed/me' className='text-Primary/Light cursor-pointer inline'>
-                        share your own code
-                      </Link>{' '}
-                      !
-                    </p>
+                  >
+                    <div className='h-auto'>
+                      <p className='text-left text-white text-l -mt-2 xsmnopost:mt-2 sm:mt-2 xl:mt-4'>
+                        Nothing here... Go explore{' '}
+                        <Link
+                          to='/community/posts'
+                          className='text-Accent/Target cursor-pointer inline'
+                        >
+                          Codemunity&nbsp;
+                        </Link>
+                        for more interesting content!
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
+            )}
+          {activeButtonFilter == 'Posts' && (
+            <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
+              <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+                <div className='flex flex-row w-full items-center space-x-4'>
+                  <div className='inline-block flex-shrink-0'>
+                    <img
+                      src={
+                        user?.avatar ||
+                        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+                      }
+                      alt='Profile Icon'
+                      className='w-[52px] h-[52px] rounded-full object-cover'
+                    />
+                  </div>
+
+                  {/* Share Text Section */}
+                  <button
+                    className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6 overflow-hidden whitespace-nowrap'
+                    onClick={handleCreate}
+                  >
+                    <p className='text-left text-Primary/Light text-sm overflow-hidden'>
+                      Share your code...
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              {showPostCreate && (
+                <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
+                  <PostCreate
+                    closeModal={handleCloseModal}
+                    onPostCreated={refetchPosts}
+                    {...(refId ? { postRefId: refId } : {})}
+                  />
+                </div>
+              )}
             </div>
           )}
 
           {/* Display posts if available */}
-          {posts.length > 0 && (
+          {activeButtonFilter == 'Posts' && posts.length > 0 && (
             <div id='posts-container' className={'mx-6 sm:max-lg:mx-14 lg:mx-10 '}>
               {posts.map((post) => (
                 <div key={post._id} className='post'>
-                  <PostBrief postData={post} />
+                  <PostBrief postData={post} shareAction={handleShare} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Display posts if available */}
+          {activeButtonFilter == 'Users' && users.length > 0 && (
+            <div id='posts-container' className={'mx-6 sm:max-lg:mx-14 lg:mx-10 '}>
+              {users.map((user) => (
+                <div key={user._id}>
+                  <UserBrief userData={user} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Display groups if available */}
+          {activeButtonFilter == 'Groups' && groups.length > 0 && (
+            <div id='posts-container' className={'mx-6 sm:max-lg:mx-14 lg:mx-10 '}>
+              {groups.map((group) => (
+                <div key={group._id}>
+                  <GroupBrief groupData={group} />
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Display projects if available */}
+          {activeButtonFilter == 'Projects' && projects.length > 0 && (
+            <div id='posts-container' className={'mx-6 sm:max-lg:mx-14 lg:mx-10 '}>
+              {projects.map((project) => (
+                <div key={project._id}>
+                  <ProjectBrief projectData={project} />
                 </div>
               ))}
             </div>

@@ -50,6 +50,18 @@ export const formatDate = (date: string): string => {
   return inputDate.toLocaleDateString('en-US', options); // Ensure 'en-US' format or adjust locale as needed
 };
 
+export const formatDateSimple = (date: string): string => {
+
+  const inputDate = new Date(date);
+  if (isNaN(inputDate.getTime())) {
+    return 'Invalid Date'; // Handle incorrect date formats
+  }
+
+  const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
+  return inputDate.toLocaleDateString('en-US', options); // Example: "12 Feb 2025"
+};
+
+
 // Function for validating email format
 export const isValidEmail = (email: string) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

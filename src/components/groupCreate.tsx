@@ -159,13 +159,9 @@ const GroupCreate: React.FC<PostCreateProps> = ({
 
                 // Update state with new value
                 setDescription(target.value.slice(0, 2000));
-
-                // Adjust height dynamically
-                target.style.height = 'auto'; // Reset height to auto before recalculating
-                target.style.height = `${Math.min(target.scrollHeight, 2000)}px`; // Adjust height to content, with max height of 2000px
               }}
               placeholder='Description'
-              className='w-full h-28 mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 '
+              className='w-full h-28 mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 resize-none overflow-y-auto'
               rows={4}
             />
           </div>
@@ -197,11 +193,11 @@ const GroupCreate: React.FC<PostCreateProps> = ({
           </MenuButton>
 
           <MenuItems className='mt-1 absolute w-full bg-gray-800 text-white rounded-md border-2 border-Primary/Dark shadow-lg z-10'>
-            <ul className='py-1 my-3 ml-2'>
+            <ul className='py-1 my-3'>
               <MenuItem>
                 <button
                   className={
-                    'block px-4 py-2 text-white w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
+                    'block px-3 py-2 text-white w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
                   }
                   onClick={() => handleSelect('privacy', false)}
                 >
@@ -214,12 +210,12 @@ const GroupCreate: React.FC<PostCreateProps> = ({
               <MenuItem>
                 <button
                   className={
-                    'block px-4 py-2 text-white w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
+                    'block px-3 py-2 text-white w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
                   }
                   onClick={() => handleSelect('privacy', true)}
                 >
                   <div className='flex gap-3 flex-row items-center'>
-                    <TbFlag className='text-2xl' />
+                    <MdOutlinePublicOff className='text-2xl' />
                     <p className='text-lg text-white'>Private</p>
                   </div>
                 </button>
@@ -250,11 +246,11 @@ const GroupCreate: React.FC<PostCreateProps> = ({
           </MenuButton>
 
           <MenuItems className='mt-1 absolute w-full bg-gray-800 text-white rounded-md border-2 border-Primary/Dark shadow-lg z-10'>
-            <ul className='py-1 my-3 ml-2'>
+            <ul className='py-1 my-3'>
               <MenuItem>
                 <button
                   className={
-                    'block px-4 py-2 text-white w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
+                    'block px-3 py-2 text-white w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
                   }
                   onClick={() => handleSelect('moderation', false)}
                 >
@@ -267,7 +263,7 @@ const GroupCreate: React.FC<PostCreateProps> = ({
               <MenuItem>
                 <button
                   className={
-                    'block px-4 py-2 text-white w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
+                    'block px-3 py-2 text-white w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
                   }
                   onClick={() => handleSelect('moderation', true)}
                 >

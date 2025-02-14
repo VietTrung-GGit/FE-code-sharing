@@ -151,7 +151,9 @@ const CommentItem: React.FC<CommentItemProps> = ({
   };
 
   useEffect(() => {
-    fetchReply();
+    {
+      comment.totalComments > 0 && fetchReply();
+    }
   }, []);
 
   const handleLike = async (mini: boolean) => {
@@ -446,7 +448,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     <div className='w-full'>
                       <div className='relative flex items-center mb-1'>
                         <textarea
-                          className='w-full p-2 bg-Background/Bottom resize-none border-Background/Middle border-2'
+                          className='w-full p-2 bg-Background/Bottom resize-none border-Background/Middle border-2 whitespace-pre-line break-all'
                           rows={1}
                           placeholder='Share your thought...'
                           value={replyText}
@@ -525,7 +527,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   </div>
                 ))}
               </div>
-              {hasMore && (
+              {hasMore && comment.totalComments != 0 && (
                 <button className='mt-2 flex justify-start' onClick={fetchReply}>
                   <h3 className='text-sm font-semibold text-Primary/Light'>View More</h3>
                 </button>

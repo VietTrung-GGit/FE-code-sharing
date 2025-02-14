@@ -2,7 +2,6 @@ import axiosInstance from '../api/axiosInstance';
 import { createLikeNotification, createCommentNotification } from '../services/notificationService';
 import { API_ENDPOINTS } from '../api/endpoints';
 import { getMimeTypeForExtension } from '../utils/helpers';
-import { toast } from 'react-toastify';
 import axios from 'axios';
 
 export interface PostFile {
@@ -27,6 +26,16 @@ export const tags = [
   'Rust',
   'Kotlin',
   'Powershell',
+  'Algorithms',
+  'Databases',
+  'Web Dev',
+  'Software',
+  'AI',
+  'Optimization',
+  'Concurrency',
+  'DevOps',
+  'Android',
+  'IOS',
 ];
 
 export interface Post {
@@ -50,6 +59,18 @@ export interface Post {
   Stored: boolean;
   Liked: boolean;
   isAuthor: boolean;
+  refId: string;
+}
+
+export interface PostRefData {
+  _id: string;
+  title: string;
+  content: string;
+  authorname: string;
+  avatar: string;
+  visibility: 'public' | 'private';
+  createdAt: string;
+  editedAt: string;
 }
 
 export interface Comment {
@@ -72,6 +93,7 @@ export interface Comment {
 
 export interface PostRequest {
   title: string;
+
   content: string;
   tags: string[];
   code_files: File[];
@@ -103,6 +125,7 @@ export interface PostResponse {
 
 export interface PostUpload {
   title: string;
+  refId: string;
   content: string;
   tags: string[];
   visibility: 'public' | 'private';
@@ -122,6 +145,157 @@ export const fetchPosts = async (
   try {
     const response = await axiosInstance.get<PostResponse>(
       API_ENDPOINTS.FETCH_POSTS(page, limit, search, tags, order, criteria, type),
+    );
+    if (!response.data.posts) {
+      console.log('No posts found, stopping further requests.');
+      // Handle case where no posts are found (e.g., stop infinite scroll, set flag)
+      return { ...response.data, posts: [] }; // Return empty posts array
+    }
+
+    const postsWithFiles = await Promise.all(
+      response.data.posts.map(async (post) => {
+        if (post.files && Array.isArray(post.files)) {
+          // Fetch file content for each post's files
+
+          post.files = await fetchFileContent(post.files);
+        }
+        return post;
+      }),
+    );
+
+    return { ...response.data, posts: postsWithFiles };
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    throw error;
+  }
+};
+
+export const fetchUserPosts = async (
+  groupId: string,
+  page: number = 1,
+  limit: number = 10,
+  order: 'ascending' | 'descending' = 'descending',
+  criteria: string,
+  search?: string,
+  tags?: string[],
+): Promise<PostResponse> => {
+  try {
+    const response = await axiosInstance.get<PostResponse>(
+      API_ENDPOINTS.USER_POSTS(groupId, page, limit, search, tags, order, criteria),
+    );
+    if (!response.data.posts) {
+      console.log('No posts found, stopping further requests.');
+      // Handle case where no posts are found (e.g., stop infinite scroll, set flag)
+      return { ...response.data, posts: [] }; // Return empty posts array
+    }
+
+    const postsWithFiles = await Promise.all(
+      response.data.posts.map(async (post) => {
+        if (post.files && Array.isArray(post.files)) {
+          // Fetch file content for each post's files
+
+          post.files = await fetchFileContent(post.files);
+        }
+        return post;
+      }),
+    );
+
+    return { ...response.data, posts: postsWithFiles };
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    throw error;
+  }
+};
+
+// Fetch group posts
+export const fetchGroupPosts = async (
+  groupId: string,
+  page: number = 1,
+  limit: number = 10,
+  order: 'ascending' | 'descending' = 'descending',
+  criteria: string,
+  search?: string,
+  tags?: string[],
+): Promise<PostResponse> => {
+  try {
+    const response = await axiosInstance.get<PostResponse>(
+      API_ENDPOINTS.GROUP_POSTS(groupId, page, limit, search, tags, order, criteria),
+    );
+    if (!response.data.posts) {
+      console.log('No posts found, stopping further requests.');
+      // Handle case where no posts are found (e.g., stop infinite scroll, set flag)
+      return { ...response.data, posts: [] }; // Return empty posts array
+    }
+
+    const postsWithFiles = await Promise.all(
+      response.data.posts.map(async (post) => {
+        if (post.files && Array.isArray(post.files)) {
+          // Fetch file content for each post's files
+
+          post.files = await fetchFileContent(post.files);
+        }
+        return post;
+      }),
+    );
+
+    return { ...response.data, posts: postsWithFiles };
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    throw error;
+  }
+};
+
+// Fetch group posts
+export const fetchGroupMyPosts = async (
+  groupId: string,
+  page: number = 1,
+  limit: number = 10,
+  order: 'ascending' | 'descending' = 'descending',
+  criteria: string,
+  search?: string,
+  tags?: string[],
+): Promise<PostResponse> => {
+  try {
+    const response = await axiosInstance.get<PostResponse>(
+      API_ENDPOINTS.GROUP_MY_POSTS(groupId, page, limit, search, tags, order, criteria),
+    );
+    if (!response.data.posts) {
+      console.log('No posts found, stopping further requests.');
+      // Handle case where no posts are found (e.g., stop infinite scroll, set flag)
+      return { ...response.data, posts: [] }; // Return empty posts array
+    }
+
+    const postsWithFiles = await Promise.all(
+      response.data.posts.map(async (post) => {
+        if (post.files && Array.isArray(post.files)) {
+          // Fetch file content for each post's files
+
+          post.files = await fetchFileContent(post.files);
+        }
+        return post;
+      }),
+    );
+
+    return { ...response.data, posts: postsWithFiles };
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    throw error;
+  }
+};
+
+// Fetch group posts
+export const fetchGroupPendingPosts = async (
+  groupId: string,
+  page: number = 1,
+  limit: number = 10,
+  order: 'ascending' | 'descending' = 'descending',
+  criteria: string,
+  search?: string,
+  tags?: string[],
+): Promise<PostResponse> => {
+  try {
+    const response = await axiosInstance.get<PostResponse>(
+      API_ENDPOINTS.GROUP_PENDING_POSTS(groupId, page, limit, search, tags, order, criteria),
     );
     if (!response.data.posts) {
       console.log('No posts found, stopping further requests.');
@@ -168,6 +342,63 @@ export const fetchPostDetail = async (postId: string): Promise<Post> => {
   }
 };
 
+export const fetchHalfPostDetail = async (postId: string): Promise<PostRefData> => {
+  try {
+    // Fetch post details
+    const postResponse = await axiosInstance.get<PostRefData>(
+      API_ENDPOINTS.FETCH_HALF_DETAIL(postId),
+    );
+    console.log(postResponse);
+    const postDetail = postResponse.data;
+    return postDetail;
+  } catch (error) {
+    console.error('Error fetching post details:', error);
+    throw error;
+  }
+};
+
+export const fetchSectionPosts = async (
+  sectionId: string,
+  page: number = 1,
+  limit: number = 10,
+  order: 'ascending' | 'descending' = 'descending',
+  criteria: string,
+  search?: string,
+  tags?: string[],
+): Promise<PostResponse> => {
+  try {
+    const response = await axiosInstance.get<PostResponse>(
+      API_ENDPOINTS.SECTION_POSTS(
+        sectionId,
+        page,
+        limit,
+        search || '',
+        tags || [],
+        order,
+        criteria,
+      ),
+    );
+    if (!response.data.posts) {
+      console.log('No posts found, stopping further requests.');
+      return { ...response.data, posts: [] };
+    }
+
+    const postsWithFiles = await Promise.all(
+      response.data.posts.map(async (post) => {
+        if (post.files && Array.isArray(post.files)) {
+          post.files = await fetchFileContent(post.files);
+        }
+        return post;
+      }),
+    );
+
+    return { ...response.data, posts: postsWithFiles };
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    throw error;
+  }
+};
+
 // Create a new post
 export const createPost = async (postData: PostUpload): Promise<string> => {
   const formData = new FormData();
@@ -176,6 +407,7 @@ export const createPost = async (postData: PostUpload): Promise<string> => {
   formData.append('title', postData.title);
   formData.append('visibility', postData.visibility);
   formData.append('content', postData.content);
+  formData.append('refId', postData.refId);
   postData.tags.forEach((tag) => formData.append('tags[]', tag)); // Send tags as an array
 
   // Append files as blobs (title and content will be included as files)
@@ -201,6 +433,7 @@ export const updatePost = async (postId: string, postData: PostUpload): Promise<
 
   // Append title, content, and tags
   formData.append('title', postData.title);
+  formData.append('refId', postData.refId);
   formData.append('visibility', postData.visibility);
   formData.append('content', postData.content);
   postData.tags.forEach((tag) => formData.append('tags[]', tag)); // Send tags as an array

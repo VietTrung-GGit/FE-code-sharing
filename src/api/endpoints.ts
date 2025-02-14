@@ -13,14 +13,14 @@ export const API_ENDPOINTS = {
   USER_DATA: '/user/updateFull',
   USER_PASSWORD_UPDATE: '/user/updatePassword',
   FETCH_USER_DETAIL: '/user/fullInfo',
-  FOLLOW: (userId: string) => `/user/${userId}/follow`,
-  UNFOLLOW: (userId: string) => `/user/${userId}/unfollow`,
+  FETCH_BRIEF_DATA: (userId: string) => `/user/briefData/${userId}`,
+  FETCH_PUBLIC_DATA: (userId: string) => `/user/publicInfo/${userId}`,
+  FOLLOW: (userId: string) => `/user/follow/${userId}`,
+  UNFOLLOW: (userId: string) => `/user/unfollow/${userId}`,
 
   //group_related
   GROUP_DATA: (groupId: string) => `/group/${groupId}/data`,
   FETCH_GROUP_DETAIL: (groupId: string) => `/group/${groupId}/fullInfo`,
-  JOIN_GROUP: (groupId: string) => `/group/${groupId}/join`,
-  LEAVE_GROUP: (groupId: string) => `/group/${groupId}/leave`,
 
   //project_related
   PROJECT_DATA: (projectId: string) => `/project/${projectId}/data`,
@@ -39,25 +39,224 @@ export const API_ENDPOINTS = {
     tags: string[] = [],
     order: 'ascending' | 'descending' = 'ascending',
     criteria: string,
-    type: 'me' | 'stored' | undefined = undefined,
+    type: 'feed' | 'me' | 'stored' | undefined = undefined,
+    userId?: string, // Added userId argument for feed type
   ) => {
     const queryParams = new URLSearchParams();
-    if (type != undefined) queryParams.append('type', type);
     queryParams.append('page', String(page));
     queryParams.append('limit', String(limit));
     queryParams.append('order', order);
     queryParams.append('criteria', criteria);
     if (search) queryParams.append('search', search);
     if (tags.length > 0) queryParams.append('tags', tags.join(','));
-    if (!type) {
-      return `/community?${queryParams.toString()}`;
+
+    if (type === 'feed' && userId) {
+      return `/posts/feed/${userId}/filter?${queryParams.toString()}`;
     }
-    return `/me?${queryParams.toString()}`;
+    if (type === 'me') {
+      return `/me?${queryParams.toString()}`;
+    }
+    return `/community?${queryParams.toString()}`;
+  },
+
+  USER_POSTS: (
+    userId: string,
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    tags: string[] = [],
+    order: 'ascending' | 'descending' = 'ascending',
+    criteria: string,
+  ) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+    queryParams.append('order', order);
+    queryParams.append('criteria', criteria);
+    if (search) queryParams.append('search', search);
+    if (tags.length > 0) queryParams.append('tags', tags.join(','));
+    return `/post/${userId}/filter?${queryParams.toString()}`;
+  },
+
+  GROUP_POSTS: (
+    groupId: string,
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    tags: string[] = [],
+    order: 'ascending' | 'descending' = 'ascending',
+    criteria: string,
+  ) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+    queryParams.append('order', order);
+    queryParams.append('criteria', criteria);
+    if (search) queryParams.append('search', search);
+    if (tags.length > 0) queryParams.append('tags', tags.join(','));
+    return `/group/${groupId}/posts?${queryParams.toString()}`;
+  },
+
+  GROUP_MY_POSTS: (
+    groupId: string,
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    tags: string[] = [],
+    order: 'ascending' | 'descending' = 'ascending',
+    criteria: string,
+  ) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+    queryParams.append('order', order);
+    queryParams.append('criteria', criteria);
+    if (search) queryParams.append('search', search);
+    if (tags.length > 0) queryParams.append('tags', tags.join(','));
+    return `/group/${groupId}/posts?${queryParams.toString()}`;
+  },
+
+  GROUP_PENDING_POSTS: (
+    groupId: string,
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    tags: string[] = [],
+    order: 'ascending' | 'descending' = 'ascending',
+    criteria: string,
+  ) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+    queryParams.append('order', order);
+    queryParams.append('criteria', criteria);
+    if (search) queryParams.append('search', search);
+    if (tags.length > 0) queryParams.append('tags', tags.join(','));
+    return `/group/${groupId}/posts?${queryParams.toString()}`;
+  },
+
+  SECTION_POSTS: (
+    sectionId: string,
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    tags: string[] = [],
+    order: 'ascending' | 'descending' = 'ascending',
+    criteria: string,
+  ) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+    queryParams.append('order', order);
+    queryParams.append('criteria', criteria);
+    if (search) queryParams.append('search', search);
+    if (tags.length > 0) queryParams.append('tags', tags.join(','));
+    return `/posts/${sectionId}/filter?${queryParams.toString()}`;
+  },
+
+  USERS_FILTER: (
+    page: number = 1,
+    limit: number = 10,
+    order: 'ascending' | 'descending' = 'ascending',
+    criteria: 'searchquery' | 'dateJoined' | 'followers' | 'likes',
+  ) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+    queryParams.append('order', order);
+    queryParams.append('criteria', criteria);
+    return `/getUsers?${queryParams.toString()}`;
+  },
+
+  GROUP_MEMBERS: (
+    groupId: string,
+    page: number = 1,
+    limit: number = 10,
+    order: 'ascending' | 'descending' = 'ascending',
+    criteria: 'searchquery' | 'dateJoined' | 'followers' | 'likes',
+    search: string = '',
+  ) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+    queryParams.append('order', order);
+    queryParams.append('criteria', criteria);
+    if (search) queryParams.append('search', search);
+    return `/user/${groupId}/filter?${queryParams.toString()}`;
+  },
+
+  FETCH_USERS: (
+    page: number = 1,
+    limit: number = 10,
+    order: 'ascending' | 'descending' = 'ascending',
+    criteria: 'searchquery' | 'dateJoined' | 'followers' | 'likes',
+    search: string = '',
+  ) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+    queryParams.append('order', order);
+    queryParams.append('criteria', criteria);
+    if (search) queryParams.append('search', search);
+    return `/user/getUsers?${queryParams.toString()}`;
+  },
+
+  FETCH_GROUPS: (
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    order: 'ascending' | 'descending' = 'ascending',
+    criteria: 'dateCreated' | 'members' | 'posts',
+  ) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+    queryParams.append('order', order);
+    queryParams.append('criteria', criteria);
+    if (search) queryParams.append('search', search);
+    return `/group/find?${queryParams.toString()}`;
+  },
+
+  FETCH_PROJECTS: (
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    order: 'ascending' | 'descending' = 'ascending',
+    criteria: 'dateCreated' | 'members' | 'posts',
+  ) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+    queryParams.append('order', order);
+    queryParams.append('criteria', criteria);
+    if (search) queryParams.append('search', search);
+    return `/project/find?${queryParams.toString()}`;
+  },
+
+  GROUP_PROJECTS: (
+    groupId: string,
+    page: number = 1,
+    limit: number = 10,
+    order: 'ascending' | 'descending' = 'ascending',
+    criteria: 'dateCreated' | 'members' | 'posts',
+    search: string = '',
+  ) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+    queryParams.append('order', order);
+    queryParams.append('criteria', criteria);
+    if (search) queryParams.append('search', search);
+    return `/project/${groupId}/find?${queryParams.toString()}`;
   },
 
   // Fetch post details by post ID
   FETCH_POST_DETAIL: (postId: string) => {
     return `/post/detail/${postId}`;
+  },
+
+  FETCH_HALF_DETAIL: (postId: string) => {
+    return `/post/halfDetail/${postId}`;
   },
 
   // Create a new post

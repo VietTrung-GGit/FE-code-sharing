@@ -85,6 +85,7 @@ export const AuthUserProvider: React.FC<AuthUserProviderProps> = ({ children }) 
       localStorage.setItem('accessToken', data.accessToken);
       setIsAuthenticated(true);
       await fetchUserData(); // Fetch user data after login
+      navigate('/community/posts');
     } catch (error) {
       console.error('Login failed:', error);
       toast.error(error.response.data || 'Login failed');

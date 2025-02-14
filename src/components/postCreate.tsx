@@ -4,25 +4,22 @@ import { TbEye, TbLock } from 'react-icons/tb';
 import { useDropzone, Accept } from 'react-dropzone';
 import Editor from '@monaco-editor/react';
 import { formatDate, getEditorLanguage, acceptTypes } from '../utils/helpers';
+
 import { useAuthUser } from '../context/AuthUserContext';
 import { toast } from 'react-toastify';
+import PostRef from '../components/postRef';
 import 'react-toastify/dist/ReactToastify.css';
 import '../index.css';
-import {
-  tags,
-  Post,
-  createPost,
-  PostFile,
-  convertPostFilesToFile,
-  PostUpload,
-  updatePost,
-} from '../services/postService';
+import { tags, Post, createPost, PostFile, PostUpload, updatePost } from '../services/postService';
 
 interface PostCreateProps {
   postData?: Post; // Optional prop to enable edit mode
   closeModal: () => void;
   refresh?: (proppost: Post) => void;
   onPostCreated?: () => void;
+  postRefId?: string;
+  mode?: number; //0: tạo ở community. 1: tạo trong group
+  desId?: string;
 }
 
 const PostCreate: React.FC<PostCreateProps> = ({
@@ -30,6 +27,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
   closeModal: propcloseModal,
   refresh = () => {},
   onPostCreated,
+  postRefId,
 }) => {
   const [files, setFiles] = useState<PostFile[]>([]); // Changed to PostFile[]
   const [activeTab, setActiveTab] = useState<number>(0);
@@ -57,6 +55,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
 
   // Initialize form for edit mode if postData exists
   useEffect(() => {
+    // alert('id to be share:' + postRefId);
     if (postData) {
       setTitle(postData.title);
       setContent(postData.content);
@@ -152,6 +151,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
           visibility: privacy,
           content,
           tags: selectedTags,
+          refId: postRefId || '',
           code_files: files.map((file) => ({
             fileName: file.fileName,
             fileUrl: file.fileUrl, // The file content will be the content of the file
@@ -228,8 +228,9 @@ const PostCreate: React.FC<PostCreateProps> = ({
             }
           }}
           placeholder='Title'
-          className='w-full p-2 text-Primary/Light bg-Background/Bottom text-lg focus:outline-none focus:border-transparent'
+          className='w-full px-2 text-Primary/Light bg-Background/Bottom text-lg focus:outline-none focus:border-transparent'
         />
+        {postRefId && <PostRef postId={postRefId} />}
 
         {/* Text Input */}
         <textarea
@@ -251,7 +252,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
             target.style.height = 'auto'; // Reset height to auto before recalculating
             target.style.height = `${Math.min(target.scrollHeight, 2000)}px`; // Adjust height to content, with max height of 2000px
           }}
-          placeholder='Share your code...'
+          placeholder={postRefId ? 'Share your thoughts about this post...' : 'Share your code...'}
           className='mb-4 w-full p-2 bg-Background/Middle overflow-hidden resize-none focus:outline-none focus:border-transparent'
           rows={1}
         />

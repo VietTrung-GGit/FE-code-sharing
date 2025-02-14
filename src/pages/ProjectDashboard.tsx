@@ -293,8 +293,8 @@ function ProjectDashboard() {
     <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
       <>
         <div className='mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
-          <div className='bg-Background/Bottom bg-center bg-cover rounded-3xl border-2 border-Primary/Dark border-solid box-border w-full lg:w-[calc(50vw-2.6rem)] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] flex flex-col items-center relative'>
-            <div className=' w-full flex justify-end mt-4 mr-20' ref={dropdownConfigRef}>
+          <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[720px] border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8 relative flex items-center'>
+            <div className=' absolute right-3 top-2' ref={dropdownConfigRef}>
               <button
                 onClick={toggleDropdownConfig}
                 className='hover:text-gray-300 text-white text-3xl'
@@ -378,48 +378,6 @@ function ProjectDashboard() {
             </div>
           </div>
         </div>
-        <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8 lg:hidden'>
-          <div
-            className={`bg-Background/Bottom bg-center bg-cover border-2 h-36  border-Primary/Dark px-6 py-4 w-full flex items-center justify-center rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl  lg:mt-4 lg:rounded-3xl
-        border-solid box-border text-center mt-16 `}
-          >
-            <div className='flex flex-col items-center'>
-              <div className='flex mx-2 mb-4'>
-                <p className='text-white xsm:text-2xl text-xl font-semibold text-center break-words'>
-                  Projectname's Dashboard
-                </p>
-              </div>
-              <div className='flex flex-row gap-4 xsm:gap-8 sm:gap-20 '>
-                <div className='flex flex-col'>
-                  <p className='text-white xsm:text-xl text-lg flex justify-center'>1000</p>
-                  <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
-                    Posts
-                  </p>
-                </div>
-
-                <div className='flex flex-col'>
-                  <p className='text-white xsm:text-xl text-lg flex justify-center'>321K</p>
-                  <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
-                    Likes
-                  </p>
-                </div>
-
-                <div className='flex flex-col'>
-                  <p className='text-white xsm:text-xl text-lg flex justify-center'>123K</p>
-                  <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
-                    Followers
-                  </p>
-                </div>
-                <div className='flex flex-col'>
-                  <p className='text-white xsm:text-xl text-lg flex justify-center'>2</p>
-                  <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
-                    Following
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
           <div className='flex flex-row justify-center gap-32 w-1/2'>
@@ -437,8 +395,8 @@ function ProjectDashboard() {
             </button>
           </div>
         </div>
-        <div className='flex justify-start -mt-10 sm:max-lg:-mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 relative'>
-          <div className=' absolute left-96'>
+        <div className='flex lg:justify-center mt-2 xsm:mt-2 sm:max-lg:mt-4 lg:mt-2 mx-6 sm:max-lg:mx-20 lg:mx-20'>
+          <div className=' flex w-1/2 mb-10 lg:mb-0 ml-8 sm:ml-0'>
             <p className='text-2xl font-semibold text-white'>
               {activeDashboard}{' '}
               <span className={`${activeDashboard === 'Overview' ? 'hidden' : ''}`}>(0)</span>
@@ -451,7 +409,7 @@ function ProjectDashboard() {
         <>
           <div className='absolute top-[610px] right-4'>
             <div
-              className={`bg-Background/Bottom bg-center bg-cover border-2 h-[380px]  border-Primary/Dark px-6 py-6 w-full flex flex-col rounded-3xl lg:w-[19vw] sm:max-lg:rounded-3xl  lg:mt-4 lg:rounded-3xl
+              className={`bg-Background/Bottom bg-center bg-cover border-2 h-[365px]  border-Primary/Dark px-6 py-6 w-full flex flex-col rounded-3xl lg:w-[19vw] sm:max-lg:rounded-3xl  lg:mt-4 lg:rounded-3xl
         border-solid box-border `}
             >
               <div className='flex flex-row gap-6'>
@@ -473,7 +431,7 @@ function ProjectDashboard() {
 
           <div className='mb-5'>
             <div
-              className='flex justify-start flex-row  lg:ml-[400px] mx-6 sm:max-lg:mx-14 lg:mx-8 mt-10'
+              className='flex justify-start flex-row  lg:ml-[400px] mx-6 sm:max-lg:mx-14 lg:mx-8 mt-4'
               ref={dropdownFilterRef}
             >
               <button

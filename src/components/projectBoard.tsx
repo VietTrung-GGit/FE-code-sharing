@@ -335,7 +335,7 @@ const ProjectBoard: React.FC = () => {
     <div
       onMouseEnter={() => setIsInside(true)}
       onMouseLeave={() => setIsInside(false)}
-      className='relative bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-5 border-Primary/Dark border-2 rounded-3xl'
+      className="relative p-1 bg-Background/Bottom bg-[url('assets/particle.svg')] bg-no-repeat bg-center bg-cover  text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-5 border-Primary/Dark border-2 rounded-3xl"
     >
       <div className='flex flex-col'>
         {/* Edit Button (Top-Right) */}
@@ -351,7 +351,7 @@ const ProjectBoard: React.FC = () => {
         {/* Canvas */}
         <div
           ref={canvasRef}
-          className={`relative w-full h-[350px] overflow-hidden bg-Background/Bottom  rounded-3xl ${
+          className={`relative w-full h-[350px] overflow-hidden rounded-3xl ${
             dragging ? 'cursor-grabbing' : 'cursor-grab'
           }`}
           onMouseDown={handleMouseDown}
@@ -363,7 +363,7 @@ const ProjectBoard: React.FC = () => {
           onTouchMove={handleTouchMove}
         >
           <div
-            className='absolute flex top-0 left-0 bg-blue-500 origin-top-left'
+            className='absolute flex top-0 left-0 origin-top-left'
             ref={contentRef}
             style={{
               transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,

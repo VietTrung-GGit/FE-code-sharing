@@ -2,10 +2,15 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import EmojiPicker from 'emoji-picker-react';
 import { Theme } from 'emoji-picker-react';
+import { TbMessage2Share, TbLink } from 'react-icons/tb';
 import CommentItem from './comment';
+import { Link } from 'react-router-dom';
+import { FaShareSquare } from 'react-icons/fa';
+import PostRef from '../components/postRef';
 import { formatNumber, formatDate, getEditorLanguage } from '../utils/helpers';
 import { useAuthUser } from '../context/AuthUserContext';
 import { toast } from 'react-toastify';
+import { Tooltip } from 'react-tooltip';
 import { IoCodeDownload } from 'react-icons/io5';
 import {
   Post,
@@ -27,6 +32,7 @@ interface PostDetailProps {
   propsaved?: boolean;
   commentDelete?: (down: boolean) => void;
   closeModal: () => void;
+  shareAction?: (postRefId: string) => void;
 }
 
 const PostDetail: React.FC<PostDetailProps> = ({
@@ -37,6 +43,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
   propsaved = false,
   commentDelete = () => {},
   closeModal: propcloseModal,
+  shareAction = () => {},
 }) => {
   const [post, setPost] = useState<Post>(proppost);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -116,7 +123,9 @@ const PostDetail: React.FC<PostDetailProps> = ({
 
   // Initial load of comments
   useEffect(() => {
-    fetchComment();
+    {
+      post.totalComments > 0 && fetchComment();
+    }
   }, []);
 
   // Infinite scroll logic using IntersectionObserver
@@ -126,7 +135,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries;
-      if (entry.isIntersecting && hasMore && !loading) {
+      if (entry.isIntersecting && hasMore && !loading && post.totalComments > 0) {
         console.log('Fetching comments...');
         fetchComment();
       }
@@ -266,10 +275,23 @@ const PostDetail: React.FC<PostDetailProps> = ({
       }
     }
   };
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const modalShareRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalShareRef.current && !modalShareRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false); // Close modal if clicked outside
+      }
+    };
 
-  // const [editingComment, setEditingComment] = useState<number | null>(null);
-  const [editedText, setEditedText] = useState<string>('');
-  const [editedCode, setEditedCode] = useState<string>('');
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   // const handleEdit = (index: number, commentText: string, commentCode: string) => {
   //   setEditingComment(index);
@@ -333,13 +355,20 @@ const PostDetail: React.FC<PostDetailProps> = ({
       >
         <div className='flex items-center justify-between mb-4'>
           <div className='flex items-center gap-4'>
-            <img
-              src={post ? post.avatar : ''}
-              alt='Avatar'
-              className='w-12 h-12 rounded-full object-cover'
-            />
+            <Link to={`/user/${post.author}`} className='flex items-center gap-4'>
+              <img
+                src={
+                  post.avatar ||
+                  'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+                }
+                alt='Avatar'
+                className='w-[52px] h-[52px] rounded-full object-cover'
+              />
+            </Link>
             <div>
-              <p className='font-bold text-lg'>{post ? post.authorname : ''}</p>
+              <Link to={`/user/${post.author}`} className='font-bold text-md'>
+                {post ? post.authorname : ''}
+              </Link>
               <p className='text-sm text-Accent/Light'>
                 {post ? formatDate(post.createdAt) : 'Loading...'}&nbsp;
                 {post &&
@@ -372,10 +401,11 @@ const PostDetail: React.FC<PostDetailProps> = ({
           </div>
         )}
 
-        <p className='w-full py-2 overflow-hidden resize-none focus:outline-none focus:border-transparent text-lg text-Primary/Light break-all'>
+        <p className='w-full py-1 overflow-hidden resize-none focus:outline-none focus:border-transparent text-lg text-Primary/Light break-words'>
           {post?.title}
         </p>
-        <p className='whitespace-pre-line break-all mb-4 w-full overflow-hidden resize-none focus:outline-none focus:border-transparent'>
+        {post.refId && <PostRef postId={post.refId} />}
+        <p className='whitespace-pre-line break-words mb-4 w-full overflow-hidden resize-none focus:outline-none focus:border-transparent'>
           {post ? post.content : ''}
         </p>
         {/* Tabs */}
@@ -456,14 +486,59 @@ const PostDetail: React.FC<PostDetailProps> = ({
           </div>
         )}
         {/* Buttons */}
-        <div className='flex justify-end space-x-4 mt-4'>
+        <div className='flex justify-end space-x-2 mt-4'>
+          <div ref={modalShareRef} className='flex relative items-center'>
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              data-tooltip-id='share'
+              data-tooltip-content='Share'
+              data-tooltip-place='top' // Auto-adjusts the position
+              className='text-Accent/Light hover:text-Accent/Target'
+            >
+              <FaShareSquare className='text-lg' />
+              <Tooltip id='share' classNameArrow='noArrow' />
+            </button>
+            {isDropdownOpen && (
+              <div className='text-xs lg:text-sm absolute -left-10 md:-left-24 top-full mt-1 w-40 md:w-52 bg-Background/Bottom border rounded-xl border-2 border-Primary/Dark shadow-lg z-10'>
+                <ul className='py-1 my-1'>
+                  <li>
+                    <button
+                      onClick={() => {
+                        shareAction(post._id);
+                        setIsDropdownOpen(false);
+                      }}
+                      className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                    >
+                      <TbMessage2Share className='text-lg lg:text-xl' />
+                      Share in a new post
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => {
+                        const fullLink = `${window.location.origin}/post/${post._id}`;
+                        navigator.clipboard.writeText(fullLink);
+                        setIsDropdownOpen(false);
+                        toast.success('Link copied to clipboard!');
+                      }}
+                      className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                    >
+                      <TbLink className='text-lg lg:text-xl' />
+                      Copy Link
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            )}
+          </div>
+
           <div className='flex justify-end'>
             <button
               onClick={handleLike}
-              className={`transition-colors duration-200 ease-in-out w-20 h-8 inline-flex items-center justify-center py-2 px-4 rounded-lg ${hasLiked ? 'bg-Accent/Target text-white' : 'bg-white text-Accent/Target'}`}
+              className={`text-sm w-12 xsm:w-16 text-sm h-5 xsm:h-7 transition-colors duration-200 ease-in-out inline-flex items-center justify-center py-2 px-4 rounded-lg ${hasLiked ? 'bg-Accent/Target text-white' : 'bg-white text-Accent/Target'}`}
             >
               <svg
-                className={`w-6 h-6 mr-1 stroke-current fill-current`} // Tailwind class for color
+                className={`xsm:w-6 xsm:h-4 w-3 h-4 mr-1 stroke-current fill-current`} // Tailwind class for color
                 viewBox='0 0 24 24'
               >
                 <path d='M20.0648 10.2853C20.4353 10.5586 20.7764 10.8297 20.7764 11.783C20.7764 12.7386 20.2943 13.1253 19.7785 13.3942C19.9892 13.757 20.0566 14.1928 19.9658 14.6075C19.8037 15.3719 19.1406 15.9653 18.5511 16.1408C18.8058 16.5719 18.8858 16.9964 18.5827 17.5186C18.1932 18.1742 17.8543 18.423 16.3553 18.423H10.2501C8.17005 18.423 7.09216 17.2097 7.09216 16.2008V11.0119C7.09216 8.2786 10.1806 5.95637 10.1806 4.05637L9.95742 1.68971C9.94689 1.54526 9.97426 1.19193 10.0795 1.08971C10.2479 0.914153 10.7132 0.645264 11.4164 0.645264C11.8753 0.645264 12.1806 0.736375 12.5406 0.918597C13.7637 1.53415 14.0816 3.09193 14.0816 4.34526C14.0816 4.94749 13.2101 6.75193 13.0922 7.37637C13.0922 7.37637 14.9174 6.94971 17.0479 6.93415C19.2816 6.92082 20.7301 7.35637 20.7301 8.80526C20.7301 9.38526 20.269 9.96749 20.0648 10.2853ZM2.03952 9.53415H3.72374C4.05875 9.53415 4.38003 9.67462 4.61692 9.92469C4.85382 10.1747 4.98689 10.5139 4.98689 10.8675V19.3119C4.98689 19.6655 4.85382 20.0046 4.61692 20.2548C4.38003 20.5048 4.05875 20.6453 3.72374 20.6453H2.03952C1.70451 20.6453 1.38323 20.5048 1.14635 20.2548C0.909441 20.0046 0.776367 19.6655 0.776367 19.3119V10.8675C0.776367 10.5139 0.909441 10.1747 1.14635 9.92469C1.38323 9.67462 1.70451 9.53415 2.03952 9.53415Z' />
@@ -473,7 +548,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
 
             <svg
               onClick={handleSave}
-              className={`transition-colors duration-200 ease-in-out cursor-pointer w-8 h-8 ml-2 stroke-current fill-current ${hasSaved ? 'text-Accent/Target' : 'text-Accent/Light'}`}
+              className={`transition-colors duration-200 ease-in-out cursor-pointer w-6 h-6 ml-2 stroke-current fill-current ${hasSaved ? 'text-Accent/Target' : 'text-Accent/Light'}`}
               viewBox='0 0 24 24'
             >
               <path

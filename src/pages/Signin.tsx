@@ -52,7 +52,6 @@ function Signin() {
     try {
       // Send data to the backend
       await login(formData.username, formData.password);
-      navigate('/community/posts'); // Redirect to dashboard after a short delay
     } catch (error: any) {
       // Handle errors
       toast.error(error.response?.data?.message || 'An error occurred during sign-in.');

@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BiSolidEdit, BiTrashAlt } from 'react-icons/bi';
+import { CustomLinkify } from '../utils/linkifyConfig';
 import { Tooltip } from 'react-tooltip';
 import { TbEye, TbLockOpen, TbLock } from 'react-icons/tb';
+import { Link } from 'react-router-dom';
+import { TbMessage2Share, TbLink } from 'react-icons/tb';
+import { FaShareSquare } from 'react-icons/fa';
 import Editor from '@monaco-editor/react';
 import PostDetail from '../components/postDetail';
+import PostRef from '../components/postRef';
 import TagsScroll from '../components/tagsScroll';
 import PostCreate from '../components/postCreate';
 import { formatNumber, formatDate, getEditorLanguage } from '../utils/helpers';
-
 import { toast } from 'react-toastify';
 import {
   Post,
@@ -22,9 +26,10 @@ import {
 
 interface PostBriefProps {
   postData: Post;
+  shareAction?: (postRefId: string) => void;
 }
 
-const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
+const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {} }) => {
   const [post, setPost] = useState<Post>(postData);
   const [activeTab, setActiveTab] = useState<number>(0);
   const [showPostDetail, setShowPostDetail] = useState<boolean>(false); // New state for modal visibility
@@ -94,6 +99,11 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
 
   const handleEdit = () => {
     setShowPostCreate(true);
+  };
+
+  const handleShare = (refId: string) => {
+    setShowPostDetail(false);
+    shareAction(refId);
   };
 
   const handleCloseModal1 = () => {
@@ -172,6 +182,23 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
     }
   };
   const [showDeletePostModal, setShowDeletePostModal] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const modalShareRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalShareRef.current && !modalShareRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false); // Close modal if clicked outside
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
   const modalRef = useRef<HTMLDivElement>(null); // Ref for the modal content
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -197,7 +224,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
   return (
     <div className={`flex justify-center items-center relative `}>
       {visible && (
-        <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-5 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+        <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
           {showDeletePostModal && (
             <div className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'>
               <div
@@ -228,16 +255,20 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
           {/* Avatar and Tags */}
           <div className='flex flex-col sm:flex-row sm:items-center justify-between mb-4'>
             <div className='flex items-center gap-4'>
-              <img
-                src={
-                  post.avatar ||
-                  'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                } // Fallback for avatar
-                alt='Avatar'
-                className='w-[52px] h-[52px] rounded-full object-cover'
-              />
+              <Link to={`/user/${post.author}`} className='flex items-center gap-4'>
+                <img
+                  src={
+                    post.avatar ||
+                    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+                  }
+                  alt='Avatar'
+                  className='w-[52px] h-[52px] rounded-full object-cover'
+                />
+              </Link>
               <div>
-                <p className='font-bold text-md'>{post ? post.authorname : ''}</p>
+                <Link to={`/user/${post.author}`} className='font-bold text-md'>
+                  {post ? post.authorname : ''}
+                </Link>
                 <p className='text-xs text-Accent/Light'>
                   {post ? formatDate(post.createdAt) : 'Loading...'}&nbsp;
                   {post &&
@@ -260,19 +291,22 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
           {/* Title */}
           {post.title && (
             <div className='flex items-center text-lg text-Primary/Light'>
-              <p className='w-full py-2 overflow-hidden break-all line-clamp-2'>{post.title}</p>
+              <p className='w-full py-1 overflow-hidden break-words line-clamp-2'>{post.title}</p>
             </div>
           )}
-
+          {post.refId && <PostRef postId={post.refId} />}
           {/* Post Text */}
           <div className='flex items-center'>
             <div>
-              <p
-                ref={textRef}
-                className='mb-4 w-full overflow-hidden whitespace-pre-line break-all line-clamp-3'
-              >
-                {post.content || ''}
-              </p>
+              <CustomLinkify>
+                <div
+                  ref={textRef}
+                  className='mb-4 w-full overflow-hidden whitespace-pre-line break-words line-clamp-3'
+                >
+                  {post.content || ''}
+                </div>
+              </CustomLinkify>
+
               {isTruncated && (
                 <p onClick={handleMoreClick} className='text-Accent/Light text-sm cursor-pointer'>
                   {' '}
@@ -373,13 +407,58 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
             )}
 
             {/* Right-aligned buttons */}
-            <div className='flex space-x-1 sm:space-x-2 items-center'>
+            <div className='relative flex space-x-1 sm:space-x-2 items-center'>
+              <div ref={modalShareRef} className='flex items-center'>
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  data-tooltip-id='share'
+                  data-tooltip-content='Share'
+                  data-tooltip-place='top' // Auto-adjusts the position
+                  className='text-Accent/Light hover:text-Accent/Target'
+                >
+                  <FaShareSquare className='text-lg' />
+                  <Tooltip id='share' classNameArrow='noArrow' />
+                </button>
+                {isDropdownOpen && (
+                  <div className='text-xs lg:text-sm absolute -left-10 md:-left-24 top-full mt-1 w-40 md:w-52 bg-Background/Bottom border rounded-xl border-2 border-Primary/Dark shadow-lg z-10'>
+                    <ul className='py-1 my-1'>
+                      <li>
+                        <button
+                          onClick={() => {
+                            shareAction(post._id);
+                            setIsDropdownOpen(false);
+                          }}
+                          className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                        >
+                          <TbMessage2Share className='text-lg lg:text-xl' />
+                          Share in a new post
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          onClick={() => {
+                            const fullLink = `${window.location.origin}/post/${post._id}`;
+                            navigator.clipboard.writeText(fullLink);
+                            setIsDropdownOpen(false);
+                            toast.success('Link copied to clipboard!');
+                          }}
+                          className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                        >
+                          <TbLink className='text-lg lg:text-xl' />
+                          Copy link
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+
               <button
                 onClick={handleMoreClick}
-                className='w-16 xsm:w-20 h-6 xsm:h-8 bg-white text-Primary/Dark inline-flex items-center justify-center py-2 xsm:px-4 rounded-lg hover:bg-gray-300'
+                className='w-12 xsm:w-16 text-sm h-5 xsm:h-7 bg-white text-Primary/Dark inline-flex items-center justify-center py-2 xsm:px-4 rounded-lg hover:bg-gray-300'
               >
                 <svg
-                  className='xsm:w-6 xsm:h-6 w-4 h-4 mr-2 stroke-current stroke-2'
+                  className='xsm:w-6 xsm:h-4 w-3 h-4 mr-2 stroke-current stroke-2'
                   fill='none'
                   viewBox='0 0 24 24'
                 >
@@ -394,14 +473,14 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
 
               <button
                 onClick={() => handleLike(false)}
-                className={`transition-colors duration-200 ease-in-out w-16 xsm:w-20 h-6 xsm:h-8 inline-flex items-center justify-center py-2 xsm:px-4  rounded-lg ${
+                className={`text-sm w-12 xsm:w-16 text-sm h-5 xsm:h-7 transition-colors duration-200 ease-in-out inline-flex items-center justify-center py-2 xsm:px-4  rounded-lg ${
                   hasLiked
                     ? 'bg-Accent/Target text-white'
                     : 'bg-white text-Accent/Target hover:bg-gray-300'
                 }`}
               >
                 <svg
-                  className='xsm:w-6 xsm:h-6 h-4 w-4 mr-1 stroke-current fill-current'
+                  className='xsm:w-6 xsm:h-4 w-3 h-4 mr-1 stroke-current fill-current'
                   viewBox='0 0 24 24'
                 >
                   <path d='M20.0648 10.2853C20.4353 10.5586 20.7764 10.8297 20.7764 11.783C20.7764 12.7386 20.2943 13.1253 19.7785 13.3942C19.9892 13.757 20.0566 14.1928 19.9658 14.6075C19.8037 15.3719 19.1406 15.9653 18.5511 16.1408C18.8058 16.5719 18.8858 16.9964 18.5827 17.5186C18.1932 18.1742 17.8543 18.423 16.3553 18.423H10.2501C8.17005 18.423 7.09216 17.2097 7.09216 16.2008V11.0119C7.09216 8.2786 10.1806 5.95637 10.1806 4.05637L9.95742 1.68971C9.94689 1.54526 9.97426 1.19193 10.0795 1.08971C10.2479 0.914153 10.7132 0.645264 11.4164 0.645264C11.8753 0.645264 12.1806 0.736375 12.5406 0.918597C13.7637 1.53415 14.0816 3.09193 14.0816 4.34526C14.0816 4.94749 13.2101 6.75193 13.0922 7.37637C13.0922 7.37637 14.9174 6.94971 17.0479 6.93415C19.2816 6.92082 20.7301 7.35637 20.7301 8.80526C20.7301 9.38526 20.269 9.96749 20.0648 10.2853ZM2.03952 9.53415H3.72374C4.05875 9.53415 4.38003 9.67462 4.61692 9.92469C4.85382 10.1747 4.98689 10.5139 4.98689 10.8675V19.3119C4.98689 19.6655 4.85382 20.0046 4.61692 20.2548C4.38003 20.5048 4.05875 20.6453 3.72374 20.6453H2.03952C1.70451 20.6453 1.38322 20.5048 1.14733 20.2548C0.911434 20.0046 0.778358 19.6655 0.778358 19.3119V10.8675C0.778358 10.5139 0.911434 10.1747 1.14733 9.92469C1.38322 9.67462 1.70451 9.53415 2.03952 9.53415Z' />
@@ -416,7 +495,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
                 data-tooltip-place='top'
               >
                 <svg
-                  className={`transition-colors duration-200 ease-in-out w-8 h-8 stroke-current fill-current ${
+                  className={`transition-colors duration-200 ease-in-out w-6 h-6 stroke-current fill-current ${
                     hasSaved ? 'text-Accent/Target' : 'text-Accent/Light hover:text-green-300'
                   }`}
                   viewBox='0 0 24 24'
@@ -451,6 +530,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData }) => {
             propliked={hasLiked}
             commentDelete={handleCommentChange}
             closeModal={handleCloseModal1}
+            shareAction={handleShare}
           />
         </div>
       )}

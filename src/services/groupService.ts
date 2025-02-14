@@ -12,12 +12,16 @@ export interface GroupDataCreate {
 }
 
 export interface GroupData {
-  _id: string;
-  name: string;
   avatar: string;
   bio: string;
-  private: boolean;
+  canJoin: boolean;
   moderation: boolean;
+  joined: boolean;
+  members: string[];
+  name: string;
+  numberOfMembers: number;
+  numberOfPosts: number;
+  numberOfProjects: number;
 }
 
 export interface GroupDataBrief {
@@ -25,16 +29,36 @@ export interface GroupDataBrief {
   name: string;
   avatar: string;
   bio: string;
-  avatarmembers: (string | undefined)[];
+  private: boolean;
+  visibleMembers: (string | undefined)[];
 }
 
+// Fetch groups
+export const fetchGroups = async (
+  page: number = 1,
+  limit: number = 10,
+  order: 'ascending' | 'descending' = 'ascending',
+  criteria: 'dateCreated' | 'members' | 'posts',
+  search?: string,
+): Promise<{ groups: GroupDataBrief[]; hasMore: boolean }> => {
+  try {
+    const response = await axiosInstance.get<{ groups: GroupDataBrief[]; hasMore: boolean }>(
+      API_ENDPOINTS.FETCH_GROUPS(page, limit, search, order, criteria),
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching groups:', error);
+    throw error;
+  }
+};
+
 export const joinGroup = async (groupId: string) => {
-  const response = await axiosInstance.get(API_ENDPOINTS.JOIN_GROUP(groupId));
+  const response = await axiosInstance.get(API_ENDPOINTS.GROUP_JOIN(groupId));
   return response.data;
 };
 
 export const leaveGroup = async (groupId: string) => {
-  const response = await axiosInstance.get(API_ENDPOINTS.LEAVE_GROUP(groupId));
+  const response = await axiosInstance.get(API_ENDPOINTS.GROUP_LEAVE(groupId));
   return response.data;
 };
 
@@ -83,8 +107,8 @@ export const deleteGroup = async (groupId: string): Promise<string> => {
 };
 
 // Fetch full group data
-export const getGroupFullData = async (groupId: string): Promise<any> => {
-  const response = await axiosInstance.get(API_ENDPOINTS.GROUP_FULL_DATA(groupId));
+export const getGroupFullData = async (groupId: string): Promise<GroupData> => {
+  const response = await axiosInstance.get<GroupData>(API_ENDPOINTS.GROUP_FULL_DATA(groupId));
   return response.data;
 };
 

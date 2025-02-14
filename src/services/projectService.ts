@@ -11,6 +11,45 @@ export interface ProjectDataBrief {
   avatarmembers: (string | undefined)[];
 }
 
+// Fetch projects
+export const fetchProjects = async (
+  page: number = 1,
+  limit: number = 10,
+  order: 'ascending' | 'descending' = 'ascending',
+  criteria: 'dateCreated' | 'members' | 'posts',
+  search?: string,
+): Promise<{ projects: ProjectDataBrief[]; hasMore: boolean }> => {
+  try {
+    const response = await axiosInstance.get<{ projects: ProjectDataBrief[]; hasMore: boolean }>(
+      API_ENDPOINTS.FETCH_PROJECTS(page, limit, search, order, criteria),
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    throw error;
+  }
+};
+
+// Fetch projects
+export const fetchGroupProjects = async (
+  groupId: string,
+  page: number = 1,
+  limit: number = 10,
+  order: 'ascending' | 'descending' = 'ascending',
+  criteria: 'dateCreated' | 'members' | 'posts',
+  search?: string,
+): Promise<{ projects: ProjectDataBrief[]; hasMore: boolean }> => {
+  try {
+    const response = await axiosInstance.get<{ projects: ProjectDataBrief[]; hasMore: boolean }>(
+      API_ENDPOINTS.GROUP_PROJECTS(groupId, page, limit, order, criteria, search),
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    throw error;
+  }
+};
+
 export const joinProject = async (projectId: string) => {
   const response = await axiosInstance.get(API_ENDPOINTS.JOIN_PROJECT(projectId));
   return response.data;

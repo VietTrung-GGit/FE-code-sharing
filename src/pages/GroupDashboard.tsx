@@ -1,28 +1,39 @@
 import { useState, useEffect, useRef } from 'react';
+import { useDebounce } from '@uidotdev/usehooks';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { Link } from 'react-router-dom';
+
 import { IoIosMore, IoIosMail, IoMdArrowDropdown } from 'react-icons/io';
 import { BiSolidEdit } from 'react-icons/bi';
-import { AiOutlineUserDelete } from 'react-icons/ai';
 import { MdOutlinePublicOff, MdOutlinePublic } from 'react-icons/md';
 import { TbFlag, TbFlagOff } from 'react-icons/tb';
-import { useDebounce } from '@uidotdev/usehooks';
+
+import { useAuthUser } from '../context/AuthUserContext';
+
+import { ProjectDataBrief, fetchGroupProjects } from '../services/projectService';
+import { Post, fetchGroupPosts } from '../services/postService';
+import {
+  GroupDataBrief,
+  GroupData,
+  getGroupFullData,
+  joinGroup,
+  leaveGroup,
+} from '../services/groupService';
+import { UserBriefData, fetchGroupMembers } from '../services/userService';
+
 import Search from '../assets/search.svg';
-import UserBrief from '../components/userBrief';
 import Filter from '../assets/filter.svg';
+
 import Sidebar from '../components/sidebar';
-import TagList from '../components/tagList';
-import PostBrief from '../components/postBrief';
-import GroupBrief from '../components/groupBrief';
-import ProjectBrief from '../components/projectBrief';
 import QuickNav from '../components/quickNav';
 import CollapseMenu from '../components/collapseMenu';
-import { toast } from 'react-toastify';
-import { useAuthUser } from '../context/AuthUserContext';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Post, fetchPosts } from '../services/postService';
-import { GroupData, getGroupFullData } from '../services/groupService';
-import LoadingSpinner from '../components/loadingAnimate';
+import UserBrief from '../components/userBrief';
+import TagList from '../components/tagList';
+import PostBrief from '../components/postBrief';
+import ProjectBrief from '../components/projectBrief';
 import PostCreate from '../components/postCreate';
-import { Link } from 'react-router-dom';
+import LoadingSpinner from '../components/loadingAnimate';
 
 type PostType = 'stored' | 'me' | undefined;
 
@@ -32,11 +43,11 @@ interface Params extends Record<string, string | undefined> {
 
 function GroupDashboard() {
   const { groupId } = useParams<{ groupId: string }>();
+  const [searchParams] = useSearchParams();
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
   const [activeDashboard, setActiveDashboard] = useState<
     'Posts' | 'Members' | 'My posts' | 'Projects' | 'Pending posts'
   >('Posts');
-  const { type } = useParams<Params>();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const tagListRef = useRef<HTMLDivElement>(null);
   const sidebarButtonRef = useRef<HTMLButtonElement>(null);
@@ -49,11 +60,14 @@ function GroupDashboard() {
 
   // States
   const [posts, setPosts] = useState<Post[]>([]);
-  const [description, setDescription] = useState<string>('Group description');
-  const [title, setTitle] = useState<string>('Group name');
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [privacy, setPrivacy] = useState(false);
+  const [users, setUsers] = useState<UserBriefData[]>([]);
+  const [groups, setGroups] = useState<GroupDataBrief[]>([]);
+  const [projects, setProjects] = useState<ProjectDataBrief[]>([]);
+  const [group, setGroup] = useState<GroupData | null>(null);
   const [moderation, setModeration] = useState(false);
+  const [privacy, setPrivacy] = useState(false);
+  const [hasJoined, setHasJoined] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -70,43 +84,156 @@ function GroupDashboard() {
   const [buttonClicked, setButtonClicked] = useState(false);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 600);
-  const debouncedSelectedTags = useDebounce(selectedTags, 800);
-  const debouncedOrder = useDebounce<'ascending' | 'descending'>(order, 600);
-  const debouncedCriteria = useDebounce<'date' | 'likes' | 'comments'>(criteria, 600);
-  const fetchAndUpdatePosts = async () => {
-    setLoading(true);
-    try {
-      console.log('Debounced search term call:', debouncedSearchTerm);
-      const postsResponse = await fetchPosts(
-        page,
-        6, // Limit: 6 posts per page
-        debouncedOrder,
-        debouncedCriteria,
-        debouncedSearchTerm,
-        debouncedSelectedTags,
-        type,
-      );
 
-      setHasMore(postsResponse.hasMore);
-      setPosts((prevPosts) => [...prevPosts, ...postsResponse.posts]);
-      setLoading(false);
-      setFirstLoad(false);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
+  const fetchAndUpdatePosts = async () => {
+    if (groupId) {
+      setLoading(true);
+      try {
+        console.log('Debounced search term call:', debouncedSearchTerm);
+        const postsResponse = await fetchGroupPosts(
+          groupId,
+          page,
+          6, // Limit: 6 posts per page
+          (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
+          (searchParams.get('criteria') as string) || 'date',
+          debouncedSearchTerm,
+          searchParams.get('tags')?.split(',') || [],
+        );
+
+        setHasMore(postsResponse.hasMore);
+        setPosts((prevPosts) => [...prevPosts, ...postsResponse.posts]);
+        setLoading(false);
+        setFirstLoad(false);
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+      }
     }
   };
-  const validTypes: PostType[] = ['stored', 'me', undefined];
-  useEffect(() => {
-    if (!validTypes.includes(type)) {
-      toast.error('Invalid page!');
-      navigate('/feed');
-    } else {
-      setPage(1);
-      setPosts([]);
-      setHasMore(true);
-      fetchAndUpdatePosts();
+
+  const fetchAndUpdateMyPosts = async () => {
+    if (groupId) {
+      setLoading(true);
+      try {
+        console.log('Debounced search term call:', debouncedSearchTerm);
+        const postsResponse = await fetchGroupPosts(
+          groupId,
+          page,
+          6, // Limit: 6 posts per page
+          (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
+          (searchParams.get('criteria') as string) || 'date',
+          debouncedSearchTerm,
+          searchParams.get('tags')?.split(',') || [],
+        );
+
+        setHasMore(postsResponse.hasMore);
+        setPosts((prevPosts) => [...prevPosts, ...postsResponse.posts]);
+        setLoading(false);
+        setFirstLoad(false);
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+      }
     }
-  }, [type, debouncedSearchTerm, debouncedSelectedTags, debouncedOrder, debouncedCriteria]);
+  };
+
+  const fetchAndUpdatePendingPosts = async () => {
+    if (groupId) {
+      setLoading(true);
+      try {
+        console.log('Debounced search term call:', debouncedSearchTerm);
+        const postsResponse = await fetchGroupPosts(
+          groupId,
+          page,
+          6, // Limit: 6 posts per page
+          (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
+          (searchParams.get('criteria') as string) || 'date',
+          debouncedSearchTerm,
+          searchParams.get('tags')?.split(',') || [],
+        );
+
+        setHasMore(postsResponse.hasMore);
+        setPosts((prevPosts) => [...prevPosts, ...postsResponse.posts]);
+        setLoading(false);
+        setFirstLoad(false);
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+      }
+    }
+  };
+
+  const fetchAndUpdateUsers = async () => {
+    if (groupId) {
+      setLoading(true);
+      try {
+        const usersResponse = await fetchGroupMembers(
+          groupId,
+          page,
+          6,
+          (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
+          (searchParams.get('criteria') as 'dateJoined' | 'followers' | 'likes') || 'dateJoined',
+          debouncedSearchTerm,
+        );
+        setHasMore(usersResponse.hasMore);
+        setUsers((prevUsers) => [...prevUsers, ...usersResponse.users]);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      } finally {
+        setLoading(false);
+        setFirstLoad(false);
+      }
+    }
+  };
+
+  const fetchAndUpdateProjects = async () => {
+    if (groupId) {
+      setLoading(true);
+      try {
+        const projectsResponse = await fetchGroupProjects(
+          groupId,
+          page,
+          6,
+          (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
+          (searchParams.get('criteria') as 'dateCreated' | 'members' | 'posts') || 'members',
+          debouncedSearchTerm,
+        );
+        setHasMore(projectsResponse.hasMore);
+        setProjects((prevProjects) => [...prevProjects, ...projectsResponse.projects]);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      } finally {
+        setLoading(false);
+        setFirstLoad(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+
+    // Reset the corresponding data array
+    if (activeDashboard === 'Posts') setPosts([]);
+    if (activeDashboard === 'Members') setUsers([]);
+    if (activeDashboard === 'Projects') setProjects([]);
+
+    // Fetch data based on active filter
+    if (activeDashboard === 'Posts') fetchAndUpdatePosts();
+    if (activeDashboard === 'Members') fetchAndUpdateUsers();
+    if (activeDashboard === 'Projects') fetchAndUpdateProjects();
+  }, [activeDashboard, debouncedSearchTerm, searchParams]);
+
+  useEffect(() => {
+    if (hasMore && !firstLoad) {
+      if (activeDashboard === 'Posts') fetchAndUpdatePosts();
+      if (activeDashboard === 'Members') fetchAndUpdateUsers();
+      if (activeDashboard === 'Projects') fetchAndUpdateProjects();
+    }
+  }, [page]);
+
+  useEffect(() => {
+    if (activeDashboard) {
+      navigate(`/group/${groupId}/${activeDashboard.toLowerCase()}`);
+    }
+  }, [activeDashboard, navigate]);
 
   useEffect(() => {
     if (!groupId) return;
@@ -114,10 +241,11 @@ function GroupDashboard() {
     const fetchGroupData = async () => {
       try {
         const data = await getGroupFullData(groupId);
-        setTitle(data.name || '');
-        setDescription(data.bio || '');
-        setPrivacy(data.privacy ?? false);
-        setModeration(data.moderation ?? false);
+        setGroup(data);
+        setPrivacy(!data.canJoin);
+        setHasJoined(data.joined);
+        setModeration(data.moderation);
+
         // Handle avatar file if needed
       } catch (error) {
         console.error('Error fetching group data:', error);
@@ -127,23 +255,33 @@ function GroupDashboard() {
     fetchGroupData();
   }, [groupId]);
 
-  useEffect(() => {
-    // This effect will run only on the first load
-    console.log('First load:', firstLoad);
-  }, [firstLoad]);
-
-  useEffect(() => {
-    // This effect will run only on the first load
-    console.log('Page:', page);
-  }, [page]);
-
-  useEffect(() => {
-    if (hasMore && !firstLoad) {
-      console.log('2');
-
-      fetchAndUpdatePosts();
+  const handleJoin = async () => {
+    if (group && group.canJoin && groupId) {
+      try {
+        alert('hi');
+        setHasJoined(true);
+        await joinGroup(groupId);
+        toast.success(`Joined group: ${group.name}`);
+      } catch (error) {
+        setHasJoined(false);
+        toast.error('Failed to join group');
+      }
     }
-  }, [page]);
+  };
+
+  const handleLeave = async () => {
+    if (group && groupId) {
+      try {
+        alert('bye');
+        setHasJoined(false);
+        await leaveGroup(groupId);
+        toast.info(`Left group: ${group.name}`);
+      } catch (error) {
+        setHasJoined(true);
+        toast.error('Failed to leave group');
+      }
+    }
+  };
 
   const handleFilterChange = (filters: {
     selectedTags: string[];
@@ -286,17 +424,17 @@ function GroupDashboard() {
   return (
     <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
       <>
-        <div className='mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
-          <div className='bg-Background/Bottom bg-center bg-cover rounded-3xl border-2 border-Primary/Dark border-solid box-border w-full lg:w-[calc(50vw-2.6rem)] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] flex flex-col items-center relative'>
-            <div className=' w-full flex justify-end mt-4 mr-20' ref={dropdownConfigRef}>
+        <div className='mx-8 xsm:mx-8 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
+          <div className='bg-Background/Bottom text-white justify-center w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[620px] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] border-Primary/Dark border-2 rounded-3xl lg:p-5 relative flex items-center'>
+            <div className=' absolute right-3 top-2' ref={dropdownConfigRef}>
               <button
                 onClick={toggleDropdownConfig}
-                className='hover:text-gray-300 text-white text-3xl'
+                className='hover:text-gray-300 text-white text-3xl mx-[calc(10vw-2.2rem)] xsm:mx-[calc(10vw-2.6rem)] sm:mx-[calc(10vw-3.4rem)] lg:mx-[calc(10vw-5.2rem)] xl:mx-[calc(10vw-6.8rem)]'
               >
                 <IoIosMore />
               </button>
               {isDropdownConfigOpen && (
-                <div className='absolute -right-40 top-14 w-52 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
+                <div className='absolute sm:-right-[50px] lg:-right-40 top-14 w-56 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
                   <ul className='py-1 my-3 ml-2'>
                     <li>
                       <button className='block px-3 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
@@ -326,88 +464,146 @@ function GroupDashboard() {
               )}
             </div>
 
-            <div className='flex flex-row space-x-4 xsm:space-x-20 sm:space-x-0 xl:space-x-2 -mt-4 mb-44 xsm:mb-48 sm:mb-1 xl:-ml-5 lg:-ml-8 sm:-ml-8'>
+            <div className='flex flex-row justify-center space-x-4 xsm:space-x-10 sm:space-x-4 xl:space-x-2 mt-10 xsm:mt-8 sm:-mt-2 lg:-mt-1 mb-44 xsm:mb-48 sm:mb-0 lg:-ml-2 xl:-ml-4'>
               <div className='sm:-mt-10 lg:-mt-6 flex flex-col h-[380px] items-center'>
                 <img
                   src={
-                    user?.avatar ||
+                    group?.avatar ||
                     'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
                   }
                   alt='Profile Icon'
-                  className='w-32 h-32 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-56 xl:w-56 rounded-full object-cover mt-8 mx-0 sm:mx-8 sm:mt-14 xl:mx-6 mb-5'
+                  className='w-28 h-28 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-56 xl:w-56 rounded-full object-cover mt-8 mx-0 sm:mx-0 sm:mt-14 lg:mx-2 xl:mx-4 mb-5 flex-shrink-0'
                 />
-                <div className='flex hidden sm:block lg:hidden'>
-                  <button className='transition-colors duration-300 ease-in-out w-36 h-8 rounded-xl bg-Accent/Target text-lg text-white mb-4 hover:bg-white hover:text-Accent/Targetr'>
-                    Follow
+                <div className='flex hidden sm:block lg:hidden -mt-2'>
+                  <button
+                    className={`transition-colors font-semibold duration-300 ease-in-out w-12 md:w-20 lg:w-28 h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target m-4 
+        ${hasJoined ? 'bg-gray-500 text-white hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:text-white'}`}
+                    onClick={hasJoined ? handleLeave : handleJoin}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                  >
+                    {hasJoined ? (isHovered ? 'Leave' : 'Joined') : 'Join'}
                   </button>
                 </div>
-                <div className='absolute flex items-center bottom-8 xsm:left-0 -left-2 sm:static space-x-2'>
+                <div className='flex items-center lg:mt-10 xl:mt-4 space-x-2 hidden lg:block'>
                   <div className='flex flex-row '>
-                    <p className='text-white text-lg'>addmembers here</p>
+                    {/* Avatar Members */}
+
+                    {group && group.members && (
+                      <div className='flex space-x-1'>
+                        {group.members.map((avatar, index) => (
+                          <img
+                            key={index}
+                            src={
+                              avatar ||
+                              'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+                            }
+                            alt={`Member ${index + 1}`}
+                            className='w-8 h-8 rounded-full object-cover'
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className='flex flex-col space-y-4 mb-6 sm:mb-8 lg:mb-10 ml-4 xsm:ml-20 sm:ml-0'>
-                <div className='flex flex-row sm:-mt-4 lg:mt-0'>
+              <div className='flex flex-col space-y-4 mb-6 sm:mb-6 lg:mb-10 ml-4 xsm:ml-20 sm:ml-0'>
+                <div className='flex flex-row sm:-mt-4 lg:mt-0 relative'>
                   <div className='flex flex-col'>
-                    <div className=''>
-                      <p className='text-white font-semibold mt-6 text-3xl sm:text-3xl lg:text-2xl xl:text-3xl break-words'>
-                        {title}
+                    <div className='flex flex-col'>
+                      <p className='text-white font-semibold mt-6 text-2xl sm:text-3xl lg:text-2xl xl:text-3xl break-words'>
+                        {group?.name || 'Group Name'}
                       </p>
+                      <div className='flex flex-row block xsm:mt-2 lg:hidden lg:static'>
+                        {group && group.members && (
+                          <div className='flex space-x-1'>
+                            {group.members.map((avatar, index) => (
+                              <img
+                                key={index}
+                                src={
+                                  avatar ||
+                                  'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+                                }
+                                alt={`Member ${index + 1}`}
+                                className='w-8 h-8 rounded-full object-cover'
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
-
-                    <div className='flex sm:hidden xsm:mt-10 mt-8'>
-                      <button className='transition-colors duration-300 ease-in-out w-36 h-8 rounded-xl bg-Accent/Target text-lg text-white mb-4 hover:bg-white hover:text-Accent/Targetr'>
-                        Follow
-                      </button>
-                    </div>
+                    <button
+                      className={`transition-colors font-semibold duration-300 ease-in-out w-12 md:w-20 lg:w-28 h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target m-4 
+        ${hasJoined ? 'bg-gray-500 text-white hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:text-white'}`}
+                      onClick={hasJoined ? handleLeave : handleJoin}
+                      onMouseEnter={() => setIsHovered(true)}
+                      onMouseLeave={() => setIsHovered(false)}
+                    >
+                      {hasJoined ? (isHovered ? 'Leave' : 'Joined') : 'Join'}
+                    </button>
                   </div>
                 </div>
 
-                <div className='bg-Background/Middle sm:w-[40vw] lg:w-[21vw] xl:w-[24vw] h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static'>
-                  <p className='text-Primary/Light p-4'>{description}</p>
+                <div className='bg-Background/Middle sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] xsm:h-1/2 sm:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static'>
+                  <p className='text-Primary/Light p-4'>{group?.bio || 'Group Description'}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8 lg:hidden'>
+        <div className='flex justify-center mx-8 xsm:mx-8 sm:max-lg:mx-14 lg:mx-8 lg:hidden'>
           <div
-            className={`bg-Background/Bottom bg-center bg-cover border-2 h-36  border-Primary/Dark px-6 py-4 w-full flex items-center justify-center rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl  lg:mt-4 lg:rounded-3xl
-        border-solid box-border text-center mt-16 `}
+            className={`bg-Background/Bottom bg-center bg-cover border-2 h-56  border-Primary/Dark px-6 py-4 w-full flex items-center justify-center rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl  lg:mt-4 lg:rounded-3xl
+        border-solid box-border text-center mt-8 sm:max-lg:mt-16 `}
           >
             <div className='flex flex-col items-center'>
-              <div className='flex mx-2 mb-4'>
-                <p className='text-white xsm:text-2xl text-xl font-semibold text-center break-words'>
-                  Groupname's Dashboard
-                </p>
-              </div>
               <div className='flex flex-row gap-4 xsm:gap-8 sm:gap-20 '>
                 <div className='flex flex-col'>
-                  <p className='text-white xsm:text-xl text-lg flex justify-center'>1000</p>
-                  <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
-                    Posts
+                  <p className='text-white text-xl flex justify-center'>
+                    {group?.numberOfPosts || 0}
                   </p>
+                  <p className='text-Primary/Light text-xl flex justify-center'>Posts</p>
                 </div>
 
                 <div className='flex flex-col'>
-                  <p className='text-white xsm:text-xl text-lg flex justify-center'>321K</p>
-                  <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
-                    Likes
+                  <p className='text-white text-xl flex justify-center'>
+                    {group?.numberOfProjects || 0}
                   </p>
+                  <p className='text-Primary/Light text-xl flex justify-center'>Projects</p>
                 </div>
 
                 <div className='flex flex-col'>
-                  <p className='text-white xsm:text-xl text-lg flex justify-center'>123K</p>
-                  <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
-                    Followers
+                  <p className='text-white text-xl flex justify-center'>
+                    {group?.numberOfMembers || 0}
+                  </p>
+                  <p className='text-Primary/Light text-xl flex justify-center'>Members</p>
+                </div>
+              </div>
+              <div className='flex flex-row mt-4 gap-2'>
+                <div className='flex justify-center items-center flex-row sm:mx-2 lg:mx-6 gap-3'>
+                  {privacy ? (
+                    <MdOutlinePublicOff className='text-3xl text-white flex-shrink-0' />
+                  ) : (
+                    <MdOutlinePublic className='text-3xl text-white flex-shrink-0' />
+                  )}
+                  <p className='text-lg text-white text-left'>
+                    {privacy
+                      ? 'Content only visible to members'
+                      : 'This group is visible to everyone'}
                   </p>
                 </div>
-                <div className='flex flex-col'>
-                  <p className='text-white xsm:text-xl text-lg flex justify-center'>2</p>
-                  <p className='text-Primary/Light xsm:text-xl text-lg flex justify-center'>
-                    Following
+
+                <div className='flex justify-center items-center flex-row sm:mx-2 lg:mx-6 gap-3'>
+                  {moderation ? (
+                    <TbFlag className='text-4xl text-white flex-shrink-0' />
+                  ) : (
+                    <TbFlagOff className='text-4xl text-white flex-shrink-0' />
+                  )}
+                  <p className='text-lg text-white text-left'>
+                    {moderation
+                      ? 'Posts need approval from admins'
+                      : 'Posts need no approval before being published'}
                   </p>
                 </div>
               </div>
@@ -415,42 +611,42 @@ function GroupDashboard() {
           </div>
         </div>
 
-        <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
-          <div className='flex flex-row justify-center gap-20 w-1/2'>
+        <div className='flex justify-center mt-8 sm:max-lg:mt-10 lg:mt-6 mx-16 xsm:mx-16  sm:mx-36 lg:mx-24 xl:mx-8 mb-5'>
+          <div className='flex flex-row xl:justify-center gap-20 xsm:gap-20 sm:gap-24 lg:gap-20 xl:gap-20 2xl:gap-24 xsm:w-full lg:w-1/2 justify-start max-xl:overflow-y-auto max-xl:scrollbar-thin max-xl:scrollbar-thumb-gray-500 max-xl:scrollbar-track-transparent'>
             <button
-              className={`${activeDashboard === 'Posts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              className={`${activeDashboard === 'Posts' ? 'text-white' : 'text-gray-500'} text-xl font-semibold whitespace-nowrap`}
               onClick={() => setActiveDashboard('Posts')}
             >
               Posts
             </button>
             <button
-              className={`${activeDashboard === 'Projects' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              className={`${activeDashboard === 'Projects' ? 'text-white' : 'text-gray-500'} text-xl font-semibold whitespace-nowrap`}
               onClick={() => setActiveDashboard('Projects')}
             >
               Projects
             </button>
             <button
-              className={`${activeDashboard === 'Members' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              className={`${activeDashboard === 'Members' ? 'text-white' : 'text-gray-500'} text-xl font-semibold whitespace-nowrap`}
               onClick={() => setActiveDashboard('Members')}
             >
               Members
             </button>
             <button
-              className={`${activeDashboard === 'My posts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              className={`${activeDashboard === 'My posts' ? 'text-white' : 'text-gray-500'} text-xl font-semibold whitespace-nowrap`}
               onClick={() => setActiveDashboard('My posts')}
             >
               My posts
             </button>
             <button
-              className={`${activeDashboard === 'Pending posts' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              className={`${activeDashboard === 'Pending posts' ? 'text-white' : 'text-gray-500'} text-xl font-semibold whitespace-nowrap`}
               onClick={() => setActiveDashboard('Pending posts')}
             >
               Pending posts
             </button>
           </div>
         </div>
-        <div className='flex justify-start -mt-10 sm:max-lg:-mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 relative'>
-          <div className=' absolute left-96'>
+        <div className='flex lg:justify-center mt-2 xsm:mt-2 sm:max-lg:mt-4 lg:mt-6 mx-6 sm:max-lg:mx-20 lg:mx-20'>
+          <div className=' flex w-1/2 mb-10 lg:mb-0 ml-8 sm:ml-0'>
             <p className='text-2xl font-semibold text-white'>{activeDashboard} (0)</p>
           </div>
         </div>
@@ -575,10 +771,7 @@ function GroupDashboard() {
 
               {/* Display posts if available */}
               {posts.length > 0 && (
-                <div
-                  id='posts-container'
-                  className={` mx-6 sm:max-lg:mx-14 lg:mx-8 ${type === 'stored' ? 'mt-28 sm:max-lg:mt-28 lg:mt-0' : ''}`}
-                >
+                <div id='posts-container' className={' mx-6 sm:max-lg:mx-14 lg:mx-8 '}>
                   {posts.map((post) => (
                     <div key={post._id} className='post'>
                       <PostBrief postData={post} />
@@ -610,47 +803,54 @@ function GroupDashboard() {
       <div ref={sentinelRef} style={{ height: '50px' }} />
 
       <div className=' fixed flex flex-col top-12 lg:right-2 xl:right-4 sm:max-lg:invisible invisible lg:visible'>
-        <div className='bg-Background/Bottom bg-cover rounded-3xl border-2 border-Primary/Dark lg:w-[22vw] xl:w-[19vw] lg:h-[420px] xl:h-[400px] mt-4 ml-[3rem] '>
+        <div className='bg-Background/Bottom bg-cover rounded-3xl border-2 border-Primary/Dark lg:w-[22vw] xl:w-[19vw] h-[400px] mt-4 ml-[3rem] '>
           <div className='flex flex-col '>
             <div className='flex justify-center mx-2'>
-              <p className='text-white text-2xl font-semibold mt-6 text-center break-words'>
-                Groupname's Dashboard
+              <p className='text-white text-xl font-semibold mt-8 text-center break-words'>
+                {group?.name || 'Group name'}
               </p>
             </div>
             <br />
-            <div className='flex flex-row justify-center gap-8 mb-5'>
+            <div className='flex flex-row justify-center lg:gap-2 xl:gap-4 2xl:gap-8 mb-5'>
               <div className='flex flex-col'>
-                <p className='text-white text-xl flex justify-center'>1000</p>
-                <p className='text-Primary/Light text-xl flex justify-center'>Posts</p>
+                <p className='text-white text-xl flex justify-center'>
+                  {group?.numberOfPosts || 0}
+                </p>
+                <p className='text-Primary/Light text-md flex justify-center'>Posts</p>
               </div>
 
               <div className='flex flex-col'>
-                <p className='text-white text-xl flex justify-center'>321K</p>
-                <p className='text-Primary/Light text-xl flex justify-center'>Projects</p>
+                <p className='text-white text-xl flex justify-center'>
+                  {group?.numberOfProjects || 0}
+                </p>
+                <p className='text-Primary/Light text-md flex justify-center'>Projects</p>
               </div>
 
               <div className='flex flex-col'>
-                <p className='text-white text-xl flex justify-center'>123K</p>
-                <p className='text-Primary/Light text-xl flex justify-center'>Members</p>
+                <p className='text-white text-xl flex justify-center'>
+                  {group?.numberOfMembers || 0}
+                </p>
+                <p className='text-Primary/Light text-md flex justify-center'>Members</p>
               </div>
             </div>
-            <div className='flex justify-center items-center flex-row mx-6 gap-3'>
-              <MdOutlinePublicOff className='text-4xl text-white' />
-              <p className='text-lg text-white'>Content only visible to members</p>
+            <div className='flex justify-center items-center flex-row mx-4 gap-3'>
+              <MdOutlinePublicOff className='text-3xl text-white flex-shrink-0' />
+              <p className='text-md text-white'>Content only visible to members</p>
             </div>
-            <div className='flex justify-center items-center flex-row mx-6 gap-3'>
-              <TbFlag className='text-5xl text-white' />
-              <p className='text-lg text-white'>Member's posts need approval from admins</p>
+            <div className='flex justify-center items-center flex-row mx-4 gap-3'>
+              <TbFlag className='text-3xl text-white flex-shrink-0' />
+              <p className='text-md text-white'>Posts need approval from admins</p>
             </div>
-          </div>
-          <div className='flex justify-center xl:ml-0'>
-            <button className='transition-colors duration-300 ease-in-out w-44 h-8 rounded-xl bg-Accent/Target text-lg text-white m-4 hover:bg-white hover:text-Accent/Target '>
-              Follow
-            </button>
           </div>
           <div className='flex justify-center xl:ml-0 -mt-4'>
-            <button className='transition-colors duration-300 ease-in-out w-44 h-8 rounded-xl bg-red-500 text-lg text-white m-4 hover:bg-white hover:text-red-500 '>
-              Leave
+            <button
+              className={`transition-colors font-semibold duration-300 ease-in-out w-12 md:w-20 lg:w-28 h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target m-4 
+        ${hasJoined ? 'bg-gray-500 text-white hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:text-white'}`}
+              onClick={hasJoined ? handleLeave : handleJoin}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+            >
+              {hasJoined ? (isHovered ? 'Leave' : 'Joined') : 'Join'}
             </button>
           </div>
         </div>
@@ -660,7 +860,7 @@ function GroupDashboard() {
       <div ref={sidebarRef}>
         <Sidebar
           isOpen={activeComponent === 'sidebar'}
-          state={type}
+          state={'community'}
           onClose={() => setActiveComponent(null)}
         />
       </div>
