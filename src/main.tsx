@@ -52,10 +52,9 @@ if (root) {
             <Route path='/feed' element={ProtectedRouteWrapper(Feed)} />
             <Route path='/saves' element={ProtectedRouteWrapper(Feed)} />
             {/* <Route path='/profile' element={ProtectedRouteWrapper(ProfileCard)} /> */}
-            <Route path='/project/:projectId' element={ProtectedRouteWrapper(ProjectDashboard)} />
-            <Route path='/project' element={ProtectedRouteWrapper(ProjectDashboard)} />
+            {/* <Route path='/project' element={ProtectedRouteWrapper(ProjectDashboard)} /> */}
             <Route path='/notifications' element={ProtectedRouteWrapper(Notifications)} />
-            <Route path='/profiletemp' element={ProtectedRouteWrapper(ProfileTemp)} />
+            {/* <Route path='/profiletemp' element={ProtectedRouteWrapper(ProfileTemp)} /> */}
             <Route path='/post/:postId' element={ProtectedRouteWrapper(PostView)} />
 
             {/* Nested Community Routes */}
