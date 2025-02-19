@@ -1,4 +1,5 @@
 import { axiosInstance } from '../api/axiosInstance';
+import { API_ENDPOINTS } from '../api/endpoints';
 
 export type Notification = {
   userId: string;
@@ -57,3 +58,14 @@ export const deleteNotification = async (notificationId: string) => {
   return await axiosInstance.delete(`/notification/${notificationId}/delete`);
 };
 
+// Confirm a group invite
+export const confirmGroupInvite = async (groupId: string) => {
+  const response = await axiosInstance.post(API_ENDPOINTS.GROUP_CONFIRM_INVITE(groupId));
+  return response.data;
+};
+
+// Confirm a project invite
+export const confirmProjectInvite = async (projectId: string) => {
+  const response = await axiosInstance.post(API_ENDPOINTS.PROJECT_CONFIRM_INVITE(projectId));
+  return response.data;
+};

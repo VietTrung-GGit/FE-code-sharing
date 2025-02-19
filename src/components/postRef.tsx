@@ -28,6 +28,10 @@ const PostRef: React.FC<PostRefProps> = ({ postId }) => {
     getPost();
   }, [postId]);
 
+  const openNewTabAndRedirect = (url: string) => {
+    window.open(url, '_blank'); // Opens the URL in a new tab
+  };
+
   useEffect(() => {
     if (post?.content) {
       const element = textRef.current;
@@ -46,9 +50,7 @@ const PostRef: React.FC<PostRefProps> = ({ postId }) => {
 
   return (
     <div
-      onClick={() => {
-        navigate(`/post/${postId}`);
-      }}
+      onClick={() => openNewTabAndRedirect(`/post/${postId}`)}
       className='flex justify-center items-center relative cursor-pointer'
     >
       <div className='bg-Background/Middle text-white w-full my-3 rounded-3xl p-3 md:p-5 lg:p-6'>

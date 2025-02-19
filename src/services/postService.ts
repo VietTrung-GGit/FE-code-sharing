@@ -3,40 +3,36 @@ import { createLikeNotification, createCommentNotification } from '../services/n
 import { API_ENDPOINTS } from '../api/endpoints';
 import { getMimeTypeForExtension } from '../utils/helpers';
 import axios from 'axios';
+import { StringLiteral } from 'typescript';
 
 export interface PostFile {
   fileUrl: string;
   fileName: string;
 }
 
-export const tags = [
-  'Python',
-  'Javascript',
-  'Java',
-  'C#',
-  'C++',
-  'PHP',
-  'CSS',
-  'Bash/Shell',
-  'HTML',
-  'SQL',
-  'C',
-  'Typescript',
-  'Go',
-  'Rust',
-  'Kotlin',
-  'Powershell',
-  'Algorithms',
-  'Databases',
-  'Web Dev',
-  'Software',
-  'AI',
-  'Optimization',
-  'Concurrency',
-  'DevOps',
-  'Android',
-  'IOS',
-];
+// export interface Post {
+//   _id: string;
+//   title: string;
+//   content: string;
+//   tags: string[];
+//   author: string;
+//   authorname: string;
+//   avatar: string;
+//   likes: string[];
+//   totalLikes: number;
+//   files: PostFile[];
+//   visibility: 'public' | 'private';
+//   stored: string[];
+//   totalComments: number;
+//   createdAt: string;
+//   updatedAt: string;
+//   editedAt: string;
+//   __v: number;
+//   Stored: boolean;
+//   Liked: boolean;
+//   isAuthor: boolean;
+//   refId: string;
+// }
 
 export interface Post {
   _id: string;
@@ -46,20 +42,24 @@ export interface Post {
   author: string;
   authorname: string;
   avatar: string;
+  group: string | null;
+  project: string | null;
+  section: string | null;
   likes: string[];
   totalLikes: number;
   files: PostFile[];
-  visibility: 'public' | 'private';
+  refId: string;
   stored: string[];
   totalComments: number;
+  editedAt: string;
+  status: string;
+  visibility: 'public' | 'private';
   createdAt: string;
   updatedAt: string;
-  editedAt: string;
   __v: number;
   Stored: boolean;
   Liked: boolean;
   isAuthor: boolean;
-  refId: string;
 }
 
 export interface PostRefData {
@@ -127,6 +127,9 @@ export interface PostUpload {
   title: string;
   refId: string;
   content: string;
+  group?: string;
+  role?: string;
+  section?: string;
   tags: string[];
   visibility: 'public' | 'private';
   code_files: PostFile[];
@@ -140,7 +143,7 @@ export const fetchPosts = async (
   criteria: string,
   search?: string,
   tags?: string[],
-  type?: 'me' | 'stored',
+  type?: 'me' | 'stored' | 'feed',
 ): Promise<PostResponse> => {
   try {
     const response = await axiosInstance.get<PostResponse>(
@@ -407,7 +410,18 @@ export const createPost = async (postData: PostUpload): Promise<string> => {
   formData.append('title', postData.title);
   formData.append('visibility', postData.visibility);
   formData.append('content', postData.content);
-  formData.append('refId', postData.refId);
+  if (postData.group) {
+    formData.append('group', postData.group);
+  }
+  if (postData.role) {
+    formData.append('role', postData.role);
+  }
+  if (postData.section) {
+    formData.append('section', postData.section);
+  }
+  {
+    postData.refId && formData.append('refId', postData.refId);
+  }
   postData.tags.forEach((tag) => formData.append('tags[]', tag)); // Send tags as an array
 
   // Append files as blobs (title and content will be included as files)
@@ -433,7 +447,9 @@ export const updatePost = async (postId: string, postData: PostUpload): Promise<
 
   // Append title, content, and tags
   formData.append('title', postData.title);
-  formData.append('refId', postData.refId);
+  {
+    postData.refId && formData.append('refId', postData.refId);
+  }
   formData.append('visibility', postData.visibility);
   formData.append('content', postData.content);
   postData.tags.forEach((tag) => formData.append('tags[]', tag)); // Send tags as an array
@@ -531,6 +547,14 @@ export const fetchComments = async (
 // Edit a comment on a post
 export const updateComment = async (commentId: string, commentData: CommentRequest) => {
   const response = await axiosInstance.put(API_ENDPOINTS.UPDATE_COMMENT(commentId), commentData);
+  return response.data;
+};
+
+// Moderate a group post (approve/reject)
+export const moderateGroupPost = async (groupId: string, action: 'approve' | 'reject') => {
+  const response = await axiosInstance.post(API_ENDPOINTS.POST_MODERATE_GROUP(groupId, action), {
+    message: action === 'approve' ? 'approved' : 'rejected',
+  });
   return response.data;
 };
 

@@ -10,7 +10,8 @@ import { toast } from 'react-toastify';
 import PostRef from '../components/postRef';
 import 'react-toastify/dist/ReactToastify.css';
 import '../index.css';
-import { tags, Post, createPost, PostFile, PostUpload, updatePost } from '../services/postService';
+import { Post, createPost, PostFile, PostUpload, updatePost } from '../services/postService';
+import { tags, tagColors } from '../utils/helpers';
 
 interface PostCreateProps {
   postData?: Post; // Optional prop to enable edit mode
@@ -18,8 +19,9 @@ interface PostCreateProps {
   refresh?: (proppost: Post) => void;
   onPostCreated?: () => void;
   postRefId?: string;
-  mode?: number; //0: tạo ở community. 1: tạo trong group
+  mode?: number; //0: tạo ở community. 1: tạo trong group. 2: tạo trong section
   desId?: string;
+  role?: string;
 }
 
 const PostCreate: React.FC<PostCreateProps> = ({
@@ -28,6 +30,9 @@ const PostCreate: React.FC<PostCreateProps> = ({
   refresh = () => {},
   onPostCreated,
   postRefId,
+  mode,
+  desId,
+  role,
 }) => {
   const [files, setFiles] = useState<PostFile[]>([]); // Changed to PostFile[]
   const [activeTab, setActiveTab] = useState<number>(0);
@@ -40,7 +45,6 @@ const PostCreate: React.FC<PostCreateProps> = ({
   useEffect(() => {
     // Disable body scroll
     document.body.style.overflow = 'hidden';
-    // Cleanup to restore scroll behavior when component is unmounted or modal is closed
     return () => {
       document.body.style.overflow = 'auto';
     };
@@ -154,8 +158,10 @@ const PostCreate: React.FC<PostCreateProps> = ({
           refId: postRefId || '',
           code_files: files.map((file) => ({
             fileName: file.fileName,
-            fileUrl: file.fileUrl, // The file content will be the content of the file
+            fileUrl: file.fileUrl,
           })),
+          ...(mode === 1 ? { group: desId } : mode === 2 ? { project: desId } : {}),
+          ...(role ? { role } : {}),
         };
 
         if (postData) {
@@ -170,6 +176,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
             editedAt: 'Recently',
           });
         } else {
+          console.log(postUploadData);
           await createPost(postUploadData); // Otherwise, call createPost
 
           onPostCreated?.();
@@ -253,7 +260,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
             target.style.height = `${Math.min(target.scrollHeight, 2000)}px`; // Adjust height to content, with max height of 2000px
           }}
           placeholder={postRefId ? 'Share your thoughts about this post...' : 'Share your code...'}
-          className='mb-4 w-full p-2 bg-Background/Middle overflow-hidden resize-none focus:outline-none focus:border-transparent'
+          className='mb-4 w-full py-2 px-4 bg-Background/Middle overflow-hidden resize-none rounded-md focus:outline-none focus:border-transparent'
           rows={1}
         />
 
@@ -379,10 +386,12 @@ const PostCreate: React.FC<PostCreateProps> = ({
                 <div className='flex flex-col'>
                   <div
                     className={`${
-                      selectedTags.includes(tag) ? 'bg-Primary/Light' : 'bg-white'
+                      selectedTags.includes(tag)
+                        ? `${tagColors[tag]}`
+                        : ' bg-white hover:bg-gray-300'
                     } rounded-3xl p-1`}
                   >
-                    <p className={'text-Primary/Dark'}>{tag}</p>
+                    <p className='text-Primary/Dark'>{tag}</p>
                   </div>
                 </div>
               </button>
@@ -394,46 +403,49 @@ const PostCreate: React.FC<PostCreateProps> = ({
       {/* Submit Button */}
       <div className='mt-auto'>
         <div className='flex justify-between space-x-2'>
-          <Menu as='div' className='relative inline-block text-left mt-4'>
-            <div>
-              <MenuButton className='inline-flex justify-center items-center w-28 px-4 py-2 font-medium text-white bg-Primary/Dark border border-Primary/Dark rounded-xl'>
-                {privacy === 'public' ? (
-                  <span className='flex items-center'>
-                    <TbEye className='inline mr-2 text-lg' /> Public
-                  </span>
-                ) : (
-                  <span className='flex items-center'>
-                    <TbLock className='inline mr-2 text-lg' /> Private
-                  </span>
-                )}
-              </MenuButton>
-            </div>
-
-            <MenuItems className='absolute w-max bottom-full mb-2  origin-bottom-left bg-white divide-y divide-gray-100 rounded-md shadow-lg'>
+          {!mode && (
+            <Menu as='div' className='relative inline-block text-left mt-4'>
               <div>
-                <MenuItem>
-                  <button
-                    onClick={() => handlePrivacyChange('public')}
-                    className='data-[active]:bg-Primary/Dark data-[active]:text-white  text-gray-900
-                   group flex rounded-md items-center w-full p-2 text-sm'
-                  >
-                    <TbEye className='text-lg mr-2' />
-                    <span className='font-semibold'>Public</span>: Everyone could view this post.
-                  </button>
-                </MenuItem>
-                <MenuItem>
-                  <button
-                    onClick={() => handlePrivacyChange('private')}
-                    className='data-[active]:bg-Primary/Dark data-[active]:text-white  text-gray-900
-                     group flex rounded-md items-center w-full p-2 text-sm'
-                  >
-                    <TbLock className='text-lg mr-2' />
-                    <span className='font-semibold'>Private</span>: Only you could view this post.
-                  </button>
-                </MenuItem>
+                <MenuButton className='inline-flex justify-center items-center w-28 px-4 py-2 font-medium text-white bg-Primary/Dark border border-Primary/Dark rounded-xl'>
+                  {privacy === 'public' ? (
+                    <span className='flex items-center'>
+                      <TbEye className='inline mr-2 text-lg' /> Public
+                    </span>
+                  ) : (
+                    <span className='flex items-center'>
+                      <TbLock className='inline mr-2 text-lg' /> Private
+                    </span>
+                  )}
+                </MenuButton>
               </div>
-            </MenuItems>
-          </Menu>
+
+              <MenuItems className='absolute w-max bottom-full mb-2  origin-bottom-left bg-white divide-y divide-gray-100 rounded-md shadow-lg'>
+                <div>
+                  <MenuItem>
+                    <button
+                      onClick={() => handlePrivacyChange('public')}
+                      className='data-[active]:bg-Primary/Dark data-[active]:text-white  text-gray-900
+                   group flex rounded-md items-center w-full p-2 text-sm'
+                    >
+                      <TbEye className='text-lg mr-2' />
+                      <span className='font-semibold'>Public</span>: Everyone could view this post.
+                    </button>
+                  </MenuItem>
+                  <MenuItem>
+                    <button
+                      onClick={() => handlePrivacyChange('private')}
+                      className='data-[active]:bg-Primary/Dark data-[active]:text-white  text-gray-900
+                     group flex rounded-md items-center w-full p-2 text-sm'
+                    >
+                      <TbLock className='text-lg mr-2' />
+                      <span className='font-semibold'>Private</span>: Only you could view this post.
+                    </button>
+                  </MenuItem>
+                </div>
+              </MenuItems>
+            </Menu>
+          )}
+
           <button
             onClick={handleSubmit}
             className='w-24 py-2 mt-4 bg-Accent/Target text-white font-bold rounded-xl'

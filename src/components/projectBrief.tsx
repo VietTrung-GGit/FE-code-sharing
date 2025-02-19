@@ -2,25 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { ProjectDataBrief, joinProject, leaveProject } from '../services/projectService';
 import { IoIosMore, IoIosMail, IoMdArrowDropdown } from 'react-icons/io';
+import { Link } from 'react-router-dom';
 interface ProjectBriefProps {
-  projectData?: ProjectDataBrief;
+  projectData: ProjectDataBrief;
+  detail: boolean;
 }
 
-const mockProject: ProjectDataBrief = {
-  _id: 'mock-id',
-  name: 'Mock Project',
-  group: 'dad',
-  avatar:
-    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
-  avatarmembers: [
-    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
-    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
-    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
-  ],
-};
-
-const ProjectBrief: React.FC<ProjectBriefProps> = ({ projectData }) => {
-  const [project, setProject] = useState<ProjectDataBrief>(mockProject);
+const ProjectBrief: React.FC<ProjectBriefProps> = ({ projectData, detail }) => {
+  const [project, setProject] = useState<ProjectDataBrief>(projectData);
   const [joined, setJoined] = useState<boolean>(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -55,7 +44,7 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ projectData }) => {
   return (
     <div className='flex justify-center items-center relative'>
       <div className='relative bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] my-3 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
-        <div className='absolute right-0 top-0'>
+        <div className='absolute right-3 top-2'>
           <button
             className='hover:text-gray-300 text-white text-3xl'
             onClick={() => setIsDropdownOpen((prev) => !prev)}
@@ -76,23 +65,30 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ projectData }) => {
         </div>
         <div className='flex items-center w-full space-x-4'>
           {/* Project Avatar */}
-          <div className='flex-shrink-0'>
+          <Link to={`/project/${projectData?._id ?? '#'}`} className='flex-shrink-0'>
             <img
               src={project.avatar}
               alt='Project Icon'
               className='w-28 h-28 rounded-full object-cover'
             />
-          </div>
+          </Link>
 
           {/* Project Info */}
-          <div className='flex flex-col justify-center flex-grow'>
+          <Link
+            to={`/project/${projectData?._id ?? '#'}`}
+            className='flex flex-col justify-center flex-grow'
+          >
             <p className='text-white font-semibold text-2xl'>
               {project.name}&nbsp;
-              <span className='text-gray-500 font-semibold text-xl'>from {project.group}</span>
+              {detail && (
+                <span className='text-gray-500 font-semibold text-xl'>
+                  from {project.groupData[0].name}
+                </span>
+              )}
             </p>
             {/* Avatar Members */}
             <div className='flex space-x-1 mt-2'>
-              {project.avatarmembers.map((avatar, index) => (
+              {project.visibleMembers.map((avatar, index) => (
                 <img
                   key={index}
                   src={avatar}
@@ -101,7 +97,7 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ projectData }) => {
                 />
               ))}
             </div>
-          </div>
+          </Link>
 
           {/* Join/Leave Button */}
           <button

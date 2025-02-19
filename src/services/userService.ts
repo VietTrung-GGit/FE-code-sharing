@@ -9,6 +9,7 @@ export interface UserDataFull {
   createdAt: string;
   avatar: string;
   username: string;
+  followed: boolean;
   email: string;
   story: string;
   totalLikes: number;
@@ -17,12 +18,44 @@ export interface UserDataFull {
   totalFollowing: number;
 }
 
+export interface UserDataProfile {
+  _id: string;
+  displayname: string;
+  avatar: string;
+  username: string;
+  email: string;
+  story: string;
+}
+
+// export interface UserBriefData {
+//   _id: string;
+//   avatar: string;
+//   createdAt: string;
+//   displayname: string;
+//   email: string;
+//   followed: boolean;
+//   following: UserPublicData[];
+//   password: string;
+//   pins: Record<string, any>[];
+//   refreshTokens: string[];
+//   role: 'admin' | 'user' | 'moderator';
+//   totalComments: number;
+//   totalFollowers: number;
+//   totalFollowing: number;
+//   totalLikes: number;
+//   totalPosts: number;
+//   updatedAt: string;
+//   username: string;
+//   __v: number;
+// }
+
 export interface UserPublicData {
   _id: string;
   displayname: string;
   createdAt: string;
   avatar: string;
   username: string;
+  followed: boolean;
   email: string;
   story: string;
   totalLikes: number;
@@ -40,8 +73,10 @@ export interface UserBriefData {
   _id: string;
   displayname: string;
   avatar: string;
+  followed: boolean;
   username: string;
   totalLikes: number;
+  role: string;
   totalFollowers: number;
   email: string;
 }
@@ -123,9 +158,9 @@ export const fetchUsers = async (
   order: 'ascending' | 'descending' = 'ascending',
   criteria: 'searchquery' | 'dateJoined' | 'followers' | 'likes',
   search?: string,
-): Promise<{ users: UserPublicData[]; hasMore: boolean }> => {
+): Promise<{ users: UserBriefData[]; hasMore: boolean }> => {
   try {
-    const response = await axiosInstance.get<{ users: UserPublicData[]; hasMore: boolean }>(
+    const response = await axiosInstance.get<{ users: UserBriefData[]; hasMore: boolean }>(
       API_ENDPOINTS.FETCH_USERS(page, limit, order, criteria, search),
     );
     return response.data;
@@ -143,14 +178,130 @@ export const fetchGroupMembers = async (
   order: 'ascending' | 'descending' = 'ascending',
   criteria: 'searchquery' | 'dateJoined' | 'followers' | 'likes',
   search?: string,
-): Promise<{ users: UserPublicData[]; hasMore: boolean }> => {
+): Promise<{ users: UserBriefData[]; hasMore: boolean }> => {
   try {
-    const response = await axiosInstance.get<{ users: UserPublicData[]; hasMore: boolean }>(
+    const response = await axiosInstance.get<{ users: UserBriefData[]; hasMore: boolean }>(
       API_ENDPOINTS.GROUP_MEMBERS(groupId, page, limit, order, criteria, search),
     );
     return response.data;
   } catch (error) {
     console.error('Error fetching users:', error);
+    throw error;
+  }
+};
+
+// Fetch users
+export const fetchUserFollowers = async (
+  groupId: string,
+  page: number = 1,
+  limit: number = 10,
+  order: 'ascending' | 'descending' = 'ascending',
+  criteria: 'searchquery' | 'dateJoined' | 'followers' | 'likes',
+  search?: string,
+): Promise<{ users: UserBriefData[]; hasMore: boolean }> => {
+  try {
+    const response = await axiosInstance.get<{ users: UserBriefData[]; hasMore: boolean }>(
+      API_ENDPOINTS.USER_FOLLOWERS(groupId, page, limit, order, criteria, search),
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    throw error;
+  }
+};
+
+export const fetchSuggestedGroupUsers = async (
+  groupId: string,
+  page: number = 1,
+  limit: number = 10,
+  search?: string,
+): Promise<{ users: UserBriefData[]; hasMore: boolean }> => {
+  try {
+    const response = await axiosInstance.get<{ users: UserBriefData[]; hasMore: boolean }>(
+      API_ENDPOINTS.GROUP_SUGGESTED_USERS(groupId),
+      { params: { page, limit, search } },
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching suggested users:', error);
+    throw error;
+  }
+};
+
+export const fetchUninvitedProjectUsers = async (
+  projectId: string,
+  page: number = 1,
+  limit: number = 10,
+  search?: string,
+): Promise<{ users: UserBriefData[]; hasMore: boolean }> => {
+  try {
+    const response = await axiosInstance.get<{ users: UserBriefData[]; hasMore: boolean }>(
+      API_ENDPOINTS.PROJECT_UNINVITED_USERS(projectId),
+      { params: { page, limit, search } },
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching uninvited project users:', error);
+    throw error;
+  }
+};
+
+export const fetchUninvitedSectionUsers = async (
+  sectionId: string,
+  page: number = 1,
+  limit: number = 10,
+  search?: string,
+): Promise<{ users: UserBriefData[]; hasMore: boolean }> => {
+  try {
+    const response = await axiosInstance.get<{ users: UserBriefData[]; hasMore: boolean }>(
+      API_ENDPOINTS.PROJECT_SECTION_UNINVITED_USERS(sectionId),
+      { params: { page, limit, search } },
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching uninvited section users:', error);
+    throw error;
+  }
+};
+
+// Invite users to a project
+export const inviteProjectMembers = async (projectId: string, members: string[]) => {
+  try {
+    const response = await axiosInstance.post<{ message: string }>(
+      API_ENDPOINTS.PROJECT_INVITE(projectId),
+      { members },
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error inviting project members:', error);
+    throw error;
+  }
+};
+
+// Invite users to a group
+export const inviteGroupMembers = async (groupId: string, members: string[]) => {
+  try {
+    const response = await axiosInstance.post<{ message: string }>(
+      API_ENDPOINTS.GROUP_INVITE(groupId),
+      { members },
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error inviting group members:', error);
+    throw error;
+  }
+};
+
+// Add participants to a section
+export const addSectionParticipants = async (sectionId: string, members: string[]) => {
+  try {
+    const response = await axiosInstance.post<{ message: string }>(
+      API_ENDPOINTS.SECTION_ADD_PARTICIPANT(sectionId),
+      { members },
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error adding section participants:', error);
     throw error;
   }
 };

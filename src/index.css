@@ -21,8 +21,8 @@ body {
 /* Global Tooltip Styling */
 /* src/index.css or src/globals.css */
 .my-custom-link {
-  color: blue;
-  font-weight: bold;
+  color: #9ce1e7;
+  font-weight: semibold;
   text-decoration: underline;
 }
 

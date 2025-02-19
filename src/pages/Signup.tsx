@@ -61,8 +61,6 @@ function Signup() {
     try {
       // Send data to the backend
       await signup(formData.username, formData.email, formData.password);
-
-      
     } catch (error: any) {
       // Handle errors
       toast.error(error.response?.data?.message || 'An error occurred during signup.');
@@ -121,7 +119,7 @@ function Signup() {
               <br />
               <p className='text-l text-white m-6 mx-2'>
                 Already have an account?{' '}
-                <Link to='/signin' className='font-bold'>
+                <Link to='/signin' className='font-bold text-Primary/Light'>
                   Sign in!
                 </Link>
               </p>

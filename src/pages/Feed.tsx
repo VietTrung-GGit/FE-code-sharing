@@ -15,7 +15,11 @@ import LoadingSpinner from '../components/loadingAnimate';
 import PostCreate from '../components/postCreate';
 import { Link } from 'react-router-dom';
 
-function Feed() {
+interface FeedProps {
+  type: string;
+}
+
+const Feed: React.FC<FeedProps> = ({ type }) => {
   const [searchParams] = useSearchParams();
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -30,18 +34,7 @@ function Feed() {
   const quickNavButtonRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const getActive = (): 'feed' | 'stored' => {
-    const path = location.pathname.split('?')[0]; // Remove query parameters
 
-    switch (path) {
-      case '/feed':
-        return 'feed';
-      case '/saves':
-        return 'stored';
-      default:
-        return 'feed';
-    }
-  };
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -67,7 +60,7 @@ function Feed() {
         (searchParams.get('criteria') as string) || 'date',
         debouncedSearchTerm,
         tagsParam.split(','),
-        getActive(),
+        type as 'feed' | 'stored',
       );
 
       setHasMore(postsResponse.hasMore);
@@ -85,7 +78,7 @@ function Feed() {
     setHasMore(true);
     fetchAndUpdatePosts();
     // }
-  }, [debouncedSearchTerm, searchParams]);
+  }, [type, debouncedSearchTerm, searchParams]);
 
   // useEffect(() => {
   //   // This effect will run only when debouncedSearchTerm changes
@@ -106,6 +99,19 @@ function Feed() {
   const handleCloseEditModal = () => {
     setShowEditModal(false);
   };
+  const [refId, setRefId] = useState<string>('');
+  const handleCreate = () => {
+    setRefId('');
+    setShowPostCreate(true);
+  };
+
+  const handleShare = (postId?: string) => {
+    if (postId) {
+      setRefId(postId);
+    }
+    setShowPostCreate(true);
+  };
+
   const observer = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -216,10 +222,6 @@ function Feed() {
   const [showPostCreate, setShowPostCreate] = useState<boolean>(false);
   const { user } = useAuthUser();
 
-  const handleCreate = () => {
-    setShowPostCreate(true);
-  };
-
   const handleCloseModal = () => {
     setShowPostCreate(false);
   };
@@ -281,30 +283,32 @@ function Feed() {
       </div>
       <>
         <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-          <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
-            <div className='flex flex-row w-full items-center space-x-4'>
-              <div className='inline-block flex-shrink-0'>
-                <img
-                  src={
-                    user?.avatar ||
-                    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                  }
-                  alt='Profile Icon'
-                  className='w-[52px] h-[52px] rounded-full object-cover'
-                />
-              </div>
+          {type == 'stored' && (
+            <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+              <div className='flex flex-row w-full items-center space-x-4'>
+                <div className='inline-block flex-shrink-0'>
+                  <img
+                    src={
+                      user?.avatar ||
+                      'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+                    }
+                    alt='Profile Icon'
+                    className='w-[52px] h-[52px] rounded-full object-cover'
+                  />
+                </div>
 
-              {/* Share Text Section */}
-              <button
-                className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6 overflow-hidden whitespace-nowrap'
-                onClick={handleCreate}
-              >
-                <p className='text-left text-Primary/Light text-sm overflow-hidden'>
-                  Share your code...
-                </p>
-              </button>
+                {/* Share Text Section */}
+                <button
+                  className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6 overflow-hidden whitespace-nowrap'
+                  onClick={handleCreate}
+                >
+                  <p className='text-left text-Primary/Light text-sm overflow-hidden'>
+                    Share your code...
+                  </p>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {showPostCreate && (
             <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
@@ -326,13 +330,13 @@ function Feed() {
           {/* Show NothingPost only after the first load, no posts, and not loading */}
           {!loading && posts.length === 0 && (
             <div className='mb-5'>
-              <div className='flex justify-center mx-0 lg:mx-6'>
+              <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
                 <div
-                  className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-8 flex bg-Background/Bottom text-center p-12 w-full h-40 border-Primary/Dark border-solid box-border border-2 rounded-3xl
-    sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-1/2 mt-4`}
+                  className={`bg-Background/Bottom border-2 h-32  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
+                  border-solid box-border text-center mt-3`}
                 >
                   <div className='h-auto'>
-                    <p className='text-left text-white text-l -mt-2 xsmnopost:mt-2 sm:mt-2 xl:mt-4'>
+                    <p className='text-left text-white text-l mt-0'>
                       Nothing here... Go explore{' '}
                       <Link to='/feed' className='text-Accent/Target cursor-pointer inline'>
                         Codemunity
@@ -372,7 +376,7 @@ function Feed() {
       <div ref={sidebarRef}>
         <Sidebar
           isOpen={activeComponent === 'sidebar'}
-          state={getActive()}
+          state={type}
           onClose={() => setActiveComponent(null)}
         />
       </div>
@@ -394,7 +398,7 @@ function Feed() {
       />
     </div>
   );
-}
+};
 
 export default Feed;
 

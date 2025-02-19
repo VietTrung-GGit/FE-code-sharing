@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BiSolidEdit, BiTrashAlt } from 'react-icons/bi';
 import { CustomLinkify } from '../utils/linkifyConfig';
 import { Tooltip } from 'react-tooltip';
-import { TbEye, TbLockOpen, TbLock } from 'react-icons/tb';
+import { TbEye, TbLockOpen, TbLock, TbFlagCheck, TbFlagCancel, TbFlag } from 'react-icons/tb';
 import { Link } from 'react-router-dom';
 import { TbMessage2Share, TbLink } from 'react-icons/tb';
 import { FaShareSquare } from 'react-icons/fa';
@@ -22,14 +22,76 @@ import {
   deletePost,
   fetchPostDetail,
   setPostVisibility,
+  moderateGroupPost,
 } from '../services/postService';
 
 interface PostBriefProps {
   postData: Post;
   shareAction?: (postRefId: string) => void;
+  role?: string;
 }
 
-const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {} }) => {
+interface ToggleButtonProps {
+  status: string;
+  isAdmin: boolean;
+  postId: string;
+}
+
+const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) => {
+  const [loading, setLoading] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState(status);
+
+  const handleModeration = async (action: 'approve' | 'reject') => {
+    if (loading) return;
+    setLoading(true);
+
+    try {
+      await moderateGroupPost(postId, action);
+      setCurrentStatus(action === 'approve' ? 'approved' : 'rejected');
+    } catch (error) {
+      console.error('Moderation failed', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className='absolute text-sm top-0 right-0 flex gap-2 p-2'>
+      {/* Show status with bold color once moderated */}
+      {currentStatus === 'approved' && <div></div>}
+      {currentStatus === 'rejected' && (
+        <div className='flex items-center justify-center gap-2 w-28 py-1 px-1 rounded-full bg-red-400 text-white font-semibold'>
+          <TbFlagCancel className='text-xl' />
+          Rejected
+        </div>
+      )}
+
+      {/* Show moderation buttons if pending and admin */}
+      {currentStatus === 'pending' && isAdmin && (
+        <div className='flex gap-1'>
+          <button
+            onClick={() => handleModeration('approve')}
+            disabled={loading}
+            className='flex items-center justify-center gap-2 w-24 py-1 rounded-l-full border-r-4 border-green-400 bg-white text-green-500 hover:bg-green-400 hover:text-white transition disabled:opacity-50'
+          >
+            <TbFlagCheck className='text-xl' />
+            Approve
+          </button>
+          <button
+            onClick={() => handleModeration('reject')}
+            disabled={loading}
+            className='flex items-center justify-center gap-2 w-24 py-1 rounded-r-full border-l-4 border-red-400 bg-white text-red-400 hover:bg-red-400 hover:text-white transition disabled:opacity-50'
+          >
+            <TbFlagCancel className='text-xl' />
+            Reject
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {}, role }) => {
   const [post, setPost] = useState<Post>(postData);
   const [activeTab, setActiveTab] = useState<number>(0);
   const [showPostDetail, setShowPostDetail] = useState<boolean>(false); // New state for modal visibility
@@ -40,6 +102,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {} 
   const [isTruncated, setIsTruncated] = useState(false);
   const [hovered, setHovered] = useState(false);
   const textRef = useRef<HTMLParagraphElement>(null);
+  const isAdmin = role == 'admin' || role == 'creator';
 
   useEffect(() => {
     // Initialize the post state with the postData prop
@@ -253,7 +316,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {} 
           )}
 
           {/* Avatar and Tags */}
-          <div className='flex flex-col sm:flex-row sm:items-center justify-between mb-4'>
+          <div className='relative flex flex-col sm:flex-row sm:items-center justify-between mb-4'>
             <div className='flex items-center gap-4'>
               <Link to={`/user/${post.author}`} className='flex items-center gap-4'>
                 <img
@@ -282,10 +345,12 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {} 
                     )}
                 </p>
                 {post.tags.length > 0 && <TagsScroll tags={post.tags} />}
-                {/* Check if `updateat` is different from `createat` */}
               </div>
             </div>
-            <div className={`mt-2 sm:mt-0 w-full sm:w-auto `}></div>
+            <div className='mt-2 sm:mt-0 w-full sm:w-auto'></div>
+            {post && post.group && (
+              <ToggleButton status={post.status} isAdmin={isAdmin} postId={post._id} />
+            )}
           </div>
 
           {/* Title */}
@@ -341,6 +406,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {} 
                     ? getEditorLanguage(post.files[activeTab]?.fileName)
                     : 'markdown'
                 }
+                // language='markdown'
                 value={post.files[activeTab]?.fileUrl || ''}
                 theme='vs-dark'
                 options={{

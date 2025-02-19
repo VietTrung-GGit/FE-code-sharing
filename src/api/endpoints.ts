@@ -56,6 +56,9 @@ export const API_ENDPOINTS = {
     if (type === 'me') {
       return `/me?${queryParams.toString()}`;
     }
+    if (type === 'stored') {
+      return `/me?type=stored${queryParams.toString()}`;
+    }
     return `/community?${queryParams.toString()}`;
   },
 
@@ -75,7 +78,7 @@ export const API_ENDPOINTS = {
     queryParams.append('criteria', criteria);
     if (search) queryParams.append('search', search);
     if (tags.length > 0) queryParams.append('tags', tags.join(','));
-    return `/post/${userId}/filter?${queryParams.toString()}`;
+    return `user/posts/${userId}?${queryParams.toString()}`;
   },
 
   GROUP_POSTS: (
@@ -94,7 +97,7 @@ export const API_ENDPOINTS = {
     queryParams.append('criteria', criteria);
     if (search) queryParams.append('search', search);
     if (tags.length > 0) queryParams.append('tags', tags.join(','));
-    return `/group/${groupId}/posts?${queryParams.toString()}`;
+    return `/group/posts/${groupId}?${queryParams.toString()}`;
   },
 
   GROUP_MY_POSTS: (
@@ -109,11 +112,12 @@ export const API_ENDPOINTS = {
     const queryParams = new URLSearchParams();
     queryParams.append('page', String(page));
     queryParams.append('limit', String(limit));
+    queryParams.append('groupId', String(groupId));
     queryParams.append('order', order);
     queryParams.append('criteria', criteria);
     if (search) queryParams.append('search', search);
     if (tags.length > 0) queryParams.append('tags', tags.join(','));
-    return `/group/${groupId}/posts?${queryParams.toString()}`;
+    return `/me?${queryParams.toString()}`;
   },
 
   GROUP_PENDING_POSTS: (
@@ -132,7 +136,7 @@ export const API_ENDPOINTS = {
     queryParams.append('criteria', criteria);
     if (search) queryParams.append('search', search);
     if (tags.length > 0) queryParams.append('tags', tags.join(','));
-    return `/group/${groupId}/posts?${queryParams.toString()}`;
+    return `/group/posts/${groupId}?${queryParams.toString()}&status=pending`;
   },
 
   SECTION_POSTS: (
@@ -182,7 +186,25 @@ export const API_ENDPOINTS = {
     queryParams.append('order', order);
     queryParams.append('criteria', criteria);
     if (search) queryParams.append('search', search);
-    return `/user/${groupId}/filter?${queryParams.toString()}`;
+    return `/group/users/${groupId}?${queryParams.toString()}`;
+  },
+
+  USER_FOLLOWERS: (
+    userId: string,
+    page: number = 1,
+    limit: number = 10,
+    order: 'ascending' | 'descending' = 'ascending',
+    criteria: 'searchquery' | 'dateJoined' | 'followers' | 'likes',
+    search: string = '',
+  ) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('following', String(userId));
+    queryParams.append('limit', String(limit));
+    queryParams.append('order', order);
+    queryParams.append('criteria', criteria);
+    if (search) queryParams.append('search', search);
+    return `/user/getUsers?${queryParams.toString()}`;
   },
 
   FETCH_USERS: (
@@ -204,9 +226,9 @@ export const API_ENDPOINTS = {
   FETCH_GROUPS: (
     page: number = 1,
     limit: number = 10,
+    order: 'ascending' | 'descending' = 'descending',
+    criteria: 'dateCreated' | 'members' | 'posts' = 'dateCreated',
     search: string = '',
-    order: 'ascending' | 'descending' = 'ascending',
-    criteria: 'dateCreated' | 'members' | 'posts',
   ) => {
     const queryParams = new URLSearchParams();
     queryParams.append('page', String(page));
@@ -221,8 +243,8 @@ export const API_ENDPOINTS = {
     page: number = 1,
     limit: number = 10,
     search: string = '',
-    order: 'ascending' | 'descending' = 'ascending',
-    criteria: 'dateCreated' | 'members' | 'posts',
+    order: 'ascending' | 'descending' = 'descending',
+    criteria: 'dateCreated' | 'members' | 'posts' = 'dateCreated',
   ) => {
     const queryParams = new URLSearchParams();
     queryParams.append('page', String(page));
@@ -231,6 +253,45 @@ export const API_ENDPOINTS = {
     queryParams.append('criteria', criteria);
     if (search) queryParams.append('search', search);
     return `/project/find?${queryParams.toString()}`;
+  },
+  USER_PROJECTS: (
+    groupId: string,
+    page: number = 1,
+    limit: number = 10,
+    order: 'ascending' | 'descending' = 'descending',
+    criteria: 'dateCreated' | 'members' | 'posts' = 'dateCreated',
+    search: string = '',
+  ) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('limit', String(limit));
+    queryParams.append('order', order);
+    if (groupId) {
+      queryParams.append('user', String(groupId));
+    }
+    queryParams.append('criteria', criteria);
+    if (search) queryParams.append('search', search);
+    return `/project/find?${queryParams.toString()}`;
+  },
+
+  USER_GROUPS: (
+    groupId: string,
+    page: number = 1,
+    limit: number = 10,
+    order: 'ascending' | 'descending' = 'ascending',
+    criteria: 'dateCreated' | 'members' | 'posts',
+    search: string = '',
+  ) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    if (groupId) {
+      queryParams.append('user', String(groupId));
+    }
+    queryParams.append('limit', String(limit));
+    queryParams.append('order', order);
+    queryParams.append('criteria', criteria);
+    if (search) queryParams.append('search', search);
+    return `/group/find?${queryParams.toString()}`;
   },
 
   GROUP_PROJECTS: (
@@ -242,12 +303,13 @@ export const API_ENDPOINTS = {
     search: string = '',
   ) => {
     const queryParams = new URLSearchParams();
+    queryParams.append('groupId', String(groupId));
     queryParams.append('page', String(page));
     queryParams.append('limit', String(limit));
     queryParams.append('order', order);
     queryParams.append('criteria', criteria);
     if (search) queryParams.append('search', search);
-    return `/project/${groupId}/find?${queryParams.toString()}`;
+    return `project/find?${queryParams.toString()}`;
   },
 
   // Fetch post details by post ID
@@ -338,23 +400,28 @@ export const API_ENDPOINTS = {
   GROUP_UPDATE: (groupId: string) => `/group/update/${groupId}`,
   GROUP_DELETE: (groupId: string) => `/group/delete/${groupId}`,
   GROUP_FULL_DATA: (groupId: string) => `/group/fullData/${groupId}`,
-  GROUP_INVITE: (groupId: string) => `/group/invite/${groupId}`,
-  GROUP_REMOVE_MEMBER: (groupId: string, removedUserId: string) =>
-    `/group/removeMember/${groupId}/${removedUserId}`,
+
   GROUP_JOIN: (groupId: string) => `/group/join/${groupId}`,
   GROUP_LEAVE: (groupId: string) => `/group/leave/${groupId}`,
+
   GROUP_ASSIGN_ADMIN: (groupId: string, assignAdminUserId: string) =>
     `/group/assignAdmin/${groupId}/${assignAdminUserId}`,
+  GROUP_REMOVE_ADMIN: (groupId: string, removeAdminUserId: string) =>
+    `/group/removeAdmin/${groupId}/${removeAdminUserId}`,
+  GROUP_REMOVE_MEMBER: (groupId: string, removedUserId: string) =>
+    `/group/removeMember/${groupId}/${removedUserId}`,
+
   GROUP_ASSIGN_CREATOR: (groupId: string, assignCreatorUserId: string) =>
     `/group/assignCreator/${groupId}/${assignCreatorUserId}`,
+
   GROUP_CONFIRM_INVITE: (groupId: string) => `/group/confirmInvite/${groupId}`,
+  PROJECT_CONFIRM_INVITE: (projectId: string) => `/project/confirmInvite/${projectId}`,
 
   // Project-related
   PROJECT_CREATE: (groupId: string) => `/project/create/${groupId}`,
   PROJECT_UPDATE: (projectId: string) => `/project/update/${projectId}`,
   PROJECT_DELETE: (projectId: string) => `/project/delete/${projectId}`,
   PROJECT_FULL_DATA: (projectId: string) => `/project/fullData/${projectId}`,
-  PROJECT_INVITE: (projectId: string) => `/project/invite/${projectId}`,
   PROJECT_REMOVE_MEMBER: (projectId: string, removedUserId: string) =>
     `/project/removeMember/${projectId}/${removedUserId}`,
   PROJECT_JOIN: (projectId: string) => `/project/join/${projectId}`,
@@ -363,5 +430,36 @@ export const API_ENDPOINTS = {
     `/project/assignAdmin/${projectId}/${assignAdminUserId}`,
   PROJECT_REMOVE_ADMIN: (projectId: string, removeAdminUserId: string) =>
     `/project/removeAdmin/${projectId}/${removeAdminUserId}`,
+
+  GROUP_SUGGESTED_USERS: (groupId: string) => `/group/suggestedUser/${groupId}`,
+  PROJECT_UNINVITED_USERS: (projectId: string) => `/project/uninvitedUsers/${projectId}`,
+  PROJECT_SECTION_UNINVITED_USERS: (sectionId: string) =>
+    `/project/section/${sectionId}/getUninvitedUsers`,
+
+  PROJECT_INVITE: (projectId: string) => {
+    return `/project/invite/${projectId}`;
+  },
+
+  GROUP_INVITE: (groupId: string) => {
+    return `/group/invite/${groupId}`;
+  },
+
+  SECTION_ADD_PARTICIPANT: (sectionId: string) => {
+    return `/project/section/${sectionId}/addingParticipant`;
+  },
+
+  POST_MODERATE_GROUP: (groupId: string, action: 'approve' | 'reject') => {
+    return `/group/postModerate/${groupId}?accept=${action}`;
+  },
+
+  GET_POPULAR: () => '/popular',
+
+  PIN_ITEM: (type: 'group' | 'user' | 'project', id: string) => `/user/pin?type=${type}&id=${id}`,
+
+  GET_PINNED: () => '/user/pinned',
+
+  UNPIN_ITEM: (position: number) => `/user/unpin/${position}`,
+
+  GET_RECENT: () => '/recent',
 };
 

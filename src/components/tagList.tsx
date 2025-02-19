@@ -6,7 +6,7 @@ import { HiUsers } from 'react-icons/hi';
 import Filter from '../assets/filter.svg';
 import Descend from '../assets/descending.svg';
 import Ascend from '../assets/ascending.svg';
-import { tags } from '../services/postService';
+import { tags, tagColors } from '../utils/helpers';
 
 function TagList({
   onFilterChange,
@@ -71,6 +71,10 @@ function TagList({
       default:
         break;
     }
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
   }, []);
 
   const getSortBy = () => {
@@ -238,50 +242,59 @@ function TagList({
   return (
     <>
       <div
-        className={`fixed sm:fixed flex-col  ${feedShowTaglistModal ? 'top-[80px] right-[30vw]' : 'top-24 lg:mr-[1vw] sm:max-lg:top-24 lg:top-[calc(max(2rem,25vh-6rem))] right-0'} flex bg-Background/Bottom text-center w-[600px] ${['Posts', 'My posts', 'Pending posts'].includes(activeFilter) ? 'h-[600px]' : 'h-[360px]'} pt-16 pl-4 min-h-[360px] rounded-3xl border-Primary/Dark border-solid box-border border-2 z-40
- translate-x-0 sm:static sm:max-xl:pl-4 xl:pl-6 `}
+        className={`justify-center overflow-y-auto w-full h-full  ${activeFilter != 'Posts' ? 'lg:h-[60vh]' : 'lg:h-[90vh]'} lg:w-[50vw] bg-Background/Bottom bg-center bg-cover p-10  flex flex-col border-Primary/Dark border-solid box-border border-2 rounded-3xl  lg:mt-4  relative`}
       >
+        <button
+          onClick={handleClose}
+          className='absolute top-6 right-12 text-white text-3xl hover:text-Primary/Light'
+        >
+          ×
+        </button>
         {/* */}
-        <p className='text-left text-white text-2xl font-semibold flex items-center gap-2 ml-10'>
+        <p className=' text-white text-2xl font-semibold flex items-center gap-2'>
           <img src={Filter} alt='Filter icon' className='w-6 h-6' />
           {activeFilter} filter:
         </p>
 
         <br />
-        <div className='flex flex-row'>
+        <div className='flex flex-row justify-center mb-2'>
           {/*ASC/DESC BUTTONS*/}
-          <div className='mb-4 flex ml-20 flex-col space-y-4'>
-            <p className='text-gray-500 text-xl'>Order:</p>
+          <div className='mb-4 flex flex-col space-y-4'>
+            <p className='text-gray-200 text-xl'>Order:</p>
 
-            <button className='w-[140px] ' onClick={() => setOrder('descending')}>
-              <div className='w-8 inline-block fixed left-28'>
-                <img src={Descend} alt='Descending icon'></img>
-              </div>
-              <div className='w-28 inline-block ml-14'>
-                <p
-                  className={`text-left ${order === 'descending' ? 'text-Primary/Light' : 'text-white'} text-lg hover:text-Primary/Target`}
-                >
-                  Descending
-                </p>
+            <button className='w-[140px] ml-14' onClick={() => setOrder('descending')}>
+              <div className='flex flex-row gap-1'>
+                <div className='w-8 flex'>
+                  <img src={Descend} alt='Descending icon'></img>
+                </div>
+                <div className='w-28 flex'>
+                  <p
+                    className={` text-left ${order === 'descending' ? 'text-Primary/Light' : 'text-white'} text-lg hover:text-Primary/Target`}
+                  >
+                    Descending
+                  </p>
+                </div>
               </div>
             </button>
-            <button className='w-[140px]' onClick={() => setOrder('ascending')}>
-              <div className='w-8 inline-block fixed left-28'>
-                <img src={Ascend} alt='Ascending icon'></img>
-              </div>
-              <div className='w-28 inline-block ml-14'>
-                <p
-                  className={`text-left ${order === 'ascending' ? 'text-Primary/Light' : 'text-white'} text-lg hover:text-Primary/Target`}
-                >
-                  Ascending
-                </p>
+            <button className='w-[140px] ml-14' onClick={() => setOrder('ascending')}>
+              <div className='flex flex-row gap-1 '>
+                <div className='w-8 flex'>
+                  <img src={Ascend} alt='Ascending icon'></img>
+                </div>
+                <div className='w-28 flex'>
+                  <p
+                    className={`text-left ${order === 'ascending' ? 'text-Primary/Light hover:text-Primary/Target' : 'text-white hover:text-gray-300'} text-lg hover:text-Primary/Target`}
+                  >
+                    Ascending
+                  </p>
+                </div>
               </div>
             </button>
           </div>
 
           {/*date,likes,comments*/}
           <div className='mb-2 flex flex-col space-y-4 ml-14'>
-            <p className='text-gray-500 text-xl'>Criteria:</p>
+            <p className='text-gray-200 text-xl'>Criteria:</p>
             {activeFilter == 'Posts' && (
               <>
                 {buttonsPosts.map(({ label, criteriaKey, svg }) => (
@@ -342,9 +355,9 @@ function TagList({
         {activeFilter == 'Posts' && (
           <>
             {/*filter by tags*/}
-            <div className='mb-4 lg:ml-6 xl:flex xl:ml-20'>
-              <div className='w-32 -ml-6 inline-block sm:max-xl:-ml-6 xl:-ml-8'>
-                <p className='text-left text-gray-500 text-xl'>Tags:</p>
+            <div className='mb-4 flex'>
+              <div className='w-32 flex'>
+                <p className='text-left text-gray-200 text-xl'>Tags:</p>
               </div>
             </div>
 
@@ -352,18 +365,14 @@ function TagList({
 
             <div className=' flex-1 overflow-y-auto scrollbar scrollbar-thin scrollbar-thumb-Primary/Dark scrollbar-track-Background/Middle'>
               {tags.map((tag) => (
-                <button
-                  key={tag}
-                  className='w-24 my-2 mr-6 '
-                  onClick={() => handleButtonClick(tag)}
-                >
+                <button key={tag} className='w-24 my-2 mr-6' onClick={() => handleButtonClick(tag)}>
                   <div className='flex flex-col'>
                     <div
                       className={`${
                         selectedTags.includes(tag)
-                          ? 'bg-Primary/Light'
+                          ? `${tagColors[tag]}`
                           : 'bg-white hover:bg-gray-300'
-                      } rounded-3xl p-1 `}
+                      } rounded-2xl p-1`}
                     >
                       <p className='text-Primary/Dark'>{tag}</p>
                     </div>
@@ -374,15 +383,15 @@ function TagList({
           </>
         )}
         {/* Submit and Reset Buttons */}
-        <div className='flex justify-center gap-8 mb-4 mr-8'>
+        <div className='flex justify-center items-center gap-10 mt-2 mr-8'>
           <button
-            className='bg-Primary/Light hover:bg-Primary/Target  font-semibold text-Primary/Dark px-4 py-2 rounded'
+            className='bg-Primary/Light hover:bg-Primary/Target  font-semibold text-Primary/Dark px-4 py-2 rounded-md'
             onClick={handleSubmit}
           >
             Apply filter
           </button>
           <button
-            className='bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded'
+            className='bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md'
             onClick={handleReset}
           >
             Reset filter

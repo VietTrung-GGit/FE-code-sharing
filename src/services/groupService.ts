@@ -17,11 +17,12 @@ export interface GroupData {
   canJoin: boolean;
   moderation: boolean;
   joined: boolean;
-  members: string[];
+  members: { avatar: string; role: string; user: string }[];
   name: string;
   numberOfMembers: number;
-  numberOfPosts: number;
+  numberOfPostsApproved: number;
   numberOfProjects: number;
+  role: string;
 }
 
 export interface GroupDataBrief {
@@ -30,6 +31,9 @@ export interface GroupDataBrief {
   avatar: string;
   bio: string;
   private: boolean;
+  totalPosts: number;
+  totalMembers: number;
+  joined: boolean;
   visibleMembers: (string | undefined)[];
 }
 
@@ -43,22 +47,52 @@ export const fetchGroups = async (
 ): Promise<{ groups: GroupDataBrief[]; hasMore: boolean }> => {
   try {
     const response = await axiosInstance.get<{ groups: GroupDataBrief[]; hasMore: boolean }>(
-      API_ENDPOINTS.FETCH_GROUPS(page, limit, search, order, criteria),
+      API_ENDPOINTS.FETCH_GROUPS(page, limit, order, criteria, search),
     );
-    return response.data;
+
+    // Ensure the response contains valid data
+    return {
+      groups: response.data?.groups ?? [], // Default to an empty array if groups are undefined
+      hasMore: response.data?.hasMore ?? false, // Default to false if hasMore is undefined
+    };
   } catch (error) {
     console.error('Error fetching groups:', error);
-    throw error;
+    return { groups: [], hasMore: false }; // Return an empty safe response instead of throwing
+  }
+};
+
+// Fetch user groups
+export const fetchUserGroups = async (
+  userId: string,
+  page: number = 1,
+  limit: number = 10,
+  order: 'ascending' | 'descending' = 'ascending',
+  criteria: 'dateCreated' | 'members' | 'posts',
+  search?: string,
+): Promise<{ groups: GroupDataBrief[]; hasMore: boolean }> => {
+  try {
+    const response = await axiosInstance.get<{ groups: GroupDataBrief[]; hasMore: boolean }>(
+      API_ENDPOINTS.USER_GROUPS(userId, page, limit, order, criteria, search),
+    );
+
+    // Ensure the response contains valid data
+    return {
+      groups: response.data?.groups ?? [], // Default to an empty array if groups are undefined
+      hasMore: response.data?.hasMore ?? false, // Default to false if hasMore is undefined
+    };
+  } catch (error) {
+    console.error('Error fetching user groups:', error);
+    return { groups: [], hasMore: false }; // Return an empty safe response instead of throwing
   }
 };
 
 export const joinGroup = async (groupId: string) => {
-  const response = await axiosInstance.get(API_ENDPOINTS.GROUP_JOIN(groupId));
+  const response = await axiosInstance.post(API_ENDPOINTS.GROUP_JOIN(groupId));
   return response.data;
 };
 
 export const leaveGroup = async (groupId: string) => {
-  const response = await axiosInstance.get(API_ENDPOINTS.GROUP_LEAVE(groupId));
+  const response = await axiosInstance.post(API_ENDPOINTS.GROUP_LEAVE(groupId));
   return response.data;
 };
 
@@ -82,7 +116,10 @@ export const createGroup = async (groupData: GroupDataCreate): Promise<string> =
 };
 
 // Update an existing group
-export const updateGroup = async (groupId: string, groupData: GroupDataCreate): Promise<string> => {
+export const updateGroup = async (
+  groupId: string,
+  groupData: GroupDataCreate,
+): Promise<GroupData> => {
   const formData = new FormData();
 
   Object.entries(groupData).forEach(([key, value]) => {
@@ -93,9 +130,13 @@ export const updateGroup = async (groupId: string, groupData: GroupDataCreate): 
     }
   });
 
-  const response = await axiosInstance.put<string>(API_ENDPOINTS.GROUP_UPDATE(groupId), formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  const response = await axiosInstance.put<GroupData>(
+    API_ENDPOINTS.GROUP_UPDATE(groupId),
+    formData,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    },
+  );
 
   return response.data;
 };
@@ -120,6 +161,25 @@ export const inviteToGroup = async (groupId: string, userId: string): Promise<st
   return response.data;
 };
 
+// Assign a new creator to a group
+export const assignGroupCreator = async (
+  groupId: string,
+  assignCreatorUserId: string,
+): Promise<string> => {
+  const response = await axiosInstance.post<string>(
+    API_ENDPOINTS.GROUP_ASSIGN_CREATOR(groupId, assignCreatorUserId),
+  );
+  return response.data;
+};
+
+// Remove an admin from a group
+export const removeGroupAdmin = async (groupId: string, removeAdminUserId: string) => {
+  const response = await axiosInstance.post(
+    API_ENDPOINTS.GROUP_REMOVE_ADMIN(groupId, removeAdminUserId),
+  );
+  return response.data;
+};
+
 // Remove a member from a group
 export const removeGroupMember = async (
   groupId: string,
@@ -138,17 +198,6 @@ export const assignGroupAdmin = async (
 ): Promise<string> => {
   const response = await axiosInstance.post<string>(
     API_ENDPOINTS.GROUP_ASSIGN_ADMIN(groupId, assignAdminUserId),
-  );
-  return response.data;
-};
-
-// Assign a new creator to a group
-export const assignGroupCreator = async (
-  groupId: string,
-  assignCreatorUserId: string,
-): Promise<string> => {
-  const response = await axiosInstance.post<string>(
-    API_ENDPOINTS.GROUP_ASSIGN_CREATOR(groupId, assignCreatorUserId),
   );
   return response.data;
 };

@@ -87,7 +87,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
 
   useEffect(() => {
     if (isAuthenticated == true) {
-      socket.current = io('wss://tlg4zc-4000.csb.app', {
+      socket.current = io('wss://96khvn-4000.csb.app', {
         withCredentials: true,
         transports: ['websocket'],
         query: {
@@ -102,6 +102,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
 
       socket.current.on('newNotification', (newNotification: Notification) => {
         setNotifications((prev) => [newNotification, ...prev]);
+        setTotalNotifications(totalNotifications + 1);
         toast.info(`🔔 ${newNotification.senderName} ${newNotification.message}`);
       });
 

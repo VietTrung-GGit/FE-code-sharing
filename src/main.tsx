@@ -1,9 +1,9 @@
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { NotificationsProvider } from './context/NotificationContext';
-import { ToastContainer } from 'react-toastify'; // Import ToastContainer
-import 'react-toastify/dist/ReactToastify.css'; // Import Toastify styles
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './index.css';
 import Landing from './pages/Landing';
 import 'react-tooltip/dist/react-tooltip.css';
@@ -20,74 +20,70 @@ import ProfileCard from './pages/Profile';
 import ProfileTemp from './pages/Profiletemp';
 import GroupDashboard from './pages/GroupDashboard';
 import ProjectDashboard from './pages/ProjectDashboard';
-import ProtectedRoute from './components/privateRoute'; // Import the protected route component
+import ProtectedRoute from './components/privateRoute';
 import { AuthUserProvider } from './context/AuthUserContext';
 import PassReset from './pages/Passreset';
 import PassNew from './pages/Passnew';
+import { PinnedProvider } from './context/PinnedContext';
 
 const root = document.getElementById('root');
-
-const ProtectedRouteWrapper = (Component: React.FC) => (
-  <ProtectedRoute>
-    <Component />
-  </ProtectedRoute>
-);
 
 if (root) {
   ReactDOM.createRoot(root).render(
     <Router>
       <AuthUserProvider>
         <NotificationsProvider>
-          <Routes>
-            {/* Public Routes */}
-            <Route path='/' element={<Landing />} />
-            <Route path='/signin' element={<Signin />} />
-            <Route path='/signup' element={<Signup />} />
-            <Route path='/test' element={<Test />} />
-            <Route path='/pass-reset' element={<PassReset />} />
-            <Route path='/pass-new/:token' element={<PassNew />} />
+          <PinnedProvider>
+            <Routes>
+              {/* Public Routes */}
+              <Route path='/' element={<Landing />} />
+              <Route path='/signin' element={<Signin />} />
+              <Route path='/signup' element={<Signup />} />
+              <Route path='/test' element={<Signin />} />
+              <Route path='/pass-reset' element={<PassReset />} />
+              <Route path='/pass-new/:token' element={<PassNew />} />
 
-            {/* Protected Routes */}
-            <Route path='/community' element={ProtectedRouteWrapper(Community)} />
-            <Route path='/feed' element={ProtectedRouteWrapper(Feed)} />
-            <Route path='/saves' element={ProtectedRouteWrapper(Feed)} />
-            {/* <Route path='/profile' element={ProtectedRouteWrapper(ProfileCard)} /> */}
-            {/* <Route path='/project' element={ProtectedRouteWrapper(ProjectDashboard)} /> */}
-            <Route path='/notifications' element={ProtectedRouteWrapper(Notifications)} />
-            {/* <Route path='/profiletemp' element={ProtectedRouteWrapper(ProfileTemp)} /> */}
-            <Route path='/post/:postId' element={ProtectedRouteWrapper(PostView)} />
+              {/* Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path='/community'>
+                  <Route path='' element={<Navigate to='/community/posts' />} />
+                  <Route path='posts' element={<Community active='Posts' />} />
+                  <Route path='users' element={<Community active='Users' />} />
+                  <Route path='groups' element={<Community active='Groups' />} />
+                  <Route path='projects' element={<Community active='Projects' />} />
+                </Route>
+                <Route path='/feed' element={<Feed type='feed' />} />
+                <Route path='/saves' element={<Feed type='stored' />} />
+                <Route path='/notifications' element={<Notifications />} />
+                <Route path='/post/:postId' element={<PostView />} />
+                <Route path='/group/:groupId'>
+                  <Route path='' element={<GroupDashboard active='Posts' />} />
+                  <Route path='posts' element={<GroupDashboard active='Posts' />} />
+                  <Route path='members' element={<GroupDashboard active='Members' />} />
+                  <Route path='projects' element={<GroupDashboard active='Projects' />} />
+                  <Route path='myposts' element={<GroupDashboard active='My posts' />} />
+                  <Route path='pendingposts' element={<GroupDashboard active='Pending posts' />} />
+                </Route>
+                <Route path='/user/:userId'>
+                  <Route path='' element={<UserDashboard active='Posts' />} />
+                  <Route path='posts' element={<UserDashboard active='Posts' />} />
+                  <Route path='users' element={<UserDashboard active='Users' />} />
+                  <Route path='projects' element={<UserDashboard active='Projects' />} />
+                  <Route path='groups' element={<UserDashboard active='Groups' />} />
+                </Route>
+                <Route path='/project/:projectId' element={<ProjectDashboard />}>
+                  <Route path=':sectionId' element={<ProjectDashboard />}>
+                    <Route path='posts' element={<ProjectDashboard />} />
+                    <Route path='participants' element={<ProjectDashboard />} />
+                  </Route>
+                  <Route path='members' element={<ProjectDashboard />} />
+                </Route>
+              </Route>
 
-            {/* Nested Community Routes */}
-            <Route path='/community' element={ProtectedRouteWrapper(Community)}>
-              <Route path='posts' element={<Community />} />
-              <Route path='users' element={<Community />} />
-              <Route path='groups' element={<Community />} />
-              <Route path='projects' element={<Community />} />
-            </Route>
-
-            <Route path='/group/:groupId' element={ProtectedRouteWrapper(GroupDashboard)}>
-              <Route path='posts' element={<GroupDashboard />} />
-              <Route path='members' element={<GroupDashboard />} />
-              <Route path='projects' element={<GroupDashboard />} />
-              <Route path='myposts' element={<GroupDashboard />} />
-              <Route path='pendingposts' element={<GroupDashboard />} />
-            </Route>
-
-            <Route path='/user/:userId' element={ProtectedRouteWrapper(UserDashboard)}>
-              <Route path='posts' element={<UserDashboard />} />
-              <Route path='followers' element={<UserDashboard />} />
-              <Route path='projects' element={<UserDashboard />} />
-              <Route path='groups' element={<UserDashboard />} />
-            </Route>
-
-            <Route path='/project/:projectId' element={ProtectedRouteWrapper(ProjectDashboard)}>
-              <Route path=':sectionId' element={<ProjectDashboard />} />
-              <Route path='members' element={<ProjectDashboard />} />
-            </Route>
-
-            {/* 404 Page */}
-            <Route path='/*' element={<NotFound />} />
-          </Routes>
+              {/* 404 Page */}
+              <Route path='/*' element={<NotFound />} />
+            </Routes>
+          </PinnedProvider>
         </NotificationsProvider>
       </AuthUserProvider>
       <ToastContainer

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { updateUserPassword, UserDataFull } from '../services/userService'; // Import update functions
+import { updateUserPassword, UserDataProfile } from '../services/userService'; // Import update functions
 import { toast } from 'react-toastify';
 import { isValidEmail, isStrongPassword } from '../utils/helpers';
 
@@ -11,7 +11,7 @@ interface ProfileEditProps {
 const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propcloseModal }) => {
   const { user, updateUser } = useAuthUser();
 
-  const [profileData, setProfileData] = useState<UserDataFull>({
+  const [profileData, setProfileData] = useState<UserDataProfile>({
     _id: user?._id || '',
     username: user?.username || 'Username', // Fallback to empty string if null
     displayname: user?.displayname || 'Displayname', // Fallback to empty string if null

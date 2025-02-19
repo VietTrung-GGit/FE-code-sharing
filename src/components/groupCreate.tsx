@@ -12,6 +12,7 @@ interface PostCreateProps {
   closeModal: () => void;
   refresh?: (grouppost: GroupDataCreate) => void;
   onGroupCreated?: () => void;
+  groupId?: string;
 }
 
 const GroupCreate: React.FC<PostCreateProps> = ({
@@ -19,17 +20,22 @@ const GroupCreate: React.FC<PostCreateProps> = ({
   closeModal: propcloseModal,
   refresh = () => {},
   onGroupCreated,
+  groupId,
 }) => {
   const [activeDropdown, setActiveDropdown] = useState<'privacy' | 'moderation' | null>(null);
 
   const [description, setDescription] = useState<string>(groupData?.bio || '');
   const [title, setTitle] = useState<string>(groupData?.name || '');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [privacy, setPrivacy] = useState(groupData?.private || false);
+  const [privacy, setPrivacy] = useState(false);
   const [moderation, setModeration] = useState(groupData?.moderation || false);
   const dropdownRef = useRef<HTMLButtonElement>(null);
-  // Close dropdowns when clicking outside
-  // Close dropdowns when clicking outside
+  const urlToFile = async (imageUrl: string): Promise<File> => {
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    return new File([blob], 'image');
+  };
+
   const handleSelect = (type: 'privacy' | 'moderation', value: boolean) => {
     if (type === 'privacy') {
       setPrivacy(value); // true if 'Private', false if 'Public'
@@ -53,8 +59,8 @@ const GroupCreate: React.FC<PostCreateProps> = ({
           moderation, // Using boolean state
         };
 
-        if (groupData) {
-          await updateGroup(groupData._id, groupUploadData); // Update existing group
+        if (groupData && groupId) {
+          await updateGroup(groupId, groupUploadData); // Update existing group
           refresh({
             ...groupData,
             name: title,
@@ -78,6 +84,24 @@ const GroupCreate: React.FC<PostCreateProps> = ({
       toast.warning('Group details are empty!');
     }
   };
+  useEffect(() => {
+    if (groupData) {
+      setTitle(groupData.name || '');
+      setDescription(groupData.bio || '');
+      setPrivacy(!groupData.canJoin || false);
+      setModeration(groupData.moderation || false);
+
+      // Convert avatar URL to File
+      const fetchAvatarFile = async () => {
+        if (groupData.avatar) {
+          const file = await urlToFile(groupData.avatar);
+          setAvatarFile(file);
+        }
+      };
+
+      fetchAvatarFile();
+    }
+  }, [groupData]); // Runs whenever `groupData` changes
 
   useEffect(() => {
     // Disable body scroll
@@ -89,14 +113,16 @@ const GroupCreate: React.FC<PostCreateProps> = ({
   }, []);
 
   return (
-    <div className='overflow-y-auto w-full h-full lg:h-[80vh] lg:w-[50vw] bg-Background/Bottom bg-center bg-cover px-14 py-10  flex flex-col border-Primary/Dark border-solid box-border lg:border-2 lg:rounded-3xl sm:max-lg:rounded-3xl  lg:mt-4  relative'>
+    <div className='overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent w-full h-full lg:h-[80vh] lg:w-[50vw] bg-Background/Bottom bg-center bg-cover px-14 py-10  flex flex-col border-Primary/Dark border-solid box-border lg:border-2 lg:rounded-3xl sm:max-lg:rounded-3xl  lg:mt-4  relative'>
       <button
         onClick={propcloseModal}
         className='absolute top-6 right-12 text-white text-3xl hover:text-Primary/Light'
       >
         ×
       </button>
-      <p className=' text-white font-semibold text-left text-2xl'>New group</p>
+      <p className='text-white font-semibold text-left text-2xl'>
+        {groupId ? 'Edit group profile' : 'New group'}
+      </p>
 
       <div className='inline-block flex-shrink-0 flex-row flex mt-8 space-x-8'>
         <div className='relative group'>
@@ -104,9 +130,11 @@ const GroupCreate: React.FC<PostCreateProps> = ({
             {/* Image */}
             <img
               src={
-                avatarFile
-                  ? URL.createObjectURL(avatarFile)
-                  : 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+                groupData
+                  ? groupData.avatar
+                  : avatarFile
+                    ? URL.createObjectURL(avatarFile)
+                    : 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
               }
               alt='Profile Icon'
               className='w-40 h-40 rounded-3xl object-cover transition duration-300 group-hover:brightness-60'
@@ -281,8 +309,16 @@ const GroupCreate: React.FC<PostCreateProps> = ({
         onClick={handleSubmit}
         className='mt-10 ml-auto justify-center transition-colors duration-300 ease-in-out w-32 h-8 rounded-xl bg-Accent/Target text-lg text-white mb-4 hover:bg-white hover:text-Accent/Target flex flex-row gap-2 px-6 py-2 items-center'
       >
-        <p>Create</p>
-        <AiFillPlusCircle className=' text-2xl mt-1' />
+        {' '}
+        {groupId ? (
+          <p>Save</p>
+        ) : (
+          <>
+            {' '}
+            <p>Create</p>
+            <AiFillPlusCircle className=' text-2xl mt-1' />
+          </>
+        )}
       </button>
     </div>
   );

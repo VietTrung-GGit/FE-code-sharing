@@ -1,14 +1,20 @@
 import axiosInstance from '../api/axiosInstance';
 import { API_ENDPOINTS } from '../api/endpoints';
-
-// Define interfaces for project data
+import { GroupDataBrief } from './groupService';
 
 export interface ProjectDataBrief {
   _id: string;
   name: string;
   avatar: string;
+  groupData: GroupDataBrief[];
   group: string;
-  avatarmembers: (string | undefined)[];
+  visibleMembers: (string | undefined)[];
+}
+
+export interface ProjectDataCreate {
+  name: string;
+  avatar: File;
+  description: string;
 }
 
 // Fetch projects
@@ -50,6 +56,26 @@ export const fetchGroupProjects = async (
   }
 };
 
+// Fetch projects
+export const fetchUserProjects = async (
+  groupId: string,
+  page: number = 1,
+  limit: number = 10,
+  order: 'ascending' | 'descending' = 'ascending',
+  criteria: 'dateCreated' | 'members' | 'posts',
+  search?: string,
+): Promise<{ projects: ProjectDataBrief[]; hasMore: boolean }> => {
+  try {
+    const response = await axiosInstance.get<{ projects: ProjectDataBrief[]; hasMore: boolean }>(
+      API_ENDPOINTS.USER_PROJECTS(groupId, page, limit, order, criteria, search),
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    throw error;
+  }
+};
+
 export const joinProject = async (projectId: string) => {
   const response = await axiosInstance.get(API_ENDPOINTS.JOIN_PROJECT(projectId));
   return response.data;
@@ -60,27 +86,55 @@ export const leaveProject = async (projectId: string) => {
   return response.data;
 };
 
-// Create a new project in a group
+// Create a new group
 export const createProject = async (
   groupId: string,
-  projectData: { name: string; description: string },
+  groupData: ProjectDataCreate,
 ): Promise<string> => {
+  const formData = new FormData();
+
+  Object.entries(groupData).forEach(([key, value]) => {
+    if (key === 'avatar' && value instanceof File) {
+      // formData.append('avatar', value);
+    } else if (typeof value !== 'undefined') {
+      formData.append(key, value as string);
+    }
+  });
+
   const response = await axiosInstance.post<string>(
     API_ENDPOINTS.PROJECT_CREATE(groupId),
-    projectData,
+    formData,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    },
   );
+
   return response.data;
 };
 
-// Update an existing project
+// Update an existing group
 export const updateProject = async (
-  projectId: string,
-  projectData: { name: string; description: string },
+  groupId: string,
+  groupData: ProjectDataCreate,
 ): Promise<string> => {
+  const formData = new FormData();
+
+  Object.entries(groupData).forEach(([key, value]) => {
+    if (key === 'avatar' && value instanceof File) {
+      formData.append('avatar', value);
+    } else if (typeof value !== 'undefined') {
+      formData.append(key, value as string);
+    }
+  });
+
   const response = await axiosInstance.put<string>(
-    API_ENDPOINTS.PROJECT_UPDATE(projectId),
-    projectData,
+    API_ENDPOINTS.PROJECT_UPDATE(groupId),
+    formData,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    },
   );
+
   return response.data;
 };
 

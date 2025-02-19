@@ -1,5 +1,6 @@
 import Sidebar from '../components/sidebar';
 import CollapseMenu from '../components/collapseMenu';
+import QuickNav from '../components/quickNav';
 import { useParams, useNavigate } from 'react-router-dom';
 import { IoIosMore } from 'react-icons/io';
 import { FaCircle } from 'react-icons/fa';
@@ -18,6 +19,8 @@ import {
   markAllNotificationsAsRead,
   deleteNotification,
   Notification,
+  confirmGroupInvite,
+  confirmProjectInvite,
 } from '../services/notificationService';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { formatDate } from '../utils/helpers';
@@ -32,7 +35,6 @@ function Notifications() {
   const [buttonFilter, setButtonFilter] = useState<'all' | 'system' | 'following' | 'groups'>(
     'all',
   );
-  const { type } = useParams<Params>();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const quickNavRef = useRef<HTMLDivElement>(null);
   const sidebarButtonRef = useRef<HTMLButtonElement>(null);
@@ -149,8 +151,8 @@ function Notifications() {
 
   return (
     <div className='bg-Background/Middle relative min-h-screen flex flex-col'>
-      <div className='flex flex-row'>
-        <div className='flex ml-96 flex-col'>
+      <div className='flex flex-row justify-center -mt-10 sm:max-lg:mt-16 lg:mt-0 mx-6 sm:max-lg:mx-0 lg:mx-8'>
+        <div className='flex flex-col '>
           <div className='text-white mt-10 ml-6 space-x-2 inline-block flex lg:w-full '>
             <span className='text-3xl font-semibold'>Notifications</span>
             <div className='flex justify-center flex-end'>
@@ -164,21 +166,21 @@ function Notifications() {
           </div>
           <div className='mb-6'>
             <div className='flex flex-col'>
-              <div className='flex gap-24 ml-6 mt-6 '>
+              {/* <div className='flex gap-24 ml-6 mt-6 '>
                 <button
-                  className={`${buttonRead === 'all' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
+                  className={`${buttonRead === 'all' ? ' text-white' : 'text-gray-500'} text-xl font-semibold`}
                   onClick={() => setButtonRead('all')}
                 >
                   All
                 </button>
 
                 <button
-                  className={`${buttonRead === 'unread' ? 'text-gray-500' : 'text-white'} text-xl font-semibold`}
+                  className={`${buttonRead === 'unread' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
                   onClick={() => setButtonRead('unread')}
                 >
                   Unread (1)
                 </button>
-              </div>
+              </div> */}
               <div className='flex justify-center mt-4'>
                 <p className='font-semibold text-lg text-white'>Recent</p>
               </div>
@@ -187,22 +189,24 @@ function Notifications() {
                 notifications.map((notification) => (
                   <button
                     key={notification._id}
-                    className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-4 flex bg-Background/Bottom text-center mt-28 p-12 w-full h-28 border-Primary/Dark border-solid box-border border-2 rounded-3xl mb-
-    sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-full sm:max-lg:mt-28`}
+                    className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-4 flex bg-Background/Bottom text-center mt-28 p-12 w-full h-28 ${
+                      !notification.isRead ? 'border-Primary/Light' : 'border-Primary/Dark'
+                    } border-solid box-border border-2 rounded-3xl mb-
+sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-full sm:max-lg:mt-28`}
                   >
                     <div className='ml-[530px] -mt-10 absolute'>
                       <Menu as='div' className='absolute'>
-                        {/* The button that triggers the dropdown */}
                         <MenuButton className='px-4 py-2 text-white text-3xl rounded hover:text-gray-300'>
                           <IoIosMore />
                         </MenuButton>
 
                         {/* Dropdown menu */}
                         <MenuItems
-                          className={`absolute -right-44 top-8 w-48 bg-Background/Bottom border rounded-3xl border-2 ${!notification.isRead ? 'border-Primary/Light' : 'border-Primary/Dark'} shadow-lg z-10`}
+                          className={`absolute z-20 -right-44 top-8 w-48 bg-Background/Bottom border rounded-3xl border-2 ${
+                            !notification.isRead ? 'border-Primary/Light' : 'border-Primary/Dark'
+                          } shadow-lg z-10`}
                         >
                           <ul className='py-1 my-3 ml-2'>
-                            {/* Mark as Read option */}
                             {!notification.isRead && (
                               <MenuItem>
                                 {({ active }: { active: boolean }) => (
@@ -218,7 +222,6 @@ function Notifications() {
                               </MenuItem>
                             )}
 
-                            {/* Delete option */}
                             <MenuItem>
                               {({ active }: { active: boolean }) => (
                                 <button
@@ -235,24 +238,29 @@ function Notifications() {
                         </MenuItems>
                       </Menu>
                     </div>
-                    <div className='flex flex-row gap-4 -ml-6 -mt-6'>
+
+                    <div className='flex flex-row gap-4 -ml-6 -mt-6 items-center justify-between w-full'>
+                      {/* Notification Indicator */}
                       <div className='flex items-center min-w-[15px] min-h-[15px]'>
                         {!notification.isRead && (
                           <FaCircle className='text-md text-Primary/Light' />
                         )}
                       </div>
 
+                      {/* Avatar */}
                       <div className='flex justify-center'>
                         <img
                           src={
                             notification.avatar ||
                             'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                          } // Fallback for avatar
+                          }
                           alt='Avatar'
                           className='w-16 h-16 rounded-full object-cover'
                         />
                       </div>
-                      <div className='flex flex-col mt-0 justify-center'>
+
+                      {/* Message Content */}
+                      <div className='flex flex-col justify-center flex-grow'>
                         <div className='flex'>
                           <p className='text-white text-lg'>
                             <span className='text-Primary/Light'>{notification.senderName}</span>{' '}
@@ -263,13 +271,31 @@ function Notifications() {
                           <p className='text-Accent/Light'>{formatDate(notification.createdAt)}</p>
                         </div>
                       </div>
+
+                      {/* Confirm Button (Aligned Right) */}
+                      {notification.type === 'invite' && (
+                        <button
+                          onClick={async () => {
+                            await markAsRead(notification._id); // Mark notification as read
+
+                            if (notification.type === 'invitegroup') {
+                              await confirmGroupInvite(notification.senderId);
+                            } else {
+                              await confirmProjectInvite(notification.senderId);
+                            }
+                          }}
+                          className='ml-auto px-4 py-2 bg-Accent/Target text-white rounded-lg'
+                        >
+                          Confirm
+                        </button>
+                      )}
                     </div>
                   </button>
                 ))
               ) : (
                 <div
                   className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-4 flex bg-Background/Bottom text-center mt-28 p-12 w-full h-28 border-Primary/Dark border-solid box-border border-2 rounded-3xl
-    sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-full sm:max-lg:mt-28`}
+sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-full sm:max-lg:mt-28`}
                 >
                   <div className='mt-1 sm:max-lg:mt-3 lg:max-xl:mt-2 xl:-mt-2'>
                     <p className='text-left text-white text-l'>
@@ -289,56 +315,13 @@ function Notifications() {
             </div>
           </div>
         </div>
+      </div>
 
-        <div className='fixed top-48 right-24 flex flex-col w-[280px] bg-Background/Bottom border-Primary/Dark border-solid box-border border-2 rounded-3xl h-[236px]'>
-          <div className=' flex flex-col gap-3 py-2 px-14 '>
-            <button
-              className={`${buttonFilter === 'all' ? 'text-Primary/Light' : 'text-white'} hover:text-Primary/Light hover:bg-Background/Middle rounded-md px-4 py-2 text-lg flex flex-row gap-4`}
-              onClick={() => setButtonFilter('all')}
-            >
-              {buttonFilter === 'all' ? (
-                <BiSolidCategory className='text-3xl' />
-              ) : (
-                <BiCategory className='text-3xl' />
-              )}
-              All
-            </button>
-
-            <button
-              className={`${buttonFilter === 'system' ? 'text-Primary/Light' : 'text-white'} hover:text-Primary/Light hover:bg-Background/Middle rounded-md px-4 py-2 text-lg flex flex-row gap-4`}
-              onClick={() => setButtonFilter('system')}
-            >
-              {buttonFilter === 'system' ? (
-                <BsFillGearFill className='text-3xl' />
-              ) : (
-                <BsGear className='text-3xl' />
-              )}
-              System
-            </button>
-            <button
-              className={`${buttonFilter === 'following' ? 'text-Primary/Light' : 'text-white'} hover:text-Primary/Light hover:bg-Background/Middle rounded-md px-4 py-2 text-lg flex flex-row gap-4`}
-              onClick={() => setButtonFilter('following')}
-            >
-              {buttonFilter === 'following' ? (
-                <AiFillHeart className='text-3xl' />
-              ) : (
-                <AiOutlineHeart className='text-3xl' />
-              )}
-              Following
-            </button>
-            <button
-              className={`${buttonFilter === 'groups' ? 'text-Primary/Light' : 'text-white'} hover:text-Primary/Light hover:bg-Background/Middle rounded-md px-4 py-2 text-lg flex flex-row gap-4`}
-              onClick={() => setButtonFilter('groups')}
-            >
-              {buttonFilter === 'groups' ? (
-                <HiUsers className='text-3xl' />
-              ) : (
-                <HiOutlineUsers className='text-3xl' />
-              )}
-              Groups
-            </button>
-          </div>
-        </div>
+      <div className='lg:hidden'>
+        <QuickNav
+          isOpen={activeComponent === 'quicknav'}
+          onClose={() => setActiveComponent(null)}
+        />
       </div>
 
       {/* Sidebar */}

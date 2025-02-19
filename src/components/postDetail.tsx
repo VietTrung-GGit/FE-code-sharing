@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import EmojiPicker from 'emoji-picker-react';
+import { CustomLinkify } from '../utils/linkifyConfig';
 import { Theme } from 'emoji-picker-react';
 import { TbMessage2Share, TbLink } from 'react-icons/tb';
 import CommentItem from './comment';
@@ -104,7 +105,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
 
     try {
       const responseComments = await fetchComments(post._id, page, 5, 'descending');
-
+      alert(1);
       // Ensure newComments is always an array
       const newComments = Array.isArray(responseComments.comments) ? responseComments.comments : [];
       const hasNextPage = responseComments.hasMore;
@@ -254,6 +255,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
           __v: 0,
           isAuthor: true,
         };
+        alert(2);
         setComments((prevComments) => {
           if (prevComments) {
             return [
@@ -406,7 +408,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
         </p>
         {post.refId && <PostRef postId={post.refId} />}
         <p className='whitespace-pre-line break-words mb-4 w-full overflow-hidden resize-none focus:outline-none focus:border-transparent'>
-          {post ? post.content : ''}
+          <CustomLinkify>{post ? post.content : ''}</CustomLinkify>
         </p>
         {/* Tabs */}
         <div className='flex overflow-x-auto scrollbar'>

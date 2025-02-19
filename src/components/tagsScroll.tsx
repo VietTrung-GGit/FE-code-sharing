@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { IoMdArrowDropleft, IoMdArrowDropright } from 'react-icons/io';
+import { tagColors } from '../utils/helpers';
 
 interface TagsScrollProps {
   tags: string[];
@@ -48,7 +49,7 @@ const TagsScroll: React.FC<TagsScrollProps> = ({
           tags.map((tagName, index) => (
             <span
               key={index}
-              className='flex-shrink-0 bg-Primary/Light text-xs flex justify-center text-Primary/Dark text-sm px-2 w-16 rounded-xl py-[2px]'
+              className={`flex-shrink-0 ${tagColors[tagName]} text-xs flex justify-center text-Primary/Dark text-sm px-2 w-16 rounded-xl py-[2px]`}
             >
               {tagName}
             </span>

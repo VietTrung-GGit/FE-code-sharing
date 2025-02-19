@@ -16,26 +16,28 @@ import CollapseMenu from '../components/collapseMenu';
 import { toast } from 'react-toastify';
 import { useAuthUser } from '../context/AuthUserContext';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Post, fetchPosts } from '../services/postService';
 import LoadingSpinner from '../components/loadingAnimate';
 import PostCreate from '../components/postCreate';
 import { Link } from 'react-router-dom';
 import GroupCreate from '../components/groupCreate';
 import ProjectCreate from '../components/projectCreate';
 import AddMember from '../components/addMember';
-
-type PostType = 'stored' | 'me' | undefined;
-
-interface Params extends Record<string, string | undefined> {
-  type: PostType;
-}
+import { ProjectDataBrief, fetchGroupProjects } from '../services/projectService';
+import { Post, fetchGroupPosts } from '../services/postService';
+import {
+  GroupDataBrief,
+  GroupData,
+  getGroupFullData,
+  joinGroup,
+  leaveGroup,
+} from '../services/groupService';
+import { UserBriefData, fetchGroupMembers } from '../services/userService';
 
 function ProjectDashboard() {
   // const { user } = useUser();
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
   const [activeDashboard, setActiveDashboard] = useState<'Overview' | 'Members'>('Overview');
   const [activeButtonFilter, setActiveButtonFilter] = useState<'Posts' | 'Participants'>('Posts');
-  const { type } = useParams<Params>();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const tagListRef = useRef<HTMLDivElement>(null);
   const sidebarButtonRef = useRef<HTMLButtonElement>(null);
@@ -48,6 +50,8 @@ function ProjectDashboard() {
 
   // States
   const [posts, setPosts] = useState<Post[]>([]);
+  const [users, setUsers] = useState<UserBriefData[]>([]);
+
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -72,14 +76,13 @@ function ProjectDashboard() {
     setLoading(true);
     try {
       console.log('Debounced search term call:', debouncedSearchTerm);
-      const postsResponse = await fetchPosts(
+      const postsResponse = await fetchProjectPosts(
         page,
         6, // Limit: 6 posts per page
         debouncedOrder,
         debouncedCriteria,
         debouncedSearchTerm,
         debouncedSelectedTags,
-        type,
       );
 
       setHasMore(postsResponse.hasMore);
@@ -90,58 +93,17 @@ function ProjectDashboard() {
       console.error('Error fetching posts:', error);
     }
   };
-  const validTypes: PostType[] = ['stored', 'me', undefined];
   useEffect(() => {
-    if (!validTypes.includes(type)) {
-      toast.error('Invalid page!');
-      navigate('/feed');
-    } else {
-      setPage(1);
-      setPosts([]);
-      setHasMore(true);
-      fetchAndUpdatePosts();
-    }
-  }, [type, debouncedSearchTerm, debouncedSelectedTags, debouncedOrder, debouncedCriteria]);
+    setPage(1);
+    setPosts([]);
+    setHasMore(true);
+    fetchAndUpdatePosts();
+  }, [debouncedSearchTerm, debouncedSelectedTags, debouncedOrder, debouncedCriteria]);
 
   // useEffect(() => {
   //   // This effect will run only when debouncedSearchTerm changes
   //   console.log('Debounced search term:', debouncedSearchTerm);
   // }, [debouncedSearchTerm]);
-
-  useEffect(() => {
-    // This effect will run only when debouncedSelectedTags changes
-    console.log('Debounced selected tags:', debouncedSelectedTags);
-  }, [debouncedSelectedTags]);
-
-  // useEffect(() => {
-  //   // This effect will run only when debouncedOrder changes
-  //   console.log('Debounced order:', debouncedOrder);
-  // }, [debouncedOrder]);
-
-  // useEffect(() => {
-  //   // This effect will run only when debouncedCriteria changes
-  //   console.log('Debounced criteria:', debouncedCriteria);
-  // }, [debouncedCriteria]);
-
-  // useEffect(() => {
-  //   // This effect will run only when type changes
-  //   console.log('Type:', type);
-  // }, [type]);
-
-  // useEffect(() => {
-  //   // This effect will run only when hasMore changes
-  //   console.log('Has more:', hasMore);
-  // }, [hasMore]);
-
-  useEffect(() => {
-    // This effect will run only on the first load
-    console.log('First load:', firstLoad);
-  }, [firstLoad]);
-
-  useEffect(() => {
-    // This effect will run only on the first load
-    console.log('Page:', page);
-  }, [page]);
 
   useEffect(() => {
     if (hasMore && !firstLoad) {
@@ -292,9 +254,9 @@ function ProjectDashboard() {
   return (
     <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
       <>
-        <div className='mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
-          <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[720px] border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8 relative flex items-center'>
-            <div className=' absolute right-3 top-2' ref={dropdownConfigRef}>
+        <div className='mx-8 xsm:mx-8 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
+          <div className='bg-Background/Bottom text-white justify-center w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px]  xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] border-Primary/Dark border-2 rounded-3xl lg:p-5 relative flex items-center'>
+            <div className=' absolute right-3 top-5' ref={dropdownConfigRef}>
               <button
                 onClick={toggleDropdownConfig}
                 className='hover:text-gray-300 text-white text-3xl'
@@ -302,7 +264,7 @@ function ProjectDashboard() {
                 <IoIosMore />
               </button>
               {isDropdownConfigOpen && (
-                <div className='absolute -right-40 top-14 w-56 bg-Background/Bottom border rounded-3xl border-2 border-Primary/Dark shadow-lg z-10'>
+                <div className='absolute sm:-right-[50px] lg:-right-40 w-40 md:w-52 bg-Background/Bottom border rounded-xl border-2 border-Primary/Dark shadow-lg z-10'>
                   <ul className='py-1 my-3 ml-2'>
                     <li>
                       <button className='block px-3 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
@@ -332,7 +294,7 @@ function ProjectDashboard() {
               )}
             </div>
 
-            <div className='flex flex-row space-x-4 xsm:space-x-20 sm:space-x-0 xl:space-x-2 -mt-4 mb-44 xsm:mb-48 sm:mb-1 xl:-ml-5 lg:-ml-8 sm:-ml-8'>
+            <div className='flex flex-row justify-center space-x-4 xsm:space-x-10 sm:space-x-6 xl:space-x-2 mt-10 xsm:mt-8 sm:-mt-2 lg:-mt-1 mb-44 xsm:mb-48 sm:mb-0 lg:-ml-2 xl:-ml-4'>
               <div className='sm:-mt-10 lg:-mt-6 flex flex-col h-[380px] items-center'>
                 <img
                   src={
@@ -340,16 +302,10 @@ function ProjectDashboard() {
                     'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
                   }
                   alt='Profile Icon'
-                  className='w-32 h-32 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-56 xl:w-56 rounded-full object-cover mt-8 mx-0 sm:mx-8 sm:mt-14 xl:mx-6 mb-5'
+                  className='w-28 h-28 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-56 xl:w-56 rounded-3xl object-cover mt-8 mx-0 sm:mx-0 sm:mt-14 lg:mx-2 xl:mx-4 mb-5 flex-shrink-0'
                 />
-                <div className='flex hidden sm:block lg:hidden'>
-                  <button className='transition-colors duration-300 ease-in-out w-36 h-8 rounded-xl bg-Accent/Target text-lg text-white mb-4 hover:bg-white hover:text-Accent/Targetr'>
-                    Follow
-                  </button>
-                </div>
-
-                <div className='flex xsm:mt-2 mt-8'>
-                  <button className='transition-colors duration-300 ease-in-out w-36 h-8 rounded-xl bg-Accent/Target text-lg text-white mb-4 hover:bg-white hover:text-Accent/Target'>
+                <div className='flex hidden sm:block sm:mt-5 xsm:mt-2 lg:mt-7 xl:mt-1 mt-8'>
+                  <button className='transition-colors duration-300 ease-in-out w-36 h-8 sm:h-10 lg:h-10 xl:h-8 rounded-xl bg-Accent/Target text-lg text-white mb-4 hover:bg-white hover:text-Accent/Target'>
                     Follow
                   </button>
                 </div>
@@ -357,29 +313,34 @@ function ProjectDashboard() {
 
               <div className='flex flex-col space-y-4 mb-6 sm:mb-8 lg:mb-10 ml-4 xsm:ml-20 sm:ml-0'>
                 <div className='flex flex-row sm:-mt-4 lg:mt-0'>
-                  <div className='flex flex-row gap-4'>
+                  <div className='flex flex-col gap-2'>
                     <div className=''>
-                      <p className='text-white font-semibold mt-6 text-3xl sm:text-3xl lg:text-2xl xl:text-3xl break-words'>
+                      <p className='text-white font-semibold mt-6 text-3xl lg:text-2xl xl:text-3xl break-words'>
                         Projectname
                       </p>
                     </div>
-                    <div className='flex items-center mt-8'>
-                      <div className='flex flex-row '>
-                        <p className='text-white text-lg'>addmembers here</p>
-                      </div>
+
+                    <div className='flex flex-row '>
+                      <p className='text-white sm:text-lg'>addmembers here</p>
+                    </div>
+
+                    <div className='flex xsm:mt-8 mt-2 block sm:hidden '>
+                      <button className='transition-colors duration-300 ease-in-out w-36 h-8 xsm:h-10 rounded-xl bg-Accent/Target text-lg text-white mb-4 hover:bg-white hover:text-Accent/Target'>
+                        Follow
+                      </button>
                     </div>
                   </div>
                 </div>
 
-                <div className='bg-Background/Middle sm:w-[40vw] lg:w-[21vw] xl:w-[24vw] h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static'>
-                  <p className='text-Primary/Light p-4'>project</p>
+                <div className='bg-Background/Middle sm:w-[40vw] lg:w-[21vw] xl:w-[24vw] h-1/2 sm:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static'>
+                  <p className='text-Primary/Light p-4'>Project's description</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
+        <div className='flex justify-center mt-8 sm:max-lg:mt-6 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
           <div className='flex flex-row justify-center gap-32 w-1/2'>
             <button
               className={`${activeDashboard === 'Overview' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
@@ -396,20 +357,21 @@ function ProjectDashboard() {
           </div>
         </div>
         <div className='flex lg:justify-center mt-2 xsm:mt-2 sm:max-lg:mt-4 lg:mt-2 mx-6 sm:max-lg:mx-20 lg:mx-20'>
-          <div className=' flex w-1/2 mb-10 lg:mb-0 ml-8 sm:ml-0'>
-            <p className='text-2xl font-semibold text-white'>
-              {activeDashboard}{' '}
-              <span className={`${activeDashboard === 'Overview' ? 'hidden' : ''}`}>(0)</span>
-            </p>
+          <div className=' flex w-1/2 ml-8 sm:ml-0'>
+            <p className='text-2xl font-semibold text-white'>{activeDashboard}</p>
           </div>
         </div>
       </>
 
       {activeDashboard === 'Overview' && (
         <>
-          <div className='absolute top-[610px] right-4'>
+          <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
+            <ProjectBoard />
+          </div>
+
+          <div className='mx-7 xsm:mx-8 sm:mx-14 lg:mx-0 mt-4 sm:mt-4 lg:mt-0 lg:absolute top-[610px] right-4'>
             <div
-              className={`bg-Background/Bottom bg-center bg-cover border-2 h-[365px]  border-Primary/Dark px-6 py-6 w-full flex flex-col rounded-3xl lg:w-[19vw] sm:max-lg:rounded-3xl  lg:mt-4 lg:rounded-3xl
+              className={`bg-Background/Bottom bg-center bg-cover border-2 sm:h-64 lg:h-[360px]  border-Primary/Dark px-6 py-6 w-full flex flex-col rounded-3xl lg:w-[19vw] sm:max-lg:rounded-3xl  lg:mt-2 lg:rounded-3xl
         border-solid box-border `}
             >
               <div className='flex flex-row gap-6'>
@@ -425,13 +387,9 @@ function ProjectDashboard() {
             </div>
           </div>
 
-          <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8 mt-2'>
-            <ProjectBoard />
-          </div>
-
-          <div className='mb-5'>
+          <div className='mb-5 lg:flex lg:justify-center px-8 xsm:px-8 sm:px-14 lg:px-8'>
             <div
-              className='flex justify-start flex-row  lg:ml-[400px] mx-6 sm:max-lg:mx-14 lg:mx-8 mt-4'
+              className='flex justify-start flex-row mt-8 lg:mt-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[720px]'
               ref={dropdownFilterRef}
             >
               <button
@@ -472,7 +430,7 @@ function ProjectDashboard() {
           )}
         </>
       )}
-      <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-2 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
+      <div className='flex justify-center mt-0 sm:max-lg:mt-0 lg:mt-2 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
         <div
           className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
           border-solid box-border mb-5 text-center mt-2  `}
@@ -566,19 +524,22 @@ function ProjectDashboard() {
               {/* Show NothingPost only after the first load, no posts, and not loading */}
               {!loading && posts.length === 0 && (
                 <div className='mb-5'>
-                  <div className='flex justify-center mx-0 lg:mx-6'>
+                  <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
                     <div
-                      className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-8 flex bg-Background/Bottom text-center p-12 w-full h-40 border-Primary/Dark border-solid box-border border-2 rounded-3xl
-    sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-1/2 mt-4`}
+                      className={`bg-Background/Bottom border-2 h-32  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
+                      border-solid box-border text-center mt-3`}
                     >
                       <div className='h-auto'>
                         <p className='text-left text-white text-l -mt-2 xsmnopost:mt-2 sm:mt-2 xl:mt-4'>
                           Nothing here... Go explore{' '}
-                          <Link to='/feed' className='text-Accent/Target cursor-pointer inline'>
+                          <Link
+                            to='/community/posts'
+                            className='text-Accent/Target cursor-pointer inline'
+                          >
                             Codemunity
                           </Link>{' '}
                           or{' '}
-                          <Link to='/feed/me' className='text-Primary/Light cursor-pointer inline'>
+                          <Link to='/feed' className='text-Primary/Light cursor-pointer inline'>
                             share your own code
                           </Link>{' '}
                           !
@@ -591,10 +552,7 @@ function ProjectDashboard() {
 
               {/* Display posts if available */}
               {posts.length > 0 && (
-                <div
-                  id='posts-container'
-                  className={` mx-6 sm:max-lg:mx-14 lg:mx-8 ${type === 'stored' ? 'mt-28 sm:max-lg:mt-28 lg:mt-0' : ''}`}
-                >
+                <div id='posts-container' className={` mx-6 sm:max-lg:mx-14 lg:mx-8 `}>
                   {posts.map((post) => (
                     <div key={post._id} className='post'>
                       <PostBrief postData={post} />
@@ -610,22 +568,6 @@ function ProjectDashboard() {
         </>
       )}
       {/*
-      {activeDashboard === 'users' && (
-        <div className='mb-5'>
-          <UserBrief />
-        </div>
-      )}
-      {activeDashboard === 'groups' && (
-        <div className='mb-5'>
-          <GroupBrief />
-        </div>
-      )}
-      {activeDashboard === 'projects' && (
-        <div className='mb-5'>
-          <ProjectBrief />
-        </div>
-      )}
-    */}
       {/* Sentinel for infinite scroll */}
       <div ref={sentinelRef} style={{ height: '50px' }} />
 
@@ -633,22 +575,10 @@ function ProjectDashboard() {
       <div ref={sidebarRef}>
         <Sidebar
           isOpen={activeComponent === 'sidebar'}
-          state={type}
+          state={'community'}
           onClose={() => setActiveComponent(null)}
         />
       </div>
-
-      {/* TagList 
-
-      <div ref={tagListRef} className={`flex lg:invisible`}>
-        <TagList
-          isOpen={activeComponent === 'taglist'}
-          onClose={() => setActiveComponent(null)}
-          onFilterChange={handleFilterChange}
-          feedShowTaglistModal={false}
-        />
-      </div>*/}
-      {/* TagList */}
 
       <div className='flex lg:invisible'>
         <QuickNav
