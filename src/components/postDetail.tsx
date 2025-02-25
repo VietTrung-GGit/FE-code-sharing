@@ -403,7 +403,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
           </div>
         )}
 
-        <p className='w-full py-1 overflow-hidden resize-none focus:outline-none focus:border-transparent text-lg text-Primary/Light break-words'>
+        <p className='font-semibold w-full py-1 overflow-hidden resize-none focus:outline-none focus:border-transparent text-lg text-Primary/Light break-words'>
           {post?.title}
         </p>
         {post.refId && <PostRef postId={post.refId} />}

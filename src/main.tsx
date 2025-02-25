@@ -40,6 +40,7 @@ if (root) {
               <Route path='/signin' element={<Signin />} />
               <Route path='/signup' element={<Signup />} />
               <Route path='/test' element={<Signin />} />
+              <Route path='/test1' element={<UserDashboard active='Posts' />} />
               <Route path='/pass-reset' element={<PassReset />} />
               <Route path='/pass-new/:token' element={<PassNew />} />
 
@@ -71,12 +72,23 @@ if (root) {
                   <Route path='projects' element={<UserDashboard active='Projects' />} />
                   <Route path='groups' element={<UserDashboard active='Groups' />} />
                 </Route>
-                <Route path='/project/:projectId' element={<ProjectDashboard />}>
-                  <Route path=':sectionId' element={<ProjectDashboard />}>
-                    <Route path='posts' element={<ProjectDashboard />} />
-                    <Route path='participants' element={<ProjectDashboard />} />
+                <Route path='/project/:projectId'>
+                  <Route path='' element={<ProjectDashboard viewMember={false} />} />
+                  <Route path='members' element={<ProjectDashboard viewMember={true} />} />
+                  <Route path='sections/:sectionId'>
+                    <Route
+                      path=''
+                      element={<ProjectDashboard viewMember={false} viewParticipant={false} />}
+                    />
+                    <Route
+                      path='posts'
+                      element={<ProjectDashboard viewMember={false} viewParticipant={false} />}
+                    />
+                    <Route
+                      path='participants'
+                      element={<ProjectDashboard viewMember={false} viewParticipant={true} />}
+                    />
                   </Route>
-                  <Route path='members' element={<ProjectDashboard />} />
                 </Route>
               </Route>
 

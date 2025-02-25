@@ -11,10 +11,12 @@ import {
 import { toast } from 'react-toastify';
 
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
+import { urlToFile } from '../utils/helpers';
 
 interface PostCreateProps {
   projectData?: ProjectData; // Optional prop to enable edit mode
-  groupId: string;
+  groupId?: string;
+  projectId?: string;
   closeModal: () => void;
   refresh?: (projectpost: ProjectDataCreate) => void;
   onProjectCreated?: () => void;
@@ -23,6 +25,7 @@ interface PostCreateProps {
 const ProjectCreate: React.FC<PostCreateProps> = ({
   projectData,
   groupId,
+  projectId,
   closeModal: propcloseModal,
   refresh = () => {},
   onProjectCreated,
@@ -33,20 +36,28 @@ const ProjectCreate: React.FC<PostCreateProps> = ({
   const [title, setTitle] = useState<string>(projectData?.name || '');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [privacy, setPrivacy] = useState(!projectData?.canJoin || false);
-  const [moderation, setModeration] = useState(projectData?.moderation || false);
   const dropdownRef = useRef<HTMLButtonElement>(null);
 
-  const handleSelect = (type: 'privacy' | 'moderation', value: boolean) => {
-    if (type === 'privacy') {
-      setPrivacy(value);
-    } else {
-      setModeration(value);
-    }
-
+  const handleSelect = (value: boolean) => {
+    setPrivacy(value);
     setTimeout(() => {
       setActiveDropdown(null);
     }, 0);
   };
+
+  useEffect(() => {
+    if (projectData) {
+      // Convert avatar URL to File
+      const fetchAvatarFile = async () => {
+        if (projectData.avatar) {
+          const file = await urlToFile(projectData.avatar);
+          setAvatarFile(file);
+        }
+      };
+
+      fetchAvatarFile();
+    }
+  }, [projectData]);
 
   const handleSubmit = async () => {
     if (title.trim() || description.trim() || avatarFile) {
@@ -55,19 +66,19 @@ const ProjectCreate: React.FC<PostCreateProps> = ({
           name: title,
           avatar: avatarFile as File,
           description,
+          private: privacy,
         };
 
-        if (projectData) {
-          await updateProject(projectData._id, projectUploadData);
+        if (projectData && projectId) {
+          await updateProject(projectId, projectUploadData);
           refresh({
             ...projectData,
             name: title,
             description,
             avatar: projectUploadData.avatar,
             private: privacy,
-            moderation,
           });
-        } else {
+        } else if (groupId) {
           await createProject(groupId, projectUploadData);
           onProjectCreated?.();
         }
@@ -157,6 +168,64 @@ const ProjectCreate: React.FC<PostCreateProps> = ({
             />
           </div>
         </div>
+      </div>
+
+      <div className='mt-8 space-y-2'>
+        <p className='text-xl text-Primary/Light'>Privacy setting</p>
+        <Menu as='div' className='relative inline-block w-full'>
+          <MenuButton className='w-full px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2'>
+            <div className='flex gap-3 flex-row items-center'>
+              {!privacy ? (
+                <MdOutlinePublic className='text-2xl' />
+              ) : (
+                <MdOutlinePublicOff className='text-2xl' />
+              )}
+              <p className='text-lg text-white'>{privacy ? 'Private' : 'Public'}</p>
+              <div className='absolute right-4 top-4'>
+                <svg
+                  width='20'
+                  height='10'
+                  viewBox='0 0 20 10'
+                  fill='none'
+                  xmlns='http://www.w3.org/2000/svg'
+                >
+                  <path d='M0 0L10 10L20 0H0Z' fill='white' />
+                </svg>
+              </div>
+            </div>
+          </MenuButton>
+
+          <MenuItems className='mt-1 absolute w-full bg-gray-800 text-white rounded-md border-2 border-Primary/Dark shadow-lg z-10'>
+            <ul className='py-1 my-3'>
+              <MenuItem>
+                <button
+                  className={
+                    'block px-3 py-2 text-white w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
+                  }
+                  onClick={() => handleSelect(false)}
+                >
+                  <div className='flex gap-3 flex-row items-center'>
+                    <MdOutlinePublic className='text-2xl' />
+                    <p className='text-lg text-white'>Public</p>
+                  </div>
+                </button>
+              </MenuItem>
+              <MenuItem>
+                <button
+                  className={
+                    'block px-3 py-2 text-white w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
+                  }
+                  onClick={() => handleSelect(true)}
+                >
+                  <div className='flex gap-3 flex-row items-center'>
+                    <MdOutlinePublicOff className='text-2xl' />
+                    <p className='text-lg text-white'>Private</p>
+                  </div>
+                </button>
+              </MenuItem>
+            </ul>
+          </MenuItems>
+        </Menu>
       </div>
 
       <button

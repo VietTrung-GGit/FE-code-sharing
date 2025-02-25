@@ -2,16 +2,17 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePinned } from '../context/PinnedContext';
 import { PinnedItem } from '../services/pinService';
-import { TbChartBarPopular, TbClockHour4 } from 'react-icons/tb';
+import { TbChartBarPopular, TbClockHour4, TbPinned } from 'react-icons/tb';
 import { FaUserGroup } from 'react-icons/fa6';
 import { AiFillHeart } from 'react-icons/ai';
-const GroupButton: React.FC<PinnedItem & { onUnpin?: () => void }> = ({
+const GroupButton: React.FC<PinnedItem & { onUnpin?: () => void; onClose: () => void }> = ({
   avatar,
   name,
   id,
   pinType: type,
   total,
   onUnpin,
+  onClose,
 }) => {
   const navigate = useNavigate();
 
@@ -20,6 +21,7 @@ const GroupButton: React.FC<PinnedItem & { onUnpin?: () => void }> = ({
     else if (type === 'group') navigate(`/group/${id}`);
     else if (type === 'project') navigate(`/project/${id}`);
     else if (type === 'section') navigate(`/section/${id}`);
+    onClose();
   };
 
   return (
@@ -34,8 +36,8 @@ const GroupButton: React.FC<PinnedItem & { onUnpin?: () => void }> = ({
           alt={`${name} Avatar`}
           className='w-10 h-10 rounded-full object-cover'
         />
-        <div className='flex flex-col'>
-          <p className='text-lg text-white truncate'>{name}</p>
+        <div className='flex flex-col justify-between'>
+          <p className='text-lg text-white break-words leading-tight text-left'>{name}</p>
           {total && (
             <div className='flex items-center space-x-1'>
               {type === 'user' ? (
@@ -72,17 +74,19 @@ const QuickNav: React.FC<QuickNavProps> = ({ isOpen, onClose }) => {
 
   return (
     <div
-      className={`fixed sm:fixed max-h-[800px] flex-col top-24 lg:mr-[1vw] sm:max-lg:top-24 lg:top-40 right-0 flex bg-Background/Bottom text-center w-[260px] lg:w-[22vw] xl:w-[19vw] h-[550px] pt-4 pl-4 min-h-[400px] rounded-3xl border-Primary/Dark border-solid box-border border-2 z-40 transition-transform duration-300 ease-in-out ${
+      className={`overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent overflow-x-hidden fixed sm:fixed max-h-[800px] flex-col top-24 lg:mr-[1vw] sm:max-lg:top-24 lg:top-40 right-0 flex bg-Background/Bottom text-center w-[260px] lg:w-[22vw] xl:w-[19vw] h-3/5 pt-4 pl-2 min-h-[320px] rounded-3xl border-Primary/Dark border-solid box-border border-2 z-40 transition-transform duration-300 ease-in-out ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
-      } lg:translate-x-0 sm:static sm:max-xl:pl-4 xl:pl-6`}
+      } lg:translate-x-0 sm:static xl:pl-4`}
     >
       {pinnedItems?.length > 0 && (
         <>
-          <p className='text-left text-white text-xl flex ml-6 my-3 font-semibold'>Navigation</p>
-
-          <div className='ml-7 space-y-2'>
+          <div className='flex items-center m-3 text-gray-300'>
+            <TbPinned className='text-xl' /> {/* Use an appropriate icon if needed */}
+            <p className='text-lg font-semibold ml-3'>Pinned</p>
+          </div>
+          <div className='ml-10 space-y-2'>
             {pinnedItems.map((item, index) => (
-              <GroupButton key={item.id} {...item} onUnpin={() => unPin(index)} />
+              <GroupButton key={item.id} {...item} onUnpin={() => unPin(index)} onClose={onClose} />
             ))}
           </div>
         </>
@@ -97,7 +101,7 @@ const QuickNav: React.FC<QuickNavProps> = ({ isOpen, onClose }) => {
           </div>
           <div className='ml-10 space-y-2'>
             {popularItems.map((item) => (
-              <GroupButton key={item.id} {...item} />
+              <GroupButton key={item.id} {...item} onClose={onClose} />
             ))}
           </div>
         </>
@@ -112,7 +116,7 @@ const QuickNav: React.FC<QuickNavProps> = ({ isOpen, onClose }) => {
           </div>
           <div className='ml-10 space-y-2'>
             {recentItems.map((item) => (
-              <GroupButton key={item.id} {...item} />
+              <GroupButton key={item.id} {...item} onClose={onClose} />
             ))}
           </div>
         </>

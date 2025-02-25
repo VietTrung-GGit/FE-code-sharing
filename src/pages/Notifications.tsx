@@ -317,7 +317,7 @@ sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-full sm:max-lg:mt-28`}
         </div>
       </div>
 
-      <div className='lg:hidden'>
+      <div className='lg:hidden' ref={quickNavRef}>
         <QuickNav
           isOpen={activeComponent === 'quicknav'}
           onClose={() => setActiveComponent(null)}

@@ -2,6 +2,29 @@ import axiosInstance from '../api/axiosInstance';
 import { API_ENDPOINTS } from '../api/endpoints';
 import { GroupDataBrief } from './groupService';
 
+export interface NodeStructure {
+  _id: string;
+  name: string;
+  isActive?: boolean;
+  children: NodeStructure[];
+}
+
+export function activateNodes(nodes: NodeStructure[], activeSectionId: string): void {
+  function traverse(node: NodeStructure, parentActive: boolean): boolean {
+    node.isActive = node._id === activeSectionId || parentActive;
+
+    for (const child of node.children) {
+      traverse(child, node.isActive);
+    }
+
+    return node.isActive;
+  }
+
+  for (const node of nodes) {
+    traverse(node, false);
+  }
+}
+
 export interface ProjectDataBrief {
   _id: string;
   name: string;
@@ -11,10 +34,24 @@ export interface ProjectDataBrief {
   visibleMembers: (string | undefined)[];
 }
 
+export interface ProjectData {
+  _id: string;
+  name: string;
+  avatar: string;
+  groupData: GroupDataBrief[];
+  group: string;
+  bio: string;
+  canJoin: boolean;
+  members: { avatar: string; role: string; user: string }[];
+  sections: NodeStructure[];
+  role: string;
+}
+
 export interface ProjectDataCreate {
   name: string;
   avatar: File;
   description: string;
+  private: boolean;
 }
 
 // Fetch projects
@@ -77,12 +114,12 @@ export const fetchUserProjects = async (
 };
 
 export const joinProject = async (projectId: string) => {
-  const response = await axiosInstance.get(API_ENDPOINTS.JOIN_PROJECT(projectId));
+  const response = await axiosInstance.get(API_ENDPOINTS.PROJECT_JOIN(projectId));
   return response.data;
 };
 
 export const leaveProject = async (projectId: string) => {
-  const response = await axiosInstance.get(API_ENDPOINTS.LEAVE_PROJECT(projectId));
+  const response = await axiosInstance.get(API_ENDPOINTS.PROJECT_LEAVE(projectId));
   return response.data;
 };
 
@@ -188,6 +225,34 @@ export const removeProjectAdmin = async (
   const response = await axiosInstance.delete<string>(
     API_ENDPOINTS.PROJECT_REMOVE_ADMIN(projectId, removeAdminUserId),
   );
+  return response.data;
+};
+
+// Create a new section
+export const createSection = async (
+  name: string,
+  projectId: string,
+  parentId?: string,
+): Promise<string> => {
+  const response = await axiosInstance.post<NodeStructure>(API_ENDPOINTS.CREATE_SECTION(), {
+    name,
+    projectId,
+    ...(parentId && { parentId }),
+  });
+  return response.data._id;
+};
+
+// Update an existing section
+export const updateSection = async (sectionId: string, name: string): Promise<string> => {
+  const response = await axiosInstance.put<string>(API_ENDPOINTS.UPDATE_SECTION(sectionId), {
+    name,
+  });
+  return response.data;
+};
+
+// Delete a section
+export const deleteSection = async (sectionId: string): Promise<string> => {
+  const response = await axiosInstance.delete<string>(API_ENDPOINTS.DELETE_SECTION(sectionId));
   return response.data;
 };
 

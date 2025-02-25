@@ -130,6 +130,7 @@ export interface PostUpload {
   group?: string;
   role?: string;
   section?: string;
+  project?: string;
   tags: string[];
   visibility: 'public' | 'private';
   code_files: PostFile[];
@@ -362,6 +363,7 @@ export const fetchHalfPostDetail = async (postId: string): Promise<PostRefData> 
 
 export const fetchSectionPosts = async (
   sectionId: string,
+  projectId: string,
   page: number = 1,
   limit: number = 10,
   order: 'ascending' | 'descending' = 'descending',
@@ -373,6 +375,7 @@ export const fetchSectionPosts = async (
     const response = await axiosInstance.get<PostResponse>(
       API_ENDPOINTS.SECTION_POSTS(
         sectionId,
+        projectId,
         page,
         limit,
         search || '',
@@ -418,6 +421,9 @@ export const createPost = async (postData: PostUpload): Promise<string> => {
   }
   if (postData.section) {
     formData.append('section', postData.section);
+  }
+  if (postData.project) {
+    formData.append('project', postData.project);
   }
   {
     postData.refId && formData.append('refId', postData.refId);

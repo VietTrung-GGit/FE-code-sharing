@@ -1,84 +1,125 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MdCenterFocusWeak, MdOutlineZoomOutMap, MdOutlineZoomInMap } from 'react-icons/md';
 import { BiSolidEdit } from 'react-icons/bi';
+import {
+  NodeStructure,
+  activateNodes,
+  createSection,
+  deleteSection,
+  updateSection,
+} from '../services/projectService';
+import { FaDeleteLeft } from 'react-icons/fa6';
+import { useNavigate } from 'react-router-dom';
 
 interface NodeProps {
   id: string;
-  title: string;
+  projectId: string;
+  name: string;
   children?: React.ReactNode;
   isEditMode: boolean;
-  onAddChild?: () => void; // Function to add Child
+  isActive: boolean;
+  onAddChild?: () => void;
   onDelete?: () => void;
-  onUpdateTitle?: (id: string, newTitle: string) => void;
+  onUpdateName?: (id: string, newTitle: string) => void;
 }
 
 const Node: React.FC<NodeProps> = ({
   id,
-  title,
+  projectId,
+  name,
   children,
   isEditMode,
+  isActive,
   onAddChild,
   onDelete,
-  onUpdateTitle,
+  onUpdateName,
 }) => {
-  const [newTitle, setNewTitle] = useState(title);
+  const navigate = useNavigate();
+  const [newTitle, setNewTitle] = useState(name);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const borderColor = isActive && !isEditMode ? 'border-red-500' : 'border-Primary/Dark';
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewTitle(e.target.value);
-    onUpdateTitle?.(id, e.target.value);
+  };
+
+  const handleTitleSubmit = () => {
+    if (newTitle.trim() !== name) {
+      onUpdateName?.(id, newTitle.trim()); // Use optional chaining
+    }
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(); // Ensure it exists before calling
+    }
+  };
+
+  const handleAddChild = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddChild?.(); // Use optional chaining
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleTitleSubmit();
+    }
+  };
+
+  const handleClick = () => {
+    if (!isEditMode) {
+      navigate(`/project/${projectId}/sections/${id}`);
+    }
   };
 
   return (
-    <div className='hover:border-Primary/Light border-2 border-Primary/Dark bg-Background/Middle shadow-md rounded-lg p-4 text-center relative'>
+    <div
+      className={`hover:border-Primary/Light border-2 ${borderColor} bg-Background/Middle shadow-md rounded-lg p-6 text-center relative cursor-pointer`}
+      onClick={(e) => {
+        e.stopPropagation(); // Prevent event bubbling
+        handleClick();
+      }}
+    >
       {isEditMode ? (
         <input
           type='text'
           value={newTitle}
           onChange={handleTitleChange}
+          onBlur={handleTitleSubmit}
+          onKeyDown={handleKeyDown}
           className='border rounded px-2 py-1 w-min text-center text-lg bg-Background/Middle'
         />
       ) : (
-        <h3 className='font-semibold text-lg w-full text-center'>{title}</h3>
+        <h3 className='font-semibold text-lg w-full text-center'>{name}</h3>
       )}
 
       {isEditMode && onDelete && (
         <button
-          className='absolute top-2 right-2 text-red-500 hover:text-red-600 font-bold'
-          onClick={() => setShowConfirm(true)}
+          className='absolute top-1 right-1 text-red-300 hover:text-red-400'
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent navigation on delete click
+            setShowConfirm(true);
+          }}
           title='Delete'
         >
-          x
+          <FaDeleteLeft />
         </button>
-      )}
-
-      {showConfirm && (
-        <div className='z-50 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50'>
-          <div className='bg-white border shadow-md p-6 rounded-lg'>
-            <p className='text-center'>Are you sure you want to delete?</p>
-            <div className='flex justify-center gap-4 mt-4'>
-              <button className='bg-red-500 text-white px-4 py-1 rounded' onClick={onDelete}>
-                Yes
-              </button>
-              <button
-                className='bg-gray-300 px-4 py-1 rounded'
-                onClick={() => setShowConfirm(false)}
-              >
-                No
-              </button>
-            </div>
-          </div>
-        </div>
       )}
 
       {children && (
         <div className='mt-4 flex space-x-4'>
           {children}
+
           {isEditMode && onAddChild && (
             <div className='mt-2 flex flex-start'>
               <button
                 className='text-blue-500 hover:text-blue-600 font-bold'
-                onClick={onAddChild}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent navigation when adding a child
+                  onAddChild();
+                }}
                 title='Add Child'
               >
                 New
@@ -87,122 +128,136 @@ const Node: React.FC<NodeProps> = ({
           )}
         </div>
       )}
+
+      {showConfirm && isEditMode && (
+        <div className='absolute inset-0 bg-Background/Middle bg-opacity-90 flex flex-col justify-center items-center p-6 rounded-lg'>
+          <p className='text-center'>
+            Are you sure you want to delete this section and all of its subsections?
+          </p>
+          <div className='flex justify-center gap-4 mt-4'>
+            <button className='bg-red-500 text-white px-4 py-1 rounded' onClick={handleDelete}>
+              Yes
+            </button>
+            <button
+              className='bg-gray-600 px-4 py-1 rounded'
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowConfirm(false);
+              }}
+            >
+              No
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-interface NodeStructure {
-  id: string;
-  title: string;
-  children: NodeStructure[];
+interface sectionsProps {
+  sections: NodeStructure[];
+  projectId: string;
+  activeSectionId: string;
 }
-
-const ProjectBoard: React.FC = () => {
+const ProjectBoard: React.FC<sectionsProps> = ({ sections, projectId, activeSectionId }) => {
   const [nodes, setNodes] = useState<NodeStructure>({
-    id: 'root',
-    title: 'Project',
-    children: [
-      {
-        id: 'frontend',
-        title: 'FE',
-        children: [
-          {
-            id: 'landing',
-            title: 'Landing Page',
-            children: [
-              { id: 'header', title: 'Header', children: [] },
-              { id: 'hero', title: 'Hero', children: [] },
-              { id: 'footer', title: 'Footer', children: [] },
-            ],
-          },
-          {
-            id: 'home',
-            title: 'Home Page',
-            children: [
-              { id: 'posts', title: 'Posts', children: [] },
-              { id: 'avatar', title: 'Avatar', children: [] },
-              { id: 'filter', title: 'Filter', children: [] },
-            ],
-          },
-          { id: 'sign', title: 'Sign Page', children: [] },
-        ],
-      },
-      {
-        id: 'backend',
-        title: 'BE',
-        children: [
-          { id: 'auth', title: 'Auth', children: [] },
-          { id: 'post', title: 'Post', children: [] },
-          { id: 'user', title: 'User', children: [] },
-        ],
-      },
-    ],
+    _id: 'root',
+    name: 'Project',
+    children: sections,
   });
 
   const [editMode, setEditMode] = useState(false);
 
-  // Function to add Child node at the same level
-  const addNodeAsChild = (ChildId: string) => {
-    const addChildToNode = (node: NodeStructure): NodeStructure => {
-      if (node.id === ChildId) {
+  // Function to add a child node (section)
+  const addNodeAsChild = async (parentId: string, projectId: string) => {
+    try {
+      const sectionName = `New Child`;
+
+      const addChildToNode = (node: NodeStructure): NodeStructure => {
+        if (node._id === parentId) {
+          return {
+            ...node,
+            children: [
+              ...node.children,
+              {
+                _id: newSectionId,
+                isActive: false,
+                name: sectionName,
+                children: [],
+              },
+            ],
+          };
+        }
         return {
           ...node,
-          children: [
-            ...node.children,
-            {
-              id: `${node.id}-${node.children.length + 1}`,
-              title: `New Child ${node.children.length + 1}`,
-              children: [],
-            },
-          ],
+          children: node.children.map(addChildToNode),
         };
-      }
-      return {
-        ...node,
-        children: node.children.map(addChildToNode),
       };
-    };
 
-    setNodes((prevNodes) => addChildToNode(prevNodes));
+      const newSectionId =
+        parentId === 'root'
+          ? await createSection(sectionName, projectId) // No parentId if "0"
+          : await createSection(sectionName, projectId, parentId);
+
+      setNodes((prevNodes) => addChildToNode(prevNodes));
+    } catch (error) {
+      console.error('Failed to create section:', error);
+    }
   };
 
-  const deleteNode = (nodeId: string) => {
-    const removeNode = (node: NodeStructure): NodeStructure | null => {
-      if (node.id === nodeId) return null;
-      return {
-        ...node,
-        children: node.children
-          .map(removeNode)
-          .filter((child): child is NodeStructure => child !== null),
-      };
-    };
+  // Function to delete a node (section)
+  const deleteNode = async (nodeId: string) => {
+    try {
+      await deleteSection(nodeId);
 
-    setNodes((prevNodes) => removeNode(prevNodes) as NodeStructure);
+      const removeNode = (node: NodeStructure): NodeStructure | null => {
+        if (node._id === nodeId) return null;
+        return {
+          ...node,
+          children: node.children
+            .map(removeNode)
+            .filter((child): child is NodeStructure => child !== null),
+        };
+      };
+
+      setNodes((prevNodes) => removeNode(prevNodes) as NodeStructure);
+    } catch (error) {
+      console.error('Failed to delete section:', error);
+    }
   };
 
-  const updateNodeTitle = (nodeId: string, newTitle: string) => {
-    const updateTitle = (node: NodeStructure): NodeStructure => {
-      if (node.id === nodeId) {
-        return { ...node, title: newTitle };
-      }
-      return {
-        ...node,
-        children: node.children.map(updateTitle),
-      };
-    };
+  // Function to update a node's name (section name)
+  const updateNodeName = async (nodeId: string, newTitle: string) => {
+    try {
+      await updateSection(nodeId, newTitle);
 
-    setNodes((prevNodes) => updateTitle(prevNodes));
+      const updateName = (node: NodeStructure): NodeStructure => {
+        if (node._id === nodeId) {
+          return { ...node, name: newTitle };
+        }
+        return {
+          ...node,
+          children: node.children.map(updateName),
+        };
+      };
+
+      setNodes((prevNodes) => updateName(prevNodes));
+    } catch (error) {
+      console.error('Failed to update section:', error);
+    }
   };
 
   const renderNode = (node: NodeStructure) => (
     <Node
-      key={node.id}
-      id={node.id}
-      title={node.title}
+      key={node._id}
+      id={node._id}
+      projectId={projectId}
+      name={node.name}
       isEditMode={editMode}
-      onAddChild={editMode ? () => addNodeAsChild(node.id) : undefined} // Add Child functionality
-      onDelete={editMode && node.id !== 'root' ? () => deleteNode(node.id) : undefined} // Root node can't be deleted
-      onUpdateTitle={editMode ? updateNodeTitle : undefined}
+      isActive={node.isActive || false}
+      onAddChild={editMode ? () => addNodeAsChild(node._id, projectId) : undefined} // Add Child functionality
+      onDelete={editMode && node._id !== 'root' ? () => deleteNode(node._id) : undefined} // Root node can't be deleted
+      onUpdateName={editMode ? updateNodeName : undefined}
     >
       <div className='flex space-x-4'>{node.children.map(renderNode)}</div>
     </Node>
@@ -328,9 +383,13 @@ const ProjectBoard: React.FC = () => {
   };
 
   useEffect(() => {
-    // Focus the canvas initially on mount
+    console.log('before');
+    console.log(nodes);
+    activateNodes([nodes], activeSectionId);
+    console.log('after');
+    console.log(nodes);
     focusCanvas();
-  }, []);
+  }, [editMode, activeSectionId]);
   return (
     <div
       onMouseEnter={() => setIsInside(true)}
@@ -340,7 +399,7 @@ const ProjectBoard: React.FC = () => {
       <div className='flex flex-col'>
         {/* Edit Button (Top-Right) */}
         <button
-          className={`z-40 absolute top-4 right-4 p-2 text-sm ${
+          className={`z-10 absolute top-4 right-4 p-2 text-sm ${
             editMode ? 'bg-gray-500' : 'bg-Accent/Target'
           } text-white rounded hover:${editMode ? 'bg-gray-600' : ''} shadow-md`}
           onClick={() => setEditMode(!editMode)}

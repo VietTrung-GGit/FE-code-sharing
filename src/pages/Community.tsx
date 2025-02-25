@@ -328,7 +328,7 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
 
             {/* Share Text Section */}
             <input
-              className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-Primary/Light text-lg'
+              className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-Primary/Light text-md'
               placeholder={`Search for ${active.toLowerCase()}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -367,46 +367,65 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
       </div>
       <>
         <>
-          <div className='flex justify-center items-center relative my-3 mx-6 sm:max-lg:mx-14 lg:mx-10'>
+          <div className='flex justify-center mt-8 sm:max-lg:mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-2'>
+            <div className='flex flex-row justify-center gap-8 xsm:gap-14 sm:gap-24 lg:gap-16 xl:gap-28 2xl:gap-36 w-1/2'>
+              <button
+                className={`${active === 'Posts' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
+                onClick={() => navigate(`/community/posts`)}
+              >
+                Posts
+              </button>
+              <button
+                className={`${active === 'Users' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
+                onClick={() => navigate(`/community/users`)}
+              >
+                Users
+              </button>
+              <button
+                className={`${active === 'Groups' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
+                onClick={() => navigate(`/community/groups`)}
+              >
+                Groups
+              </button>
+              <button
+                className={`${active === 'Projects' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
+                onClick={() => navigate(`/community/projects`)}
+              >
+                Projects
+              </button>
+            </div>
+          </div>
+          <div className='flex lg:justify-center mt-2 xsm:mt-2 sm:max-lg:mt-4 lg:mt-6 mx-6 sm:max-lg:mx-20 lg:mx-20'>
             <div
-              className='flex flex-row justify-between items-center w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] '
+              className={`flex ${active === 'Groups' ? ' w-full xsm:w-full sm:w-full lg:w-2/5 xl:min-w-[550px]' : 'w-1/2 xl:min-w-[650px]'}  flex-start  ml-8 sm:ml-0`}
+            >
+              <p className='text-2xl font-semibold text-white'>{active}</p>
+            </div>
+            <div
+              className='flex flex-row justify-end items-center mr-6 sm:mr-0'
               ref={dropdownFilterRef}
             >
-              {/* Filter Button */}
-              <div className='relative'>
-                <button
-                  className='ml-2 text-lg bg-Primary/Light text-Primary/Dark rounded-2xl font-semibold px-4 py-1 w-36 flex flex-row justify-center items-center'
-                  onClick={toggleDropdownFilter}
-                >
-                  {active}
-                  <div className='ml-2'>
-                    <IoMdArrowDropdown className='text-3xl' />
-                  </div>
-                </button>
-                {isDropdownFilterOpen && (
-                  <div className='ml-2 absolute left-0 top-full mt-2 w-36 bg-white border rounded-2xl shadow-lg z-10'>
-                    <ul className='py-2 my-1 flex flex-col items-center'>
-                      {(['Posts', 'Users', 'Groups', 'Projects'] as const).map((item) => (
-                        <li key={item} className='w-full'>
-                          <button
-                            className={`block px-8 py-1 text-left text-lg text-Primary/Dark font-semibold w-full flex justify-start items-center transition-colors ${
-                              active === item ? 'bg-Primary/Light' : 'hover:bg-gray-300 bg-white'
-                            }`}
-                            onClick={() => {
-                              navigate(`/community/${item.toLowerCase()}`);
-                              toggleDropdownFilter();
-                            }}
-                          >
-                            {item}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-
               {/* New Group Button (Only when filter is 'groups') */}
+              {active === 'Groups' && (
+                <button
+                  onClick={() => {
+                    setShowGroupCreate(true);
+                  }}
+                  className='transition-colors duration-300 ease-in-out w-28 rounded-2xl bg-Accent/Target text-lg text-white hover:bg-white hover:text-Accent/Target  flex flex-row gap-2 px-6 py-[2px] items-center'
+                >
+                  <p>New</p>
+                  <AiFillPlusCircle className=' text-3xl' />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/*}  <div className='flex justify-center items-center relative mx-6 sm:max-lg:mx-14 lg:mx-10'>
+            <div
+              className='flex flex-row justify-end items-center w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] '
+              ref={dropdownFilterRef}
+            >
+              
               {active === 'Groups' && (
                 <button
                   onClick={() => {
@@ -419,7 +438,7 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
                 </button>
               )}
             </div>
-          </div>
+            </div>*/}
         </>
       </>
       {active == 'Posts' && (
@@ -545,7 +564,7 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
         />
       </div>
 
-      <div>
+      <div ref={quickNavRef}>
         <QuickNav
           isOpen={activeComponent === 'quicknav'}
           onClose={() => setActiveComponent(null)}

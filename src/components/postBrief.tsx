@@ -355,8 +355,13 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
 
           {/* Title */}
           {post.title && (
-            <div className='flex items-center text-lg text-Primary/Light'>
-              <p className='w-full py-1 overflow-hidden break-words line-clamp-2'>{post.title}</p>
+            <div className='flex items-center text-lg text-Primary/Light font-semibold'>
+              <p
+                className='w-full py-1 overflow-hidden break-anywhere line-clamp-2'
+                style={{ overflowWrap: 'anywhere' }}
+              >
+                {post.title}
+              </p>
             </div>
           )}
           {post.refId && <PostRef postId={post.refId} />}
@@ -364,9 +369,11 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
           <div className='flex items-center'>
             <div>
               <CustomLinkify>
+                {' '}
                 <div
                   ref={textRef}
-                  className='mb-4 w-full overflow-hidden whitespace-pre-line break-words line-clamp-3'
+                  className='mb-4 w-full overflow-hidden whitespace-pre-line break-anywhere line-clamp-6'
+                  style={{ overflowWrap: 'anywhere' }}
                 >
                   {post.content || ''}
                 </div>
@@ -473,7 +480,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
             )}
 
             {/* Right-aligned buttons */}
-            <div className='relative flex space-x-1 sm:space-x-2 items-center'>
+            <div className='relative flex space-x-2 sm:space-x-2 items-center'>
               <div ref={modalShareRef} className='flex items-center'>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}

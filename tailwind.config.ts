@@ -32,6 +32,7 @@ export default {
         hover: '#444444',
       },
       fontFamily: {
+        sans: ['Roboto', 'sans-serif'],
         serif: ['Source Serif Pro', 'serif'],
         mono: ['Consolas', 'monospace'],
       },

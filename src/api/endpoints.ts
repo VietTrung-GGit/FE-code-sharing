@@ -25,9 +25,6 @@ export const API_ENDPOINTS = {
   //project_related
   PROJECT_DATA: (projectId: string) => `/project/${projectId}/data`,
   FETCH_PROJECT_DETAIL: (projectId: string) => `/project/${projectId}/fullInfo`,
-  JOIN_PROJECT: (projectId: string) => `/project/${projectId}/join`,
-  LEAVE_PROJECT: (projectId: string) => `/project/${projectId}/leave`,
-
   //Post_related
   POST_DETAILS: (postId: string) => `/post/${postId}`,
   POST_VISIBILITY: (postId: string, state: 'public' | 'private') =>
@@ -141,6 +138,7 @@ export const API_ENDPOINTS = {
 
   SECTION_POSTS: (
     sectionId: string,
+    projectId: string,
     page: number = 1,
     limit: number = 10,
     search: string = '',
@@ -155,7 +153,7 @@ export const API_ENDPOINTS = {
     queryParams.append('criteria', criteria);
     if (search) queryParams.append('search', search);
     if (tags.length > 0) queryParams.append('tags', tags.join(','));
-    return `/posts/${sectionId}/filter?${queryParams.toString()}`;
+    return `/project/${sectionId != 'root' ? `section/${sectionId}` : `posts/${projectId}`}?${queryParams.toString()}`;
   },
 
   USERS_FILTER: (
@@ -448,6 +446,10 @@ export const API_ENDPOINTS = {
     return `/project/section/${sectionId}/addingParticipant`;
   },
 
+  SECTION_REMOVE_PARTICIPANT: (sectionId: string, userId: string) => {
+    return `/project/section/${sectionId}/removeParticipant/${userId}`;
+  },
+
   POST_MODERATE_GROUP: (groupId: string, action: 'approve' | 'reject') => {
     return `/group/postModerate/${groupId}?accept=${action}`;
   },
@@ -461,5 +463,28 @@ export const API_ENDPOINTS = {
   UNPIN_ITEM: (position: number) => `/user/unpin/${position}`,
 
   GET_RECENT: () => '/recent',
+
+  CREATE_SECTION: () => `/project/sectionCreate`,
+  UPDATE_SECTION: (sectionId: string) => `/project/sectionUpdate/${sectionId}`,
+  DELETE_SECTION: (sectionId: string) => `/project/sectionDelete/${sectionId}`,
+  SECTION_USERS: (
+    sectionId: string,
+    page: number,
+    limit: number,
+    order: string,
+    criteria: string,
+    search?: string,
+  ) =>
+    `project/section/${sectionId}/getUsers?page=${page}&limit=${limit}&order=${order}&criteria=${criteria}${search ? `&search=${search}` : ''}`,
+
+  PROJECT_USERS: (
+    projectId: string,
+    page: number,
+    limit: number,
+    order: string,
+    criteria: string,
+    search?: string,
+  ) =>
+    `project/users/${projectId}?page=${page}&limit=${limit}&order=${order}&criteria=${criteria}${search ? `&search=${search}` : ''}`,
 };
 

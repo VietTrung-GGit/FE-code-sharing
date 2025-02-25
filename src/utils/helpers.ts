@@ -88,6 +88,12 @@ export const getMimeTypeForExtension = (extension: string): string | undefined =
   return mimeTypes[extension.toLowerCase()] || 'application/octet-stream'; // Default to a generic binary MIME type if not found
 };
 
+export const urlToFile = async (imageUrl: string): Promise<File> => {
+  const response = await fetch(imageUrl);
+  const blob = await response.blob();
+  return new File([blob], 'image');
+};
+
 export const getEditorLanguage = (fileName: string): string => {
   const extension = fileName.split('.').pop()?.toLowerCase();
 

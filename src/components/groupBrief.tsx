@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import { GroupDataBrief, joinGroup, leaveGroup } from '../services/groupService';
@@ -6,7 +6,7 @@ import { useAuthUser } from '../context/AuthUserContext';
 import { formatNumber } from '../utils/helpers';
 import { FaUserGroup } from 'react-icons/fa6';
 import { BsFileCodeFill } from 'react-icons/bs';
-
+import { Tooltip } from 'react-tooltip';
 interface GroupBriefProps {
   groupData?: GroupDataBrief;
 }
@@ -67,7 +67,21 @@ const GroupBrief: React.FC<GroupBriefProps> = ({ groupData }) => {
       toast.error('Failed to leave group');
     }
   };
-
+  const textGroupRef = useRef<HTMLDivElement>(null);
+  
+  const [isGroupnameOverflowing, setIsGroupnameOverflowing] = useState(false);
+  const checkOverflow = () => {
+    if (textGroupRef.current) {
+      setIsGroupnameOverflowing(
+        textGroupRef.current.scrollWidth > textGroupRef.current.clientWidth,
+      );
+    }
+  };
+  useEffect(() => {
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, [group.name]);
   return (
     <div className='flex justify-center items-center relative'>
       <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] my-3 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
@@ -85,10 +99,21 @@ const GroupBrief: React.FC<GroupBriefProps> = ({ groupData }) => {
           </Link>
 
           {/* Group Info */}
-          <div className='flex flex-col justify-center flex-grow'>
+          <div className='flex flex-col -mt-4 flex-grow '>
             {' '}
             <Link to={`/group/${groupData?._id ?? '#'}`}>
-              <p className='text-white font-semibold text-2xl'>{group.name}</p>
+              <div
+                className='w-[15vw] sm:w-full lg:w-[15vw] xl:w-full'
+                ref={textGroupRef}
+                data-tooltip-id='groupname'
+                data-tooltip-content={group.name}
+                data-tooltip-place='bottom-start'
+              >
+                <p className='text-white font-semibold text-2xl truncate'>
+                  {isGroupnameOverflowing ? `${group.name.slice(0, 10)}...` : group.name}
+                </p>
+                <Tooltip id='groupname' classNameArrow='noArrow' />
+              </div>
             </Link>
             <div className='flex gap-4 text-Primary/Light text-xs lg:text-sm mt-1'>
               <p className='flex items-center gap-1'>
@@ -113,17 +138,17 @@ const GroupBrief: React.FC<GroupBriefProps> = ({ groupData }) => {
                       'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
                     }
                     alt={`Member ${index + 1}`}
-                    className='w-10 h-10 rounded-full object-cover absolute border-4 border-Background/Bottom'
-                    style={{ left: `${index * 28}px` }}
+                    className='w-8 h-8 rounded-full object-cover absolute border-2 border-Background/Bottom'
+                    style={{ left: `${index * 20}px` }}
                   />
                 ))}
               </div>
             )}
           </div>
 
-          {user && user._id == group._id && (
+          {user && (
             <button
-              className={`transition-colors duration-300 ease-in-out w-32 h-8 rounded-xl text-md text-Accent/Target m-4 font-semibold
+              className={`transition-colors duration-300 ease-in-out w-28 xl:w-32 h-8 rounded-xl text-md text-Accent/Target m-4 font-semibold flex-shrink-0
               ${joined ? 'bg-gray-500 text-white hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:text-white'}`}
               onClick={joined ? handleLeave : handleJoin}
               onMouseEnter={() => setIsHovered(true)}

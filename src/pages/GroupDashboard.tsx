@@ -101,11 +101,11 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
   const [projects, setProjects] = useState<ProjectDataBrief[]>([]);
   const [group, setGroup] = useState<GroupData | null>(null);
   const [moderation, setModeration] = useState(false);
-  const [privacy, setPrivacy] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showGroupEdit, setShowGroupEdit] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [privacy, setPrivacy] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -322,10 +322,6 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
     }
   };
 
-  const handleCloseTagModal = () => {
-    setShowTaglistModal(false);
-  };
-
   const handleLeave = async () => {
     if (group && groupId) {
       try {
@@ -337,6 +333,10 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
         toast.error('Failed to leave group');
       }
     }
+  };
+
+  const handleCloseTagModal = () => {
+    setShowTaglistModal(false);
   };
 
   const handleFilterChange = (querySortParam: string) => {
@@ -462,7 +462,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
       <>
         <div className='mx-8 xsm:mx-8 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
           <div className='bg-Background/Bottom text-white justify-center w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px]  xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] border-Primary/Dark border-2 rounded-3xl lg:p-5 relative flex items-center'>
-            {group && (group.role == 'creator' || group.role == 'admin') && (
+            {group && (
               <div className=' absolute right-3 top-2' ref={dropdownConfigRef}>
                 <button
                   onClick={toggleDropdownConfig}
@@ -740,12 +740,14 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
             >
               My posts
             </button>
-            <button
-              className={`${active === 'Pending posts' ? 'text-white' : 'text-gray-500'} text-xl font-semibold whitespace-nowrap`}
-              onClick={() => navigate(`/group/${groupId}/pendingposts`)}
-            >
-              Pending posts
-            </button>
+            {group && (group.role == 'admin' || group.role == 'creator') && (
+              <button
+                className={`${active === 'Pending posts' ? 'text-white' : 'text-gray-500'} text-xl font-semibold whitespace-nowrap`}
+                onClick={() => navigate(`/group/${groupId}/pendingposts`)}
+              >
+                Pending posts
+              </button>
+            )}
           </div>
         </div>
         <div className='flex lg:justify-center mt-2 xsm:mt-2 sm:max-lg:mt-4 lg:mt-6 mx-6 sm:max-lg:mx-20 lg:mx-20'>
@@ -753,7 +755,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
             {active != 'Projects' && <p className='text-2xl font-semibold text-white'>{active}</p>}
           </div>
           {/* New Group Button (Only when filter is 'groups') */}
-          {active === 'Projects' && group && group.role == 'admin' && (
+          {active === 'Projects' && group && (group.role == 'admin' || group.role == 'creator') && (
             <button
               onClick={() => {
                 setShowProjectCreate(true);
@@ -896,7 +898,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
         <div id='users-container' className={'mx-6 sm:max-lg:mx-14 lg:mx-10 '}>
           {users.map((u) => (
             <div key={u._id}>
-              <UserBrief userData={u} group={groupId} role={u.role} />
+              <UserBrief userData={u} group={groupId} role={group.role} />
             </div>
           ))}
         </div>
@@ -1048,7 +1050,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
       </div>*/}
       {/* TagList */}
 
-      <div className='flex lg:invisible'>
+      <div className='flex lg:invisible' ref={quickNavRef}>
         <QuickNav
           isOpen={activeComponent === 'quicknav'}
           onClose={() => setActiveComponent(null)}

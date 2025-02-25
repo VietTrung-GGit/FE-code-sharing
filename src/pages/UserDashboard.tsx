@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useDebounce } from '@uidotdev/usehooks';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-
+import { Tooltip } from 'react-tooltip';
 import { IoIosMore, IoIosMail, IoMdArrowDropdown } from 'react-icons/io';
 import { BiSolidEdit } from 'react-icons/bi';
 import { AiOutlineUserDelete } from 'react-icons/ai';
@@ -61,6 +61,10 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
   const [searchParams] = useSearchParams();
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
   const [modeEditChange, setModeEditChange] = useState<'editprofile' | 'editpassword' | null>(null);
+
+  const textEmailRef = useRef<HTMLDivElement>(null);
+  const textUserDashboardRef = useRef<HTMLDivElement>(null);
+  const textUserProfileRef = useRef<HTMLDivElement>(null);
 
   const { userId } = useParams<string>();
   const alreadyPinned = userId ? isPinned('user', userId) : false;
@@ -453,6 +457,37 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
   const [numDashboardCount, setNumDashboardCount] = useState<
     'Posts' | 'Users' | 'Groups' | 'Projects'
   >('Posts');
+  const [isEmailOverflowing, setIsEmailOverflowing] = useState(false);
+  const [isUsernameOverflowing, setIsUsernameOverflowing] = useState(false);
+  const [isUsernameProfOverflowing, setIsUsernameProfOverflowing] = useState(false);
+  const checkOverflow = () => {
+    if (textEmailRef.current) {
+      setIsEmailOverflowing(textEmailRef.current.scrollWidth > textEmailRef.current.clientWidth);
+    }
+    if (textUserDashboardRef.current) {
+      setIsUsernameOverflowing(
+        textUserDashboardRef.current.scrollWidth > textUserDashboardRef.current.clientWidth,
+      );
+    }
+    if (textUserProfileRef.current) {
+      setIsUsernameProfOverflowing(
+        textUserProfileRef.current.scrollWidth > textUserProfileRef.current.clientWidth,
+      );
+    }
+  };
+  useEffect(() => {
+    checkOverflow();
+  }, [host?.email]);
+
+  useEffect(() => {
+    checkOverflow();
+  }, [host?.username]);
+
+  const shortenEmail = (email: string | undefined) => {
+    const [name, domain] = email.split('@');
+    return `${name.slice(0, 5)}...@${domain}`;
+  };
+
   return (
     <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
       <>
@@ -549,17 +584,23 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                   </div>
                 )}
                 <div
-                  className={` flex items-center lg:mt-10 xl:mt-4 ${!own ? '' : 'mt-[50px]'} space-x-2 hidden sm:block`}
+                  className={` flex items-center lg:mt-12 xl:mt-4 ${!own ? '' : 'mt-[50px]'} space-x-2 hidden sm:block `}
                 >
-                  <IoIosMail className='text-Primary/Light text-3xl sm:inline-block' />
+                  <IoIosMail className='text-Primary/Light text-3xl -mt-2 sm:inline-block' />
 
-                  <div className='flex flex-row w-40 sm:inline-block overflow-x-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
+                  <div className='flex flex-row w-40 sm:inline-block   ' ref={textEmailRef}>
                     <a
                       href={host?.email ? `mailto:${host.email}` : '#'}
-                      className='text-white whitespace-nowrap block'
+                      className='text-white whitespace-nowrap block '
+                      data-tooltip-id='email'
+                      data-tooltip-content={host?.email ? host.email : 'null'}
+                      data-tooltip-place='bottom'
                     >
-                      {host?.email || 'Email'}
+                      {isEmailOverflowing
+                        ? shortenEmail(host?.email) || 'Email'
+                        : host?.email || 'Email'}
                     </a>
+                    <Tooltip id='email' classNameArrow='noArrow' />
                   </div>
                 </div>
               </div>
@@ -568,15 +609,32 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                 className={`flex flex-col space-y-4 mb-6 sm:mb-6 lg:mb-10 ml-4 xsm:ml-20 sm:ml-0 ${!own ? 'xsm:mt-4' : 'xsm:mt-8 mt-4'}  sm:mt-0`}
               >
                 <div className='flex flex-row sm:-mt-4 lg:mt-0'>
-                  <div className='flex flex-col'>
+                  <div className='flex flex-col '>
                     <div className=''>
-                      <p className='text-white font-semibold mt-6 text-2xl  sm:text-3xl  break-words'>
-                        {host?.displayname || 'Display name'}
+                      <p
+                        className='text-white font-semibold mt-6 text-2xl  sm:text-3xl  break-words'
+                        data-tooltip-id='displayname'
+                        data-tooltip-content={host?.displayname ? host.displayname : 'null'}
+                        data-tooltip-place='top-end'
+                      >
+                        {host && host.displayname.length > 12
+                          ? `${host?.displayname.slice(0, 9)}...` || 'Display name'
+                          : host?.displayname || 'Display name'}
+                        <Tooltip id='displayname' classNameArrow='noArrow' />
                       </p>
                     </div>
-                    <div className='-mt-8 xsm:-mt-8 lg:-mt-8 xl:-mt-6'>
-                      <p className='text-Primary/Light mt-8 text-md sm:text-lg lg:text-xl break-words'>
-                        @{host?.username || 'Username'}
+                    <div className='-mt-8 xsm:-mt-8 lg:-mt-8 xl:-mt-6 '>
+                      <p
+                        className='text-Primary/Light mt-8 text-md sm:text-lg lg:text-xl '
+                        data-tooltip-id='usernameprof'
+                        data-tooltip-content={host?.username ? host.username : 'null'}
+                        data-tooltip-place='top-end'
+                      >
+                        @
+                        {host && host.username.length > 20
+                          ? ` ${host?.username.slice(0, 17)}...` || 'Username'
+                          : host?.username || 'Username'}
+                        <Tooltip id='usernameprof' classNameArrow='noArrow' />
                       </p>
                     </div>
                     <div className=' flex items-center mt-1 xsm:mt-1 sm:space-x-2 block sm:hidden text-xs sm:text-lg lg:text-xl '>
@@ -622,13 +680,15 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
             {host && (
               <div className='flex flex-col items-center'>
                 <div className='flex items-center mx-2 mb-4'>
-                  <p className='text-white xsm:text-xl text-lg font-semibold text-center break-words'>
-                    {host?.username || 'Username'}&nbsp;
-                  </p>
+                  <div className='flex flex-col'>
+                    <p className='text-Primary/Light xsm:text-xl text-lg font-semibold text-center break-words'>
+                      @{host?.username || 'Username'}&nbsp;
+                    </p>
 
-                  <p className='text-gray-500 xsm:text-md text-sm font-semibold break-words'>
-                    joined in {formatDateSimple(host.createdAt)}
-                  </p>
+                    <p className='text-gray-500 xsm:text-md text-sm font-semibold break-words'>
+                      joined in {formatDateSimple(host.createdAt)}
+                    </p>
+                  </div>
                 </div>
                 <div className='flex flex-row gap-6 xsm:gap-8 sm:gap-20 '>
                   <div className='flex flex-col'>
@@ -693,7 +753,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
           </div>
         </div>
         <div className='flex lg:justify-center mt-2 xsm:mt-2 sm:max-lg:mt-4 lg:mt-6 mx-6 sm:max-lg:mx-20 lg:mx-20'>
-          <div className='flex w-1/2 mb-10 lg:mb-0 ml-8 sm:ml-0'>
+          <div className='flex flex-start w-1/2 xl:min-w-[650px] mb-10 lg:mb-0 ml-8 sm:ml-0'>
             <p className='text-2xl font-semibold text-white'>
               {active === 'Users' ? 'Following' : active}
             </p>
@@ -727,10 +787,11 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
             </button>
 
             {showTaglistModal && (
-              <div
-                className={`fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50`}
-              >
-                <div ref={tagListRef}>
+              <div>
+                <div
+                  ref={tagListRef}
+                  className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'
+                >
                   <div ref={modalRef}>
                     <TagList
                       onFilterChange={handleFilterChange}
@@ -750,6 +811,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
           </div>
         </div>
       </div>
+
       {active === 'Posts' && (
         <div className='mb-5'>
           <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
@@ -811,7 +873,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                     border-solid box-border text-center mt-3`}
                   >
                     <div className='h-auto'>
-                      <p className='text-left text-white text-l -mt-2 xsmnopost:mt-2 sm:mt-2 xl:mt-4'>
+                      <p className='text-left text-white text-l mt-2'>
                         Nothing here... Go explore{' '}
                         <Link to='/community' className='text-Accent/Target cursor-pointer inline'>
                           Codemunity
@@ -883,9 +945,18 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
         {host && (
           <div className='bg-Background/Bottom bg-cover rounded-3xl border-2 border-Primary/Dark lg:w-[22vw] xl:w-[19vw] h-[400px] mt-4 ml-[3rem] '>
             <div className='flex flex-col'>
-              <div className='flex justify-center mx-2'>
-                <p className='text-Primary/Light text-2xl font-semibold mt-16 text-center break-words'>
-                  @{host?.username || 'Username'}
+              <div className='flex justify-center mx-2' ref={textUserDashboardRef}>
+                <p
+                  className='text-Primary/Light text-2xl font-semibold mt-16 text-center break-words'
+                  data-tooltip-id='username'
+                  data-tooltip-content={host?.username ? host.username : 'null'}
+                  data-tooltip-place='top-end'
+                >
+                  @
+                  {isUsernameOverflowing
+                    ? `${host?.username.slice(0, 12)}...` || 'Username'
+                    : host?.username || 'Username'}
+                  <Tooltip id='username' classNameArrow='noArrow' />
                 </p>
               </div>
               <p className='text-gray-500 xsm:text-md text-sm font-semibold text-center break-words'>
@@ -945,7 +1016,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
         />
       </div>
 
-      <div className='flex lg:invisible'>
+      <div className='flex lg:invisible' ref={quickNavRef}>
         <QuickNav
           isOpen={activeComponent === 'quicknav'}
           onClose={() => setActiveComponent(null)}

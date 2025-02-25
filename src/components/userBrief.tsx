@@ -8,14 +8,20 @@ import { formatNumber } from '../utils/helpers';
 import { GrUserAdmin } from 'react-icons/gr';
 import { useAuthUser } from '../context/AuthUserContext';
 import { assignGroupAdmin, removeGroupAdmin, removeGroupMember } from '../services/groupService';
+import {
+  assignProjectAdmin,
+  removeProjectAdmin,
+  removeProjectMember,
+} from '../services/projectService';
 
 interface UserBriefProps {
   userData: UserBriefData;
   group?: string;
+  project?: string;
   role?: string;
 }
 
-const UserBrief: React.FC<UserBriefProps> = ({ userData, group, role }) => {
+const UserBrief: React.FC<UserBriefProps> = ({ userData, group, project, role }) => {
   const [user] = useState<UserBriefData>(userData);
   const [isFollowing, setIsFollowing] = useState(true);
   const [followersCount, setFollowersCount] = useState(0);
@@ -57,9 +63,14 @@ const UserBrief: React.FC<UserBriefProps> = ({ userData, group, role }) => {
 
   const handleRemoveUser = async () => {
     try {
-      await removeGroupMember(group, user._id);
+      if (group) {
+        await removeGroupMember(group, user._id);
+        toast.success(`${user.displayname} has been removed from the group`);
+      } else if (project) {
+        await removeProjectMember(project, user._id);
+        toast.success(`${user.displayname} has been removed from the project`);
+      }
       setIsVisible(false);
-      toast.success(`${user.displayname} has been removed from the group`);
     } catch (error) {
       toast.error('Failed to remove user');
     }
@@ -73,7 +84,7 @@ const UserBrief: React.FC<UserBriefProps> = ({ userData, group, role }) => {
         <div className='absolute right-3 top-2'>
           {homeuser &&
             homeuser._id !== user._id &&
-            group &&
+            (group || project) &&
             (role === 'admin' || role === 'creator') && (
               <>
                 <button
@@ -85,11 +96,18 @@ const UserBrief: React.FC<UserBriefProps> = ({ userData, group, role }) => {
                 {isDropdownOpen && (
                   <div className='text-sm absolute left-0 top-full w-56 bg-Background/Bottom border rounded-xl border-2 border-Primary/Dark shadow-lg z-10'>
                     <ul className='py-1 my-2'>
+                      {/* Assign Admin */}
                       {userData.role === 'member' && (role === 'admin' || role === 'creator') && (
                         <li>
                           <button
                             className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
-                            onClick={() => assignGroupAdmin(group, user._id)}
+                            onClick={() =>
+                              group
+                                ? assignGroupAdmin(group, user._id)
+                                : project
+                                  ? assignProjectAdmin(project, user._id)
+                                  : undefined
+                            }
                           >
                             <GrUserAdmin className='text-2xl' />
                             Assign as an admin
@@ -97,18 +115,27 @@ const UserBrief: React.FC<UserBriefProps> = ({ userData, group, role }) => {
                         </li>
                       )}
 
+                      {/* Remove Admin */}
                       {role === 'creator' && user.role === 'admin' && (
                         <li>
                           <button
                             className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
-                            onClick={() => removeGroupAdmin(group, user._id)}
+                            onClick={() =>
+                              group
+                                ? removeGroupAdmin(group, user._id)
+                                : project
+                                  ? removeProjectAdmin(project, user._id)
+                                  : undefined
+                            }
                           >
                             <GrUserAdmin className='text-2xl' />
                             Remove admin permission
                           </button>
                         </li>
                       )}
-                      {(role === 'admin' || role === 'creator') && (
+
+                      {/* Remove from Group */}
+                      {group && (role === 'admin' || role === 'creator') && (
                         <li>
                           <button
                             className='block px-4 py-2 text-red-500 hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
@@ -139,13 +166,16 @@ const UserBrief: React.FC<UserBriefProps> = ({ userData, group, role }) => {
               <p className='text-white font-semibold text-lg lg:text-xl truncate'>
                 {user.displayname}
               </p>
-              {role && (
+              {userData.role && (
                 <p className='text-gray-500 font-semibold text-md lg:text-lg break-words'>
-                  {role != 'member' ? (role == 'creator' ? 'Group creator' : 'Admin') : ''}
+                  {userData.role !== 'member'
+                    ? userData.role === 'creator'
+                      ? 'Creator'
+                      : 'Admin'
+                    : ''}
                 </p>
               )}
             </div>
-
             <p className='text-Primary/Light text-sm lg:text-md'>@{user.username}</p>
             <div className='flex gap-4 text-Primary/Light text-xs lg:text-sm mt-1'>
               <p className='flex items-center gap-1'>
@@ -167,10 +197,11 @@ const UserBrief: React.FC<UserBriefProps> = ({ userData, group, role }) => {
               </p>
             </div>
           </Link>
+
           {homeuser && homeuser._id !== user._id && (
             <button
-              className={`transition-colors font-semibold duration-300 ease-in-out w-20 md:w-20 lg:w-28 h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target m-4 
-        ${isFollowing ? 'bg-gray-500 text-white hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:text-white'}`}
+              className={`transition-colors font-semibold duration-300 ease-in-out w-20 md:w-20 lg:w-28 h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-md lg:text-base 
+              ${isFollowing ? 'bg-gray-500 text-white hover:bg-red-400' : 'bg-white text-Accent/Target hover:bg-Accent/Target hover:text-white'}`}
               onClick={isFollowing ? handleUnfollow : handleFollow}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}

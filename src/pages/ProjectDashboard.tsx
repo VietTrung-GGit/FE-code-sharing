@@ -15,29 +15,41 @@ import QuickNav from '../components/quickNav';
 import CollapseMenu from '../components/collapseMenu';
 import { toast } from 'react-toastify';
 import { useAuthUser } from '../context/AuthUserContext';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import LoadingSpinner from '../components/loadingAnimate';
 import PostCreate from '../components/postCreate';
 import { Link } from 'react-router-dom';
 import GroupCreate from '../components/groupCreate';
 import ProjectCreate from '../components/projectCreate';
 import AddMember from '../components/addMember';
-import { ProjectDataBrief, fetchGroupProjects } from '../services/projectService';
-import { Post, fetchGroupPosts } from '../services/postService';
+import { usePinned } from '../context/PinnedContext';
 import {
-  GroupDataBrief,
-  GroupData,
-  getGroupFullData,
-  joinGroup,
-  leaveGroup,
-} from '../services/groupService';
-import { UserBriefData, fetchGroupMembers } from '../services/userService';
+  ProjectDataBrief,
+  fetchGroupProjects,
+  getProjectFullData,
+  ProjectData,
+  joinProject,
+  leaveProject,
+} from '../services/projectService';
+import { Post, fetchSectionPosts } from '../services/postService';
+import {
+  UserBriefData,
+  fetchGroupMembers,
+  fetchProjectUsers,
+  fetchSectionUsers,
+} from '../services/userService';
+import { TbPin } from 'react-icons/tb';
 
-function ProjectDashboard() {
+interface ProjectDashboardProps {
+  viewMember: boolean;
+  viewParticipant?: boolean;
+}
+
+const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewParticipant }) => {
   // const { user } = useUser();
+  const { projectId } = useParams<{ projectId: string }>();
+  const { sectionId } = useParams<{ sectionId: string }>();
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
-  const [activeDashboard, setActiveDashboard] = useState<'Overview' | 'Members'>('Overview');
-  const [activeButtonFilter, setActiveButtonFilter] = useState<'Posts' | 'Participants'>('Posts');
   const sidebarRef = useRef<HTMLDivElement>(null);
   const tagListRef = useRef<HTMLDivElement>(null);
   const sidebarButtonRef = useRef<HTMLButtonElement>(null);
@@ -47,14 +59,18 @@ function ProjectDashboard() {
   const quickNavRef = useRef<HTMLDivElement>(null); // Ref for the modal content
   const quickNavButtonRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
-
+  const [searchParams] = useSearchParams();
+  const { pin, isPinned } = usePinned();
   // States
   const [posts, setPosts] = useState<Post[]>([]);
   const [users, setUsers] = useState<UserBriefData[]>([]);
-
+  const [project, setProject] = useState<ProjectData | null>(null);
+  const [showProjectEdit, setShowProjectEdit] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [privacy, setPrivacy] = useState(false);
   const [firstLoad, setFirstLoad] = useState(true); // To track the initial load
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -66,65 +82,166 @@ function ProjectDashboard() {
   const dropdownFilterRef = useRef<HTMLDivElement>(null);
   const [buttonText, setButtonText] = useState<'Follow' | 'Unfollow' | 'Followed' | null>(null);
   const [buttonClicked, setButtonClicked] = useState(false);
-
+  const [showInvite, setShowInvite] = useState(false);
+  const [showAddParticipant, setShowAddParticipant] = useState(false);
+  const [hasJoined, setHasJoined] = useState(false);
   const debouncedSearchTerm = useDebounce(searchTerm, 600);
-  const debouncedSelectedTags = useDebounce(selectedTags, 800);
-  const debouncedOrder = useDebounce<'ascending' | 'descending'>(order, 600);
-  const debouncedCriteria = useDebounce<'date' | 'likes' | 'comments'>(criteria, 600);
 
-  const fetchAndUpdatePosts = async () => {
-    setLoading(true);
-    try {
-      console.log('Debounced search term call:', debouncedSearchTerm);
-      const postsResponse = await fetchProjectPosts(
-        page,
-        6, // Limit: 6 posts per page
-        debouncedOrder,
-        debouncedCriteria,
-        debouncedSearchTerm,
-        debouncedSelectedTags,
-      );
+  const [activeSection, setActiveSection] = useState('root');
+  const alreadyPinned = projectId ? isPinned('project', projectId) : false;
+  {
+    projectId && (
+      <div>
+        {/* Use alreadyPinned here */}
+        {alreadyPinned ? 'Pinned' : 'Not Pinned'}
+      </div>
+    );
+  }
+  // const fetchAndUpdatePosts = async () => {
+  //   setLoading(true);
+  //   try {
+  //     console.log('Debounced search term call:', debouncedSearchTerm);
+  //     const postsResponse = await fetchSectionPosts(
+  //       activeSection,
+  //       page,
+  //       6, // Limit: 6 posts per page
+  //       debouncedOrder,
+  //       debouncedCriteria,
+  //       debouncedSearchTerm,
+  //       debouncedSelectedTags,
+  //     );
 
-      setHasMore(postsResponse.hasMore);
-      setPosts((prevPosts) => [...prevPosts, ...postsResponse.posts]);
-      setLoading(false);
-      setFirstLoad(false);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-    }
-  };
-  useEffect(() => {
-    setPage(1);
-    setPosts([]);
-    setHasMore(true);
-    fetchAndUpdatePosts();
-  }, [debouncedSearchTerm, debouncedSelectedTags, debouncedOrder, debouncedCriteria]);
+  //     setHasMore(postsResponse.hasMore);
+  //     setPosts((prevPosts) => [...prevPosts, ...postsResponse.posts]);
+  //     setLoading(false);
+  //     setFirstLoad(false);
+  //   } catch (error) {
+  //     console.error('Error fetching posts:', error);
+  //   }
+  // };
+  // useEffect(() => {
+  //   setPage(1);
+  //   setPosts([]);
+  //   setHasMore(true);
+  //   fetchAndUpdatePosts();
+  // }, [debouncedSearchTerm, debouncedSelectedTags, debouncedOrder, debouncedCriteria]);
 
   // useEffect(() => {
-  //   // This effect will run only when debouncedSearchTerm changes
-  //   console.log('Debounced search term:', debouncedSearchTerm);
-  // }, [debouncedSearchTerm]);
+  //   if (hasMore && !firstLoad) {
+  //     console.log('2');
+
+  //     fetchAndUpdatePosts();
+  //   }
+  // }, [page]);
 
   useEffect(() => {
-    if (hasMore && !firstLoad) {
-      console.log('2');
+    setPage(1);
+    setHasMore(true);
+    // Reset the corresponding data array
+    if (!viewMember && !viewParticipant) setPosts([]);
+    if (viewMember) setUsers([]);
+    if (!viewMember && viewParticipant) setUsers([]);
 
-      fetchAndUpdatePosts();
+    // Fetch data based on active filter
+    if (!viewMember && !viewParticipant) fetchAndUpdatePosts();
+    if (viewMember) fetchAndUpdateMembers();
+    if (!viewMember && viewParticipant) fetchAndUpdateParticipants();
+  }, [viewMember, viewParticipant, activeSection, debouncedSearchTerm, searchParams]);
+
+  useEffect(() => {
+    if (sectionId) {
+      setActiveSection(sectionId);
+    }
+    if (!viewMember && !viewParticipant) {
+      navigate(`/project/${projectId}/sections/${sectionId || 'root'}/posts`);
+    }
+  }, [sectionId]);
+
+  useEffect(() => {
+    if (hasMore) {
+      if (!viewMember && !viewParticipant) fetchAndUpdatePosts();
+      if (viewMember) fetchAndUpdateMembers();
+      if (!viewMember && viewParticipant) fetchAndUpdateParticipants();
     }
   }, [page]);
 
-  const handleFilterChange = (filters: {
-    selectedTags: string[];
-    sortBy: string;
-    order: string;
-  }) => {
-    setSelectedTags(filters.selectedTags);
-    setOrder(filters.order as 'ascending' | 'descending');
-    setCriteria(filters.sortBy as 'date' | 'likes' | 'comments');
-    setPage(1);
-    setPosts([]);
-    setHasMore(true);
-    setFirstLoad(true);
+  const fetchAndUpdatePosts = async () => {
+    if (projectId) {
+      setLoading(true);
+      try {
+        console.log('Debounced search term call:', debouncedSearchTerm);
+        const postsResponse = await fetchSectionPosts(
+          activeSection,
+          projectId,
+          page,
+          6, // Limit: 6 posts per page
+          (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
+          (searchParams.get('criteria') as string) || 'date',
+          debouncedSearchTerm,
+          searchParams.get('tags')?.split(',') || [],
+        );
+
+        setHasMore(postsResponse.hasMore);
+        setPosts((prevPosts) => [...prevPosts, ...postsResponse.posts]);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+      }
+    }
+  };
+
+  const fetchAndUpdateMembers = async () => {
+    if (projectId) {
+      setLoading(true);
+      try {
+        const usersResponse = await fetchProjectUsers(
+          projectId,
+          page,
+          6,
+          (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
+          (searchParams.get('criteria') as 'dateJoined' | 'followers' | 'likes') || 'dateJoined',
+          debouncedSearchTerm,
+        );
+        setHasMore(usersResponse.hasMore);
+        setUsers((prevUsers) => [...prevUsers, ...usersResponse.users]);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const fetchAndUpdateParticipants = async () => {
+    if (projectId) {
+      setLoading(true);
+      try {
+        const usersResponse = await fetchSectionUsers(
+          activeSection,
+          page,
+          6,
+          (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
+          (searchParams.get('criteria') as 'dateJoined' | 'followers' | 'likes') || 'dateJoined',
+          debouncedSearchTerm,
+        );
+        setHasMore(usersResponse.hasMore);
+        setUsers((prevUsers) => [...prevUsers, ...usersResponse.users]);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!viewMember && !viewParticipant && !sectionId) {
+      navigate(`/project/${projectId}/sections/root`);
+    }
+  }, [viewMember, viewParticipant, navigate]);
+
+  const handleFilterChange = (querySortParam: string) => {
+    navigate(`/project/${projectId}/${activeSection}/posts?${querySortParam}`);
   };
 
   const observer = useRef<IntersectionObserver | null>(null);
@@ -172,8 +289,26 @@ function ProjectDashboard() {
     setPosts([]);
     setHasMore(true);
     setFirstLoad(true);
-    fetchAndUpdatePosts();
+    // fetchAndUpdatePosts();
   };
+
+  useEffect(() => {
+    if (!projectId) return;
+
+    const fetchprojectData = async () => {
+      try {
+        const data = await getProjectFullData(projectId);
+        setProject(data);
+        setHasJoined(data.joined);
+
+        // Handle avatar file if needed
+      } catch (error) {
+        console.error('Error fetching project data:', error);
+      }
+    };
+
+    fetchprojectData();
+  }, [projectId]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -243,7 +378,42 @@ function ProjectDashboard() {
   const [showPostCreate, setShowPostCreate] = useState<boolean>(false);
   const { user } = useAuthUser();
 
+  const handleJoin = async () => {
+    if (project && project.canJoin && projectId) {
+      try {
+        setHasJoined(true);
+        await joinProject(projectId);
+        toast.success(`Joined project: ${project.name}`);
+      } catch (error) {
+        setHasJoined(false);
+        toast.error('Failed to join project');
+      }
+    }
+  };
+
+  const handleLeave = async () => {
+    if (project && projectId) {
+      try {
+        setHasJoined(false);
+        await leaveProject(projectId);
+        toast.info(`Left project: ${project.name}`);
+      } catch (error) {
+        setHasJoined(true);
+        toast.error('Failed to leave project');
+      }
+    }
+  };
+
+  const [refId, setRefId] = useState<string>('');
   const handleCreate = () => {
+    setRefId('');
+    setShowPostCreate(true);
+  };
+
+  const handleShare = (postId?: string) => {
+    if (postId) {
+      setRefId(postId);
+    }
     setShowPostCreate(true);
   };
 
@@ -256,84 +426,191 @@ function ProjectDashboard() {
       <>
         <div className='mx-8 xsm:mx-8 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
           <div className='bg-Background/Bottom text-white justify-center w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px]  xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] border-Primary/Dark border-2 rounded-3xl lg:p-5 relative flex items-center'>
-            <div className=' absolute right-3 top-5' ref={dropdownConfigRef}>
-              <button
-                onClick={toggleDropdownConfig}
-                className='hover:text-gray-300 text-white text-3xl'
-              >
-                <IoIosMore />
-              </button>
-              {isDropdownConfigOpen && (
-                <div className='absolute sm:-right-[50px] lg:-right-40 w-40 md:w-52 bg-Background/Bottom border rounded-xl border-2 border-Primary/Dark shadow-lg z-10'>
-                  <ul className='py-1 my-3 ml-2'>
-                    <li>
-                      <button className='block px-3 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
-                        <BiSolidEdit className='text-2xl' />
-                        Edit project profile
-                      </button>
-                    </li>
-                    <li>
-                      <button className='block px-4 py-2 text-red-500 hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
-                        <svg
-                          width='19'
-                          height='20'
-                          viewBox='0 0 19 20'
-                          fill='none'
-                          xmlns='http://www.w3.org/2000/svg'
-                        >
-                          <path
-                            d='M18.8031 16.8001H13.2902C13.1819 16.8001 13.0933 16.8901 13.0933 17.0001V18.2001C13.0933 18.3101 13.1819 18.4 13.2902 18.4H18.8031C18.9114 18.4 19 18.3101 19 18.2001V17.0001C19 16.8901 18.9114 16.8001 18.8031 16.8001ZM6.14059 9.96029C6.11844 9.7428 6.10613 9.52281 6.10613 9.30031C6.10613 8.90283 6.14305 8.51534 6.21196 8.13785C6.22919 8.04785 6.18242 7.95535 6.10121 7.91786C5.76649 7.76536 5.45885 7.55537 5.19305 7.29037C4.87985 6.9819 4.63338 6.6105 4.46939 6.19986C4.3054 5.78923 4.22747 5.34838 4.24059 4.90544C4.26274 4.10297 4.58023 3.34049 5.13398 2.76551C5.74188 2.13302 6.55898 1.78803 7.42776 1.79803C8.21286 1.80553 8.97089 2.11302 9.54433 2.65801C9.73876 2.843 9.90612 3.048 10.0464 3.26799C10.0956 3.34549 10.1916 3.37799 10.2753 3.34799C10.7084 3.19549 11.1662 3.088 11.6363 3.038C11.7741 3.023 11.8529 2.873 11.7913 2.74801C10.9915 1.14055 9.35728 0.0305857 7.46714 0.000586576C4.73774 -0.0419122 2.46365 2.23052 2.46365 4.99794C2.46365 6.56789 3.17492 7.96785 4.28981 8.88533C3.50717 9.25282 2.78606 9.7603 2.16094 10.3953C0.812235 11.7627 0.0492842 13.5677 6.15431e-05 15.4951C-0.000595345 15.5218 0.00401196 15.5484 0.0136121 15.5732C0.0232123 15.598 0.037611 15.6207 0.0559598 15.6398C0.0743086 15.6589 0.0962362 15.6741 0.120451 15.6844C0.144665 15.6948 0.170677 15.7001 0.196952 15.7001H1.57765C1.68348 15.7001 1.77208 15.6151 1.77454 15.5076C1.8213 14.0577 2.39966 12.7002 3.41611 11.6702C4.13968 10.9353 5.02569 10.4253 5.99292 10.1778C6.0889 10.1528 6.15289 10.0603 6.14059 9.96029ZM17.228 9.30031C17.228 6.56539 15.0646 4.34296 12.382 4.30046C9.65508 4.25796 7.38346 6.5304 7.38346 9.30031C7.38346 10.8703 8.09719 12.2702 9.20962 13.1877C8.41887 13.56 7.69902 14.0712 7.0832 14.6977C5.7345 16.0651 4.97155 17.8701 4.92233 19.795C4.92167 19.8217 4.92628 19.8482 4.93588 19.8731C4.94548 19.8979 4.95987 19.9206 4.97822 19.9397C4.99657 19.9588 5.0185 19.974 5.04271 19.9843C5.06693 19.9947 5.09294 20 5.11922 20H6.49745C6.60328 20 6.69188 19.915 6.69434 19.8075C6.7411 18.3575 7.31947 17.0001 8.33592 15.9701C9.39666 14.8927 10.8044 14.3002 12.3057 14.3002C15.0228 14.3002 17.228 12.0627 17.228 9.30031ZM14.533 11.5627C13.9375 12.1677 13.1474 12.5002 12.3057 12.5002C11.464 12.5002 10.674 12.1677 10.0784 11.5627C9.78119 11.2624 9.54635 10.9046 9.38782 10.5104C9.22928 10.1161 9.15027 9.69361 9.15547 9.26782C9.16286 8.44784 9.48526 7.65536 10.0489 7.06788C10.6395 6.4529 11.4296 6.11041 12.2737 6.10041C13.1081 6.09291 13.9178 6.4229 14.5134 7.01538C15.1237 7.62286 15.4584 8.43534 15.4584 9.30031C15.456 10.1553 15.1286 10.9578 14.533 11.5627Z'
-                            fill='#F14444'
-                          />
-                        </svg>
-                        Delete project
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              )}
-            </div>
+            {project && (project.role == 'leader' || project.role == 'admin') && (
+              <div className=' absolute right-3 top-2' ref={dropdownConfigRef}>
+                <button
+                  onClick={toggleDropdownConfig}
+                  className='hover:text-gray-300 text-white text-3xl mx-[calc(10vw-2.2rem)] xsm:mx-[calc(10vw-2.6rem)] sm:mx-[calc(10vw-3.4rem)] lg:mx-[calc(10vw-5.2rem)] xl:mx-[calc(10vw-6.8rem)]'
+                >
+                  <IoIosMore />
+                </button>
+                {isDropdownConfigOpen && (
+                  <div className='absolute -right-10 xsm:-right-10 sm:-right-[50px] lg:-right-40 w-40 md:w-52 bg-Background/Bottom border rounded-xl border-2 border-Primary/Dark shadow-lg z-10'>
+                    <ul className=' py-2 text-sm'>
+                      <li>
+                        {projectId && (
+                          <button
+                            className={`block px-4 py-2 w-full text-left flex items-center gap-4 rounded  hover:bg-Background/Middle transition ${
+                              alreadyPinned ? 'text-gray-500 cursor-not-allowed' : ''
+                            }`}
+                            onClick={() => !alreadyPinned && pin('project', projectId)}
+                            disabled={alreadyPinned}
+                          >
+                            <TbPin className='text-lg lg:text-xl' />
+                            Pin
+                          </button>
+                        )}
+                      </li>
+                      {projectId && (project.role == 'admin' || project.role == 'leader') && (
+                        <>
+                          {' '}
+                          <li>
+                            <button
+                              className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                              onClick={() => {
+                                setShowProjectEdit((prev) => !prev);
+                              }}
+                            >
+                              <BiSolidEdit className='text-lg lg:text-xl' />
+                              Edit project profile
+                            </button>
+                          </li>
+                        </>
+                      )}
+                    </ul>
+                  </div>
+                )}
+                {showProjectEdit && (
+                  <div className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'>
+                    <ProjectCreate
+                      projectData={project}
+                      projectId={projectId}
+                      closeModal={() => {
+                        setShowProjectEdit(false);
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className='flex flex-row justify-center space-x-4 xsm:space-x-10 sm:space-x-6 xl:space-x-2 mt-10 xsm:mt-8 sm:-mt-2 lg:-mt-1 mb-44 xsm:mb-48 sm:mb-0 lg:-ml-2 xl:-ml-4'>
               <div className='sm:-mt-10 lg:-mt-6 flex flex-col h-[380px] items-center'>
                 <img
                   src={
-                    user?.avatar ||
+                    project?.avatar ||
                     'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
                   }
                   alt='Profile Icon'
                   className='w-28 h-28 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-56 xl:w-56 rounded-3xl object-cover mt-8 mx-0 sm:mx-0 sm:mt-14 lg:mx-2 xl:mx-4 mb-5 flex-shrink-0'
                 />
-                <div className='flex hidden sm:block sm:mt-5 xsm:mt-2 lg:mt-7 xl:mt-1 mt-8'>
-                  <button className='transition-colors duration-300 ease-in-out w-36 h-8 sm:h-10 lg:h-10 xl:h-8 rounded-xl bg-Accent/Target text-lg text-white mb-4 hover:bg-white hover:text-Accent/Target'>
-                    Follow
+                <div className='flex hidden sm:block -mt-2'>
+                  <button
+                    className={`transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-32 lg:w-28 h-7 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target sm:my-2 
+        ${hasJoined ? 'bg-gray-500 text-white hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:text-white'}`}
+                    onClick={hasJoined ? handleLeave : handleJoin}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                  >
+                    {hasJoined ? (isHovered ? 'Leave' : 'Joined') : 'Join'}
                   </button>
+                  {hasJoined && (
+                    <div className='relative'>
+                      <button
+                        className={`transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-32 lg:w-28 h-7 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target sm:my-2
+    ${showInvite ? 'bg-Accent/Target text-white' : 'bg-white text-Accent/Target'}`}
+                        onClick={() => setShowInvite((prev) => !prev)}
+                      >
+                        Invite
+                      </button>
+                      {showInvite && projectId && (
+                        <div className='absolute top-12 right-20'>
+                          {' '}
+                          <AddMember
+                            type='project'
+                            desId={projectId}
+                            isOpen={showInvite}
+                            closeModal={() => setShowInvite(false)}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className='flex items-center lg:mt-10 xl:mt-4 space-x-2 hidden lg:block'>
+                  <div className='flex flex-row '>
+                    {/* Avatar Members */}
+
+                    {project && project?.members?.length > 0 && (
+                      <div className='flex space-x-1'>
+                        {project.members.map(({ avatar, user }, index) => (
+                          <img
+                            key={user || index} // Prefer `user` as a unique key if available
+                            src={
+                              avatar ||
+                              'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+                            }
+                            alt={`Member: ${user || `Unknown ${index + 1}`}`}
+                            className='w-8 h-8 rounded-full object-cover'
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className='flex flex-col space-y-4 mb-6 sm:mb-8 lg:mb-10 ml-4 xsm:ml-20 sm:ml-0'>
-                <div className='flex flex-row sm:-mt-4 lg:mt-0'>
-                  <div className='flex flex-col gap-2'>
-                    <div className=''>
-                      <p className='text-white font-semibold mt-6 text-3xl lg:text-2xl xl:text-3xl break-words'>
-                        Projectname
+              <div className='flex flex-col space-y-4 mb-6 sm:mb-6 lg:mb-10 ml-4 xsm:ml-20 sm:ml-0'>
+                <div className='flex flex-row sm:-mt-4 lg:mt-0 relative'>
+                  <div className='flex flex-col'>
+                    <div className='flex flex-col'>
+                      <p className='text-white font-semibold mt-6 text-2xl sm:text-3xl lg:text-2xl xl:text-3xl break-words'>
+                        {project?.name || 'project Name'}
                       </p>
+                      <div className='flex flex-row block xsm:mt-2 lg:hidden lg:static'>
+                        {project && project?.members?.length > 0 && (
+                          <div className='flex space-x-1'>
+                            {project.members.map(({ avatar, user }, index) => (
+                              <img
+                                key={user || index} // Prefer `user` as a unique key if available
+                                src={
+                                  avatar ||
+                                  'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+                                }
+                                alt={`Member: ${user || `Unknown ${index + 1}`}`}
+                                className='w-8 h-8 rounded-full object-cover'
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
-
-                    <div className='flex flex-row '>
-                      <p className='text-white sm:text-lg'>addmembers here</p>
-                    </div>
-
-                    <div className='flex xsm:mt-8 mt-2 block sm:hidden '>
-                      <button className='transition-colors duration-300 ease-in-out w-36 h-8 xsm:h-10 rounded-xl bg-Accent/Target text-lg text-white mb-4 hover:bg-white hover:text-Accent/Target'>
-                        Follow
-                      </button>
-                    </div>
+                    <button
+                      className={`transition-colors font-semibold sm:hidden duration-300 ease-in-out w-20 h-5 xsm:h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target my-1 xsm:my-2 mt-2 xsm:mt-4
+        ${hasJoined ? 'bg-gray-500 text-white hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:text-white'}`}
+                      onClick={hasJoined ? handleLeave : handleJoin}
+                      onMouseEnter={() => setIsHovered(true)}
+                      onMouseLeave={() => setIsHovered(false)}
+                    >
+                      {hasJoined ? (isHovered ? 'Leave' : 'Joined') : 'Join'}
+                    </button>
+                    {hasJoined && (
+                      <div className='relative sm:hidden'>
+                        <button
+                          className={`transition-colors font-semibold duration-300 ease-in-out w-20 h-5 xsm:h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target my-1 xsm:my-2
+                          ${showInvite ? 'bg-Accent/Target text-white' : 'bg-white text-Accent/Target'}`}
+                          onClick={() => setShowInvite((prev) => !prev)}
+                        >
+                          Invite
+                        </button>
+                        {showInvite && projectId && (
+                          <div className='absolute top-12 right-[300px]'>
+                            {' '}
+                            <AddMember
+                              type='project'
+                              desId={projectId}
+                              isOpen={showInvite}
+                              closeModal={() => setShowInvite(false)}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className='bg-Background/Middle sm:w-[40vw] lg:w-[21vw] xl:w-[24vw] h-1/2 sm:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static'>
-                  <p className='text-Primary/Light p-4'>Project's description</p>
+                <div className='bg-Background/Middle sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] xsm:h-1/2 sm:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static'>
+                  <p className='text-Primary/Light p-4'>{project?.bio || 'Group Description'}</p>
                 </div>
               </div>
             </div>
@@ -343,14 +620,14 @@ function ProjectDashboard() {
         <div className='flex justify-center mt-8 sm:max-lg:mt-6 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
           <div className='flex flex-row justify-center gap-32 w-1/2'>
             <button
-              className={`${activeDashboard === 'Overview' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
-              onClick={() => setActiveDashboard('Overview')}
+              className={`${!viewMember ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              onClick={() => navigate(`/project/${projectId}/sections/root`)}
             >
               Overview
             </button>
             <button
-              className={`${activeDashboard === 'Members' ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
-              onClick={() => setActiveDashboard('Members')}
+              className={`${viewMember ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              onClick={() => navigate(`/project/${projectId}/members`)}
             >
               Members
             </button>
@@ -358,15 +635,19 @@ function ProjectDashboard() {
         </div>
         <div className='flex lg:justify-center mt-2 xsm:mt-2 sm:max-lg:mt-4 lg:mt-2 mx-6 sm:max-lg:mx-20 lg:mx-20'>
           <div className=' flex w-1/2 ml-8 sm:ml-0'>
-            <p className='text-2xl font-semibold text-white'>{activeDashboard}</p>
+            <p className='text-2xl font-semibold text-white'>{`${viewMember ? 'Members' : 'Sections'}`}</p>
           </div>
         </div>
       </>
 
-      {activeDashboard === 'Overview' && (
+      {project && projectId && !viewMember && sectionId && (
         <>
           <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-            <ProjectBoard />
+            <ProjectBoard
+              sections={project.sections}
+              projectId={projectId}
+              activeSectionId={sectionId}
+            />
           </div>
 
           <div className='mx-7 xsm:mx-8 sm:mx-14 lg:mx-0 mt-4 sm:mt-4 lg:mt-0 lg:absolute top-[610px] right-4'>
@@ -396,14 +677,11 @@ function ProjectDashboard() {
                 className='text-lg bg-Primary/Light text-Primary/Dark rounded-3xl font-semibold  py-1 w-40 flex flex-row items-center justify-center'
                 onClick={toggleDropdownFilter}
               >
-                {activeButtonFilter}
+                {`${viewParticipant ? 'Participants' : 'Posts'}`}
                 <div className='ml-2'>
                   <IoMdArrowDropdown className='text-3xl' />
                 </div>
               </button>
-              <div className='flex justify-center ml-4 mt-1'>
-                <p className='text-gray-600 text-lg font-semibold'>Searched/Filtered results</p>
-              </div>
             </div>
           </div>
           {isDropdownFilterOpen && (
@@ -411,16 +689,18 @@ function ProjectDashboard() {
               <ul className='py-1 my-3 ml-2'>
                 <li>
                   <button
-                    className={`block px-4 py-2 text-lg text-Primary/Dark font-semibold ${activeButtonFilter === 'Posts' ? 'bg-Primary/Light' : 'hover:bg-gray-300 bg-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
-                    onMouseDown={() => setActiveButtonFilter('Posts')}
+                    className={`block px-4 py-2 text-lg text-Primary/Dark font-semibold ${!viewParticipant ? 'bg-Primary/Light' : 'hover:bg-gray-300 bg-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
+                    onClick={() => navigate(`/project/${projectId}/sections/${sectionId}/posts`)}
                   >
                     Posts
                   </button>
                 </li>
                 <li>
                   <button
-                    className={`block px-4 py-2 text-lg text-Primary/Dark font-semibold ${activeButtonFilter === 'Participants' ? 'bg-Primary/Light' : 'hover:bg-gray-300 bg-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
-                    onMouseDown={() => setActiveButtonFilter('Participants')}
+                    className={`block px-4 py-2 text-lg text-Primary/Dark font-semibold ${viewParticipant ? 'bg-Primary/Light' : 'hover:bg-gray-300 bg-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
+                    onClick={() =>
+                      navigate(`/project/${projectId}/sections/${sectionId}/participants`)
+                    }
                   >
                     Participants
                   </button>
@@ -428,8 +708,31 @@ function ProjectDashboard() {
               </ul>
             </div>
           )}
+          {(project.role == 'admin' || project.role == 'leader') && activeSection != 'root' && (
+            <div className='relative'>
+              <button
+                className={`transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-32 lg:w-28 h-7 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target sm:my-2
+    ${showInvite ? 'bg-Accent/Target text-white' : 'bg-white text-Accent/Target'}`}
+                onClick={() => setShowAddParticipant((prev) => !prev)}
+              >
+                Invite
+              </button>
+              {setShowAddParticipant && (
+                <div className='absolute top-12 right-20'>
+                  {' '}
+                  <AddMember
+                    type='section'
+                    desId={activeSection}
+                    isOpen={showAddParticipant}
+                    closeModal={() => setShowAddParticipant(false)}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
+
       <div className='flex justify-center mt-0 sm:max-lg:mt-0 lg:mt-2 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
         <div
           className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
@@ -443,7 +746,7 @@ function ProjectDashboard() {
             {/* Share Text Section */}
             <input
               className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-Primary/Light text-l'
-              placeholder={`Search for ${activeDashboard === 'Overview' ? activeButtonFilter.toLowerCase() : activeDashboard.toLowerCase()}...`}
+              placeholder={`Search for ${viewMember ? 'Members' : viewParticipant ? 'Participants' : 'Posts'}`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             ></input>
@@ -464,7 +767,15 @@ function ProjectDashboard() {
                     <TagList
                       onFilterChange={handleFilterChange}
                       feedShowTaglistModal={showTaglistModal}
-                      activeFilter={activeDashboard === 'Overview' ? activeButtonFilter : 'Members'}
+                      activeFilter={!viewMember && !viewParticipant ? 'Posts' : 'Users'} //change according to the button option, posts as default
+                      initialCriteria={searchParams.get('criteria') as string}
+                      initialOrder={
+                        (searchParams.get('order') as 'ascending' | 'descending') || 'descending'
+                      }
+                      initialTags={searchParams.get('tags')?.split(',') || []}
+                      handleClose={() => {
+                        setShowTaglistModal(false);
+                      }}
                     />
                   </div>
                 </div>
@@ -475,11 +786,19 @@ function ProjectDashboard() {
 
         {showPostCreate && (
           <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
-            <PostCreate closeModal={handleCloseModal} onPostCreated={refetchPosts} />
+            <PostCreate
+              closeModal={handleCloseModal}
+              onPostCreated={refetchPosts}
+              mode={activeSection == 'root' ? 2 : 3}
+              desId={activeSection == 'root' ? projectId : activeSection}
+              parentId={activeSection !== 'root' ? projectId : undefined}
+              role={project?.role} // Cleaner way to pass `role` if `group` exists
+              postRefId={refId || undefined} // Ensures it's only passed when defined
+            />
           </div>
         )}
       </div>
-      {activeDashboard === 'Overview' && activeButtonFilter === 'Posts' && (
+      {!viewMember && !viewParticipant && (
         <>
           <div className='mb-5'>
             <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
@@ -507,66 +826,64 @@ function ProjectDashboard() {
                   </button>
                 </div>
               </div>
-
-              {showPostCreate && (
-                <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
-                  <PostCreate closeModal={handleCloseModal} onPostCreated={refetchPosts} />
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Show LoadingSpinner during the first load */}
-          {firstLoad ? (
-            <LoadingSpinner />
-          ) : (
-            <>
-              {/* Show NothingPost only after the first load, no posts, and not loading */}
-              {!loading && posts.length === 0 && (
-                <div className='mb-5'>
-                  <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-                    <div
-                      className={`bg-Background/Bottom border-2 h-32  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
+          {/* Show NothingPost only after the first load, no posts, and not loading */}
+          {!loading && posts.length === 0 && (
+            <div className='mb-5'>
+              <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
+                <div
+                  className={`bg-Background/Bottom border-2 h-32  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
                       border-solid box-border text-center mt-3`}
-                    >
-                      <div className='h-auto'>
-                        <p className='text-left text-white text-l -mt-2 xsmnopost:mt-2 sm:mt-2 xl:mt-4'>
-                          Nothing here... Go explore{' '}
-                          <Link
-                            to='/community/posts'
-                            className='text-Accent/Target cursor-pointer inline'
-                          >
-                            Codemunity
-                          </Link>{' '}
-                          or{' '}
-                          <Link to='/feed' className='text-Primary/Light cursor-pointer inline'>
-                            share your own code
-                          </Link>{' '}
-                          !
-                        </p>
-                      </div>
-                    </div>
+                >
+                  <div className='h-auto'>
+                    <p className='text-left text-white text-l -mt-2 xsmnopost:mt-2 sm:mt-2 xl:mt-4'>
+                      Nothing here... Go explore{' '}
+                      <Link
+                        to='/community/posts'
+                        className='text-Accent/Target cursor-pointer inline'
+                      >
+                        Codemunity
+                      </Link>{' '}
+                      or{' '}
+                      <Link to='/feed' className='text-Primary/Light cursor-pointer inline'>
+                        share your own code
+                      </Link>{' '}
+                      !
+                    </p>
                   </div>
                 </div>
-              )}
+              </div>
+            </div>
+          )}
 
-              {/* Display posts if available */}
-              {posts.length > 0 && (
-                <div id='posts-container' className={` mx-6 sm:max-lg:mx-14 lg:mx-8 `}>
-                  {posts.map((post) => (
-                    <div key={post._id} className='post'>
-                      <PostBrief postData={post} />
-                    </div>
-                  ))}
+          {/* Display posts if available */}
+          {posts.length > 0 && project && (
+            <div id='posts-container' className={'mx-6 sm:max-lg:mx-14 lg:mx-10 '}>
+              {posts.map((post) => (
+                <div key={post._id} className='post'>
+                  <PostBrief postData={post} shareAction={handleShare} role={project.role} />
                 </div>
-              )}
-
-              {/* Show LoadingSpinner during additional data fetching */}
-              {loading && <LoadingSpinner />}
-            </>
+              ))}
+            </div>
           )}
         </>
       )}
+
+      {/* Display posts if available */}
+      {(viewMember || (viewParticipant && project)) && (
+        <div id='users-container' className='mx-6 sm:max-lg:mx-14 lg:mx-10'>
+          {users.map((u) => (
+            <div key={u._id}>
+              <UserBrief userData={u} project={projectId} role={project?.role} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Show LoadingSpinner during additional data fetching */}
+      {loading && <LoadingSpinner />}
       {/*
       {/* Sentinel for infinite scroll */}
       <div ref={sentinelRef} style={{ height: '50px' }} />
@@ -580,7 +897,7 @@ function ProjectDashboard() {
         />
       </div>
 
-      <div className='flex lg:invisible'>
+      <div className='flex lg:invisible' ref={quickNavRef}>
         <QuickNav
           isOpen={activeComponent === 'quicknav'}
           onClose={() => setActiveComponent(null)}
@@ -598,7 +915,7 @@ function ProjectDashboard() {
       />
     </div>
   );
-}
+};
 
 export default ProjectDashboard;
 

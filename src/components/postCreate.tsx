@@ -19,8 +19,9 @@ interface PostCreateProps {
   refresh?: (proppost: Post) => void;
   onPostCreated?: () => void;
   postRefId?: string;
-  mode?: number; //0: tạo ở community. 1: tạo trong group. 2: tạo trong section
+  mode?: number; //0: tạo ở community. 1: tạo trong group. 2: tạo trong project. 3: tạo trong section
   desId?: string;
+  parentId?: string;
   role?: string;
 }
 
@@ -32,6 +33,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
   postRefId,
   mode,
   desId,
+  parentId,
   role,
 }) => {
   const [files, setFiles] = useState<PostFile[]>([]); // Changed to PostFile[]
@@ -160,7 +162,14 @@ const PostCreate: React.FC<PostCreateProps> = ({
             fileName: file.fileName,
             fileUrl: file.fileUrl,
           })),
-          ...(mode === 1 ? { group: desId } : mode === 2 ? { project: desId } : {}),
+          ...(mode === 1
+            ? { group: desId }
+            : mode === 2
+              ? { project: desId }
+              : mode === 3
+                ? { section: desId, project: parentId }
+                : {}),
+
           ...(role ? { role } : {}),
         };
 
@@ -235,7 +244,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
             }
           }}
           placeholder='Title'
-          className='w-full px-2 text-Primary/Light bg-Background/Bottom text-lg focus:outline-none focus:border-transparent'
+          className='font-semibold w-full px-2 text-Primary/Light bg-Background/Bottom text-lg focus:outline-none focus:border-transparent'
         />
         {postRefId && <PostRef postId={postRefId} />}
 

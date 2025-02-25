@@ -152,7 +152,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
   }, []);
   return (
     <div className='flex absolute items-center'>
-      <div className='w-full h-full lg:h-full lg:w-[50vw] bg-Background/Bottom bg-center bg-cover px-14 py-10  flex flex-col border-Primary/Dark border-solid box-border lg:border-2 lg:rounded-3xl sm:max-lg:rounded-3xl  lg:mt-4  relative'>
+      <div className='w-full h-full lg:h-full lg:w-[50vw] bg-Background/Bottom bg-center bg-cover px-14 py-10  flex flex-col border-Primary/Dark border-solid box-border border-2 rounded-3xl  lg:mt-4  relative'>
         {/* Close Button */}
         <button
           onClick={propcloseModal}
@@ -160,7 +160,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
         >
           ×
         </button>
-        <h2 className='text-2xl font-semibold mb-6'>
+        <h2 className='text-2xl font-semibold mb-6 ml-4'>
           {modeChange === 'editpassword' ? 'Password Change' : 'Profile Edit'}
         </h2>
 

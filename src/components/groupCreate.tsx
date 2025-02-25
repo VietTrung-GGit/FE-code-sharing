@@ -6,6 +6,7 @@ import { GroupData, GroupDataCreate, createGroup, updateGroup } from '../service
 import { toast } from 'react-toastify';
 
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
+import { urlToFile } from '../utils/helpers';
 
 interface PostCreateProps {
   groupData?: GroupData; // Optional prop to enable edit mode
@@ -30,11 +31,6 @@ const GroupCreate: React.FC<PostCreateProps> = ({
   const [privacy, setPrivacy] = useState(false);
   const [moderation, setModeration] = useState(groupData?.moderation || false);
   const dropdownRef = useRef<HTMLButtonElement>(null);
-  const urlToFile = async (imageUrl: string): Promise<File> => {
-    const response = await fetch(imageUrl);
-    const blob = await response.blob();
-    return new File([blob], 'image');
-  };
 
   const handleSelect = (type: 'privacy' | 'moderation', value: boolean) => {
     if (type === 'privacy') {

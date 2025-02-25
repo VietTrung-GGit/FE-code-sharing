@@ -264,6 +264,47 @@ export const fetchUninvitedSectionUsers = async (
   }
 };
 
+// Fetch users in a section
+export const fetchSectionUsers = async (
+  sectionId: string,
+  page: number = 1,
+  limit: number = 10,
+  order: 'ascending' | 'descending' = 'ascending',
+  criteria: 'searchquery' | 'dateJoined' | 'followers' | 'likes',
+  search?: string,
+): Promise<{ users: UserBriefData[]; hasMore: boolean }> => {
+  try {
+    const response = await axiosInstance.get<{ users: UserBriefData[]; hasMore: boolean }>(
+      API_ENDPOINTS.SECTION_USERS(sectionId, page, limit, order, criteria, search),
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching section users:', error);
+    throw error;
+  }
+};
+
+// Fetch users in a project
+export const fetchProjectUsers = async (
+  projectId: string,
+  page: number = 1,
+  limit: number = 10,
+  order: 'ascending' | 'descending' = 'ascending',
+  criteria: 'searchquery' | 'dateJoined' | 'followers' | 'likes',
+  search?: string,
+): Promise<{ users: UserBriefData[]; hasMore: boolean }> => {
+  try {
+    const response = await axiosInstance.get<{ users: UserBriefData[]; hasMore: boolean }>(
+      API_ENDPOINTS.PROJECT_USERS(projectId, page, limit, order, criteria, search),
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching project users:', error);
+    throw error;
+  }
+};
+
+
 // Invite users to a project
 export const inviteProjectMembers = async (projectId: string, members: string[]) => {
   try {

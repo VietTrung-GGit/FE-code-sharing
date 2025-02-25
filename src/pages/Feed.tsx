@@ -381,7 +381,7 @@ const Feed: React.FC<FeedProps> = ({ type }) => {
         />
       </div>
 
-      <div>
+      <div ref={quickNavRef}>
         <QuickNav
           isOpen={activeComponent === 'quicknav'}
           onClose={() => setActiveComponent(null)}

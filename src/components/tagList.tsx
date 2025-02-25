@@ -242,7 +242,7 @@ function TagList({
   return (
     <>
       <div
-        className={`justify-center overflow-y-auto w-full h-full  ${activeFilter != 'Posts' ? 'lg:h-[60vh]' : 'lg:h-[90vh]'} lg:w-[50vw] bg-Background/Bottom bg-center bg-cover p-10  flex flex-col border-Primary/Dark border-solid box-border border-2 rounded-3xl  lg:mt-4  relative`}
+        className={`justify-center overflow-y-auto w-full ${activeFilter != 'Posts' ? 'lg:h-[50vh]' : 'lg:h-[90vh]'} lg:w-[50vw] min-h-[550px] bg-Background/Bottom p-10  flex flex-col border-Primary/Dark border-solid box-border border-2 rounded-3xl  lg:mt-4  relative`}
       >
         <button
           onClick={handleClose}
