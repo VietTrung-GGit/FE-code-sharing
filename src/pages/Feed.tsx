@@ -14,6 +14,10 @@ import { Post, fetchPosts } from '../services/postService';
 import LoadingSpinner from '../components/loadingAnimate';
 import PostCreate from '../components/postCreate';
 import { Link } from 'react-router-dom';
+import NothingPost from '../components/nothingPost';
+import { useTheme } from '../context/ThemeContext';
+import { MdOutlineSearch } from 'react-icons/md';
+import { FaFilter } from 'react-icons/fa';
 
 interface FeedProps {
   type: string;
@@ -33,8 +37,7 @@ const Feed: React.FC<FeedProps> = ({ type }) => {
   const quickNavRef = useRef<HTMLDivElement>(null); // Ref for the modal content
   const quickNavButtonRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
-  const location = useLocation();
-
+  const { theme } = useTheme();
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -231,30 +234,38 @@ const Feed: React.FC<FeedProps> = ({ type }) => {
   };
 
   return (
-    <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
+    <div className='bg-[var(--background)] text-[var(--text)] relative min-h-screen flex flex-col w-full'>
       <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-0 mx-6 sm:max-lg:mx-14 lg:mx-8'>
         <div
-          className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl  sm:max-lg:rounded-3xl lg:mt-0 lg:border-t-0 lg:rounded-none lg:rounded-b-3xl
+          className={`${
+            theme === 'original'
+              ? 'bg-Background/Bottom border-2  border-Primary/Dark'
+              : 'bg-[var(--surface)]'
+          } h-18  px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl  sm:max-lg:rounded-3xl lg:mt-0 lg:border-t-0 lg:rounded-none lg:rounded-b-3xl
         border-solid box-border mb-3 text-center mt-28 `}
         >
           <div className='flex flex-row w-full items-center space-x-4 mx-4 mt-0'>
-            <div className='inline-block flex-shrink-0 w-9 h-9 items-center justify-center flex'>
-              <img src={Search} alt='Search Icon' className='w-9 h-9 rounded-full object-cover' />
+            <div className='text-3xl inline-block flex-shrink-0 w-9 h-9 items-center justify-center flex'>
+              <MdOutlineSearch />
             </div>
 
             {/* Share Text Section */}
             <input
-              className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-Primary/Light text-l'
+              className={`${
+                theme === 'original'
+                  ? 'bg-Background/Middle text-Primary/Light '
+                  : 'bg-[var(--input)] text-[var(--text)]'
+              } inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-md`}
               placeholder={`Search for posts...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             ></input>
 
             <button
-              className='hover:bg-Background/Middle rounded-lg hover:bg-gray-300 hover:bg-opacity-20 block '
+              className='text-xl hover:bg-Background/Middle rounded-lg hover:bg-gray-300 hover:bg-opacity-20 block '
               onClick={() => setShowTaglistModal(!showTaglistModal)}
             >
-              <img src={Filter} alt='Filter Icon' className='w-9 h-9 rounded-full object-cover' />
+              <FaFilter />
             </button>
 
             {showTaglistModal && (
@@ -266,7 +277,7 @@ const Feed: React.FC<FeedProps> = ({ type }) => {
                     <TagList
                       onFilterChange={handleFilterChange}
                       feedShowTaglistModal={showTaglistModal}
-                      activeFilter='Posts' //change according to the button option, posts as default
+                      activeFilter={'Posts'} //change according to the button option, posts as default
                       initialCriteria={searchParams.get('criteria') as string}
                       initialOrder={
                         (searchParams.get('order') as 'ascending' | 'descending') || 'descending'
@@ -283,15 +294,18 @@ const Feed: React.FC<FeedProps> = ({ type }) => {
       </div>
       <>
         <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-          {type == 'stored' && (
-            <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+          {type == 'feed' && (
+            <div
+              className={`${
+                theme === 'original'
+                  ? 'bg-Background/Bottom border-2 border-Primary/Dark'
+                  : 'bg-[var(--surface)] text-[var(--text)]'
+              } w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark rounded-3xl p-5 md:p-7 lg:p-8`}
+            >
               <div className='flex flex-row w-full items-center space-x-4'>
                 <div className='inline-block flex-shrink-0'>
                   <img
-                    src={
-                      user?.avatar ||
-                      'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                    }
+                    src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                     alt='Profile Icon'
                     className='w-[52px] h-[52px] rounded-full object-cover'
                   />
@@ -299,12 +313,11 @@ const Feed: React.FC<FeedProps> = ({ type }) => {
 
                 {/* Share Text Section */}
                 <button
-                  className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6 overflow-hidden whitespace-nowrap'
+                  className={`bg-[var(--input)] text-gray-400
+                inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6 overflow-hidden whitespace-nowrap`}
                   onClick={handleCreate}
                 >
-                  <p className='text-left text-Primary/Light text-sm overflow-hidden'>
-                    Share your code...
-                  </p>
+                  <p className='text-left text-sm overflow-hidden'>Share your code...</p>
                 </button>
               </div>
             </div>
@@ -328,37 +341,14 @@ const Feed: React.FC<FeedProps> = ({ type }) => {
       ) : (
         <>
           {/* Show NothingPost only after the first load, no posts, and not loading */}
-          {!loading && posts.length === 0 && (
-            <div className='mb-5'>
-              <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-                <div
-                  className={`bg-Background/Bottom border-2 h-32  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
-                  border-solid box-border text-center mt-3`}
-                >
-                  <div className='h-auto'>
-                    <p className='text-left text-white text-l mt-0'>
-                      Nothing here... Go explore{' '}
-                      <Link to='/feed' className='text-Accent/Target cursor-pointer inline'>
-                        Codemunity
-                      </Link>{' '}
-                      or{' '}
-                      <Link to='/feed/me' className='text-Primary/Light cursor-pointer inline'>
-                        share your own code
-                      </Link>{' '}
-                      !
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {!loading && posts.length === 0 && <NothingPost />}
 
           {/* Display posts if available */}
           {posts.length > 0 && (
             <div id='posts-container' className={` mx-6 sm:max-lg:mx-14 lg:mx-10 `}>
               {posts.map((post) => (
                 <div key={post._id} className='post'>
-                  <PostBrief postData={post} />
+                  <PostBrief postData={post} shareAction={handleShare} />
                 </div>
               ))}
             </div>

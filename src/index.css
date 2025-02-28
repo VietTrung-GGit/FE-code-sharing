@@ -1,6 +1,65 @@
 :root {
   --rt-color-white: #fff !important;
   --rt-color-dark: #13191f !important;
+
+  --background: #1b2329;
+  --background-side: #0f151a;
+  --background-hovered: #1b2329;
+  --border: #05477e;
+  --surface: #0f151a;
+  --button: #f1f2f7;
+  --button-hovered: #dfe4f6;
+  --text: #ffffff;
+  --text-hovered: #bbf7d0;
+  --text-selected: #1d4ed8;
+  --input: #1b2329;
+  --text-title: #9ce1e7;
+  --text-placeholder: #59656d;
+
+  --red-highlight: #f87171;
+  --green-highlight: #bbf7d0;
+  --blue-highlight: #9ce1e7;
+}
+
+/* Dark Theme */
+.dark {
+  --background: #0e1113;
+  --background-side: #0e1113;
+  --background-hovered: #1a232b;
+  --border: #20292f;
+  --surface: #161f26;
+  --button: #11171b;
+  --button-hovered: #0f1316;
+  --text: #ffffff;
+  --text-hovered: #bbf7d0;
+  --text-selected: #22c55e;
+  --input: #181b1d;
+  --text-placeholder: #415360;
+  --text-title: #9ce1e7;
+
+  --red-highlight: #f87171;
+  --green-highlight: #bbf7d0;
+  --blue-highlight: #9ce1e7;
+}
+/* Light Theme */
+.light {
+  --background: #f0f4f8;
+  --background-side: #f0f4f8;
+  --background-hovered: #e3e9ef;
+  --border: #d1d9e6;
+  --surface: #ffffff;
+  --button: #f1f2f7;
+  --button-hovered: #ebeef9;
+  --text: #1f2937;
+  --text-hovered: #165022;
+  --text-selected: #22c55e;
+  --input: #e4e9ef;
+  --text-placeholder: #ccd2da;
+  --text-title: #05477e;
+
+  --red-highlight: #b96262;
+  --green-highlight: #82b193;
+  --blue-highlight: #2d8087;
 }
 
 @tailwind base;
@@ -50,32 +109,31 @@ body {
 }
 
 .scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #36424d #1b2329; /* Thumb color and track color */
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--text-placeholder, #999) var(--background, #f0f0f0) !important;
 }
 
 /* Webkit-based browsers (Chrome, Safari, Edge) */
 .scrollbar::-webkit-scrollbar {
-  width: 4px; /* Scrollbar width */
+  width: 4px;
 }
 
 .scrollbar::-webkit-scrollbar-horizontal {
-  height: 4px; /* Scrollbar height for horizontal */
+  height: 4px;
 }
 
 .scrollbar::-webkit-scrollbar-thumb {
-  background-color: #444444; /* Lighter gray thumb */
-  border-radius: 4px; /* Slightly rounded corners */
+  background-color: var(--border, #ccc) !important;
+  border-radius: 4px;
 }
 
 .scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #555555;
+  background-color: var(--text-hovered, #666) !important;
 }
 
 .scrollbar::-webkit-scrollbar-track {
-  background-color: #2e2e2e;
+  background-color: var(--background, #f0f0f0) !important;
 }
-
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

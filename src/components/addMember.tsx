@@ -14,6 +14,7 @@ import {
   addSectionParticipants,
 } from '../services/userService';
 import LoadingSpinner from './loadingAnimate';
+import { useTheme } from '../context/ThemeContext';
 
 interface AddMemberProps {
   type: 'group' | 'section' | 'project';
@@ -32,7 +33,7 @@ const UserSuggestion: React.FC<{
       <div className='flex items-center space-x-4'>
         <img src={user.avatar} alt='Profile Icon' className='w-12 h-12 rounded-full object-cover' />
         <div className='flex flex-col items-start'>
-          <p className='text-white font-semibold text-lg'>{user.displayname}</p>
+          <p className=' font-semibold text-lg'>{user.displayname}</p>
           <p className='text-Primary/Light text-xs'>@{user.username}</p>
         </div>
       </div>
@@ -86,6 +87,7 @@ const UserAvatar: React.FC<{ user: UserBriefData; toggleUser: (user: UserBriefDa
 };
 
 const AddMember: React.FC<AddMemberProps> = ({ type, desId, closeModal, isOpen }) => {
+  const { theme } = useTheme();
   const [users, setUsers] = useState<UserBriefData[]>([]);
   const [suggestedUsers, setSuggestedUsers] = useState<UserBriefData[]>([]);
   const [search, setSearch] = useState('');
@@ -152,12 +154,16 @@ const AddMember: React.FC<AddMemberProps> = ({ type, desId, closeModal, isOpen }
 
   return (
     <div
-      className=' w-full h-full bg-Background/Bottom bg-center bg-cover border-2 border-Primary/Dark p-5 flex flex-col items-center rounded-3xl sm:max-lg:rounded-3xl lg:mt-4 lg:rounded-3xl border-solid box-border text-center absolute
-    min-h-[200px] overflow-x-hidden lg:max-h-[500px] lg:w-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'
+      className={`${
+        theme === 'original'
+          ? 'bg-Background/Bottom text-white lg:border-2'
+          : 'bg-[var(--surface)] text-[var(--text)]'
+      } w-full h-full bg-center bg-cover border-2 border-Primary/Dark p-5 flex flex-col items-center rounded-3xl sm:max-lg:rounded-3xl lg:mt-4 lg:rounded-3xl border-solid box-border text-center absolute
+    min-h-[200px] overflow-x-hidden lg:max-h-[500px] lg:w-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent`}
     >
       <button
         onClick={closeModal}
-        className='absolute top-1 right-3 text-white text-3xl hover:text-Primary/Light'
+        className='absolute top-1 right-3  text-3xl hover:text-Primary/Light'
       >
         ×
       </button>
@@ -189,7 +195,7 @@ const AddMember: React.FC<AddMemberProps> = ({ type, desId, closeModal, isOpen }
       )}
 
       <div className='mt-5 space-y-4 w-full'>
-        <p className='text-md text-white font-semibold flex flex-start'>Suggested:</p>
+        <p className='text-md  font-semibold flex flex-start'>Suggested:</p>
 
         {loading ? (
           <LoadingSpinner /> // Add your custom spinner here

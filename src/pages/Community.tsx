@@ -22,6 +22,10 @@ import { fetchProjects, ProjectDataBrief } from '../services/projectService';
 import LoadingSpinner from '../components/loadingAnimate';
 import PostCreate from '../components/postCreate';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
+import { MdOutlineSearch } from 'react-icons/md';
+import { FaFilter } from 'react-icons/fa';
+import NothingPost from '../components/nothingPost';
 
 interface CommunityProps {
   active: string;
@@ -32,9 +36,8 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
   const [searchParams] = useSearchParams();
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
   const [showGroupCreate, setShowGroupCreate] = useState<boolean>(false); // New state for modal visibility
-
+  const { theme } = useTheme();
   const location = useLocation();
-
   const sidebarRef = useRef<HTMLDivElement>(null);
   const tagListRef = useRef<HTMLDivElement>(null);
   const sidebarButtonRef = useRef<HTMLButtonElement>(null);
@@ -146,18 +149,28 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
   useEffect(() => {
     setPage(1);
     setHasMore(true);
-    // Reset the corresponding data array
+    setLoading(true);
     if (active === 'Posts') setPosts([]);
     if (active === 'Users') setUsers([]);
     if (active === 'Groups') setGroups([]);
     if (active === 'Projects') setProjects([]);
-
-    // Fetch data based on active filter
-    if (active === 'Posts') fetchAndUpdatePosts();
-    if (active === 'Users') fetchAndUpdateUsers();
-    if (active === 'Groups') fetchAndUpdateGroups();
-    if (active === 'Projects') fetchAndUpdateProjects();
   }, [active, debouncedSearchTerm, searchParams]);
+
+  useEffect(() => {
+    if (posts.length === 0 && active == 'Posts') fetchAndUpdatePosts();
+  }, [posts]);
+
+  useEffect(() => {
+    if (users.length === 0 && active == 'Users') fetchAndUpdateUsers();
+  }, [users]);
+
+  useEffect(() => {
+    if (groups.length === 0 && active == 'Groups') fetchAndUpdateGroups();
+  }, [groups]);
+
+  useEffect(() => {
+    if (projects.length === 0 && active == 'Projects') fetchAndUpdateProjects();
+  }, [projects]);
 
   useEffect(() => {
     if (hasMore) {
@@ -218,11 +231,12 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
     setActiveComponent((prev) => (prev === 'quicknav' ? null : 'quicknav'));
   };
   const refetchPosts = () => {
-    setPage(1);
-    setPosts([]);
-    setHasMore(true);
     setLoading(true);
-    fetchAndUpdatePosts();
+    setPage(1);
+    setHasMore(true);
+    // Reset the corresponding data array
+    if (active === 'Posts') setPosts([]);
+    if (active === 'Groups') setGroups([]);
   };
 
   useEffect(() => {
@@ -315,30 +329,40 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
   };
 
   return (
-    <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
+    <div
+      className={`bg-[var(--background)] text-[var(--text)]  relative min-h-screen flex flex-col w-full`}
+    >
       <div className='flex justify-center -mt-10 sm:max-lg:-mt-10 lg:mt-0 mx-6 sm:max-lg:mx-14 lg:mx-8'>
         <div
-          className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl  sm:max-lg:rounded-3xl lg:mt-0 lg:border-t-0 lg:rounded-none lg:rounded-b-3xl
+          className={`${
+            theme === 'original'
+              ? 'bg-Background/Bottom border-2  border-Primary/Dark'
+              : 'bg-[var(--surface)]'
+          } h-18  px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl  sm:max-lg:rounded-3xl lg:mt-0 lg:border-t-0 lg:rounded-none lg:rounded-b-3xl
         border-solid box-border mb-3 text-center mt-28 `}
         >
           <div className='flex flex-row w-full items-center space-x-4 mx-4 mt-0'>
-            <div className='inline-block flex-shrink-0 w-9 h-9 items-center justify-center flex'>
-              <img src={Search} alt='Search Icon' className='w-9 h-9 rounded-full object-cover' />
+            <div className='text-3xl inline-block flex-shrink-0 w-9 h-9 items-center justify-center flex'>
+              <MdOutlineSearch />
             </div>
 
             {/* Share Text Section */}
             <input
-              className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-Primary/Light text-md'
+              className={`${
+                theme === 'original'
+                  ? 'bg-Background/Middle text-Primary/Light '
+                  : 'bg-[var(--input)] text-[var(--text)]'
+              } inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-md`}
               placeholder={`Search for ${active.toLowerCase()}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             ></input>
 
             <button
-              className='hover:bg-Background/Middle rounded-lg hover:bg-gray-300 hover:bg-opacity-20 block '
+              className='text-xl hover:bg-Background/Middle rounded-lg hover:bg-gray-300 hover:bg-opacity-20 block '
               onClick={() => setShowTaglistModal(!showTaglistModal)}
             >
-              <img src={Filter} alt='Filter Icon' className='w-9 h-9 rounded-full object-cover' />
+              <FaFilter />
             </button>
 
             {showTaglistModal && (
@@ -370,25 +394,25 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
           <div className='flex justify-center mt-8 sm:max-lg:mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-2'>
             <div className='flex flex-row justify-center gap-8 xsm:gap-14 sm:gap-24 lg:gap-16 xl:gap-28 2xl:gap-36 w-1/2'>
               <button
-                className={`${active === 'Posts' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
+                className={`${active === 'Posts' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl `}
                 onClick={() => navigate(`/community/posts`)}
               >
                 Posts
               </button>
               <button
-                className={`${active === 'Users' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
+                className={`${active === 'Users' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl `}
                 onClick={() => navigate(`/community/users`)}
               >
                 Users
               </button>
               <button
-                className={`${active === 'Groups' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
+                className={`${active === 'Groups' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl `}
                 onClick={() => navigate(`/community/groups`)}
               >
                 Groups
               </button>
               <button
-                className={`${active === 'Projects' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
+                className={`${active === 'Projects' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl `}
                 onClick={() => navigate(`/community/projects`)}
               >
                 Projects
@@ -399,7 +423,7 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
             <div
               className={`flex ${active === 'Groups' ? ' w-full xsm:w-full sm:w-full lg:w-2/5 xl:min-w-[550px]' : 'w-1/2 xl:min-w-[650px]'}  flex-start  ml-8 sm:ml-0`}
             >
-              <p className='text-2xl font-semibold text-white'>{active}</p>
+              <p className='text-2xl font-semibold'>{active}</p>
             </div>
             <div
               className='flex flex-row justify-end items-center mr-6 sm:mr-0'
@@ -443,14 +467,17 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
       </>
       {active == 'Posts' && (
         <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-          <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+          <div
+            className={`${
+              theme === 'original'
+                ? 'bg-Background/Bottom border-2 border-Primary/Dark'
+                : 'bg-[var(--surface)] text-[var(--text)]'
+            } w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 rounded-3xl p-5 md:p-7 lg:p-8`}
+          >
             <div className='flex flex-row w-full items-center space-x-4'>
               <div className='inline-block flex-shrink-0'>
                 <img
-                  src={
-                    user?.avatar ||
-                    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                  }
+                  src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                   alt='Profile Icon'
                   className='w-[52px] h-[52px] rounded-full object-cover'
                 />
@@ -458,12 +485,10 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
 
               {/* Share Text Section */}
               <button
-                className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6 overflow-hidden whitespace-nowrap'
+                className={`bg-[var(--input)] text-gray-400 inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6 overflow-hidden whitespace-nowrap`}
                 onClick={handleCreate}
               >
-                <p className='text-left text-Primary/Light text-sm overflow-hidden'>
-                  Share your code...
-                </p>
+                <p className='text-left text-sm overflow-hidden'>Share your code...</p>
               </button>
             </div>
           </div>
@@ -483,31 +508,7 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
         (active === 'Users' && users.length === 0) ||
         (active === 'Groups' && groups.length === 0) ||
         (active === 'Projects' && projects.length === 0)) &&
-        !loading && (
-          <>
-            <div className='mb-5'>
-              <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-                <div
-                  className={`bg-Background/Bottom border-2 h-32  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
-                  border-solid box-border text-center mt-3`}
-                >
-                  <div className='h-auto'>
-                    <p className='text-left text-white text-l mt-0'>
-                      Nothing here... Go explore{' '}
-                      <Link
-                        to='/community/posts'
-                        className='text-Accent/Target cursor-pointer inline'
-                      >
-                        Codemunity&nbsp;
-                      </Link>
-                      for more interesting content!
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
+        !loading && <NothingPost />}
 
       {/* Display posts if available */}
       {active == 'Posts' && posts.length > 0 && (
@@ -573,7 +574,7 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
 
       {showGroupCreate && (
         <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
-          <GroupCreate closeModal={handleCloseGroupModal} />
+          <GroupCreate closeModal={handleCloseGroupModal} onGroupCreated={refetchPosts} />
         </div>
       )}
 

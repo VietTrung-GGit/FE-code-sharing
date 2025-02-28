@@ -10,6 +10,7 @@ import {
 } from '../services/projectService';
 import { FaDeleteLeft } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 
 interface NodeProps {
   id: string;
@@ -35,6 +36,7 @@ const Node: React.FC<NodeProps> = ({
   onUpdateName,
 }) => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const [newTitle, setNewTitle] = useState(name);
   const [showConfirm, setShowConfirm] = useState(false);
 

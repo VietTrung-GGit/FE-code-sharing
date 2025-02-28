@@ -16,6 +16,7 @@ import CollapseMenu from '../components/collapseMenu';
 import { toast } from 'react-toastify';
 import { useAuthUser } from '../context/AuthUserContext';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { AiOutlineUsergroupDelete } from 'react-icons/ai';
 import LoadingSpinner from '../components/loadingAnimate';
 import PostCreate from '../components/postCreate';
 import { Link } from 'react-router-dom';
@@ -30,6 +31,7 @@ import {
   ProjectData,
   joinProject,
   leaveProject,
+  deleteProject,
 } from '../services/projectService';
 import { Post, fetchSectionPosts } from '../services/postService';
 import {
@@ -38,7 +40,11 @@ import {
   fetchProjectUsers,
   fetchSectionUsers,
 } from '../services/userService';
-import { TbPin } from 'react-icons/tb';
+import { TbPin, TbPinnedOff } from 'react-icons/tb';
+import { useTheme } from '../context/ThemeContext';
+import NothingPost from '../components/nothingPost';
+import { MdOutlineSearch } from 'react-icons/md';
+import { FaFilter } from 'react-icons/fa';
 
 interface ProjectDashboardProps {
   viewMember: boolean;
@@ -60,7 +66,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
   const quickNavButtonRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { pin, isPinned } = usePinned();
+  const { pin, isPinned, unPin } = usePinned();
   // States
   const [posts, setPosts] = useState<Post[]>([]);
   const [users, setUsers] = useState<UserBriefData[]>([]);
@@ -89,14 +95,17 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
 
   const [activeSection, setActiveSection] = useState('root');
   const alreadyPinned = projectId ? isPinned('project', projectId) : false;
-  {
-    projectId && (
-      <div>
-        {/* Use alreadyPinned here */}
-        {alreadyPinned ? 'Pinned' : 'Not Pinned'}
-      </div>
-    );
-  }
+  const [pinned, setPinned] = useState(alreadyPinned);
+  const handlePinToggle = () => {
+    if (projectId) {
+      if (pinned) {
+        unPin(undefined, projectId);
+      } else {
+        pin('project', projectId);
+      }
+      setPinned((prev) => !prev);
+    }
+  };
   // const fetchAndUpdatePosts = async () => {
   //   setLoading(true);
   //   try {
@@ -177,6 +186,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
           6, // Limit: 6 posts per page
           (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
           (searchParams.get('criteria') as string) || 'date',
+          'all',
           debouncedSearchTerm,
           searchParams.get('tags')?.split(',') || [],
         );
@@ -420,17 +430,17 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
   const handleCloseModal = () => {
     setShowPostCreate(false);
   };
-
+  const { theme } = useTheme();
   return (
-    <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
+    <div className='bg-[var(--background)] text-[var(--text)]  relative min-h-screen flex flex-col w-full'>
       <>
         <div className='mx-8 xsm:mx-8 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
-          <div className='bg-Background/Bottom text-white justify-center w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px]  xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] border-Primary/Dark border-2 rounded-3xl lg:p-5 relative flex items-center'>
+          <div className='bg-Background/Bottom  justify-center w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px]  xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] border-Primary/Dark border-2 rounded-3xl lg:p-5 relative flex items-center'>
             {project && (project.role == 'leader' || project.role == 'admin') && (
               <div className=' absolute right-3 top-2' ref={dropdownConfigRef}>
                 <button
                   onClick={toggleDropdownConfig}
-                  className='hover:text-gray-300 text-white text-3xl mx-[calc(10vw-2.2rem)] xsm:mx-[calc(10vw-2.6rem)] sm:mx-[calc(10vw-3.4rem)] lg:mx-[calc(10vw-5.2rem)] xl:mx-[calc(10vw-6.8rem)]'
+                  className='hover:text-gray-300  text-3xl mx-[calc(10vw-2.2rem)] xsm:mx-[calc(10vw-2.6rem)] sm:mx-[calc(10vw-3.4rem)] lg:mx-[calc(10vw-5.2rem)] xl:mx-[calc(10vw-6.8rem)]'
                 >
                   <IoIosMore />
                 </button>
@@ -440,14 +450,16 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                       <li>
                         {projectId && (
                           <button
-                            className={`block px-4 py-2 w-full text-left flex items-center gap-4 rounded  hover:bg-Background/Middle transition ${
-                              alreadyPinned ? 'text-gray-500 cursor-not-allowed' : ''
-                            }`}
-                            onClick={() => !alreadyPinned && pin('project', projectId)}
-                            disabled={alreadyPinned}
+                            className='block px-4 py-2 w-full text-left flex items-center gap-4 rounded hover:bg-Background/Middle transition'
+                            onClick={handlePinToggle}
                           >
-                            <TbPin className='text-lg lg:text-xl' />
-                            Pin
+                            {pinned ? (
+                              <TbPinnedOff className='text-lg lg:text-xl' />
+                            ) : (
+                              <TbPin className='text-lg lg:text-xl' />
+                            )}
+
+                            {pinned ? 'Unpin' : 'Pin'}
                           </button>
                         )}
                       </li>
@@ -456,7 +468,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                           {' '}
                           <li>
                             <button
-                              className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                              className='block px-4 py-2  hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
                               onClick={() => {
                                 setShowProjectEdit((prev) => !prev);
                               }}
@@ -466,6 +478,27 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                             </button>
                           </li>
                         </>
+                      )}
+                      {projectId && project.role == 'leader' && (
+                        <li>
+                          <button
+                            className='block px-4 py-2  hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                            onClick={async () => {
+                              try {
+                                await deleteProject(projectId);
+                                navigate(`/group/${project.group}`);
+                                toast.success('Project deleted successfully');
+                                // Optionally, you can navigate away or update state after deletion
+                              } catch (error) {
+                                toast.error('Failed to delete project');
+                                console.error(error);
+                              }
+                            }}
+                          >
+                            <AiOutlineUsergroupDelete className='text-lg lg:text-xl' />
+                            Delete project
+                          </button>
+                        </li>
                       )}
                     </ul>
                   </div>
@@ -487,17 +520,14 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
             <div className='flex flex-row justify-center space-x-4 xsm:space-x-10 sm:space-x-6 xl:space-x-2 mt-10 xsm:mt-8 sm:-mt-2 lg:-mt-1 mb-44 xsm:mb-48 sm:mb-0 lg:-ml-2 xl:-ml-4'>
               <div className='sm:-mt-10 lg:-mt-6 flex flex-col h-[380px] items-center'>
                 <img
-                  src={
-                    project?.avatar ||
-                    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                  }
+                  src={project?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                   alt='Profile Icon'
-                  className='w-28 h-28 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-56 xl:w-56 rounded-3xl object-cover mt-8 mx-0 sm:mx-0 sm:mt-14 lg:mx-2 xl:mx-4 mb-5 flex-shrink-0'
+                  className='w-16 h-16 xxsm:w-28 xxsm:h-28 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-56 xl:w-56 rounded-full object-cover mt-8 mx-0 sm:mx-0 sm:mt-14 lg:mx-2 xl:mx-4 mb-5 flex-shrink-0'
                 />
                 <div className='flex hidden sm:block -mt-2'>
                   <button
                     className={`transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-32 lg:w-28 h-7 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target sm:my-2 
-        ${hasJoined ? 'bg-gray-500 text-white hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:text-white'}`}
+        ${hasJoined ? 'bg-Accent/Target  hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:'}`}
                     onClick={hasJoined ? handleLeave : handleJoin}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
@@ -508,7 +538,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                     <div className='relative'>
                       <button
                         className={`transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-32 lg:w-28 h-7 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target sm:my-2
-    ${showInvite ? 'bg-Accent/Target text-white' : 'bg-white text-Accent/Target'}`}
+    bg-white text-Accent/Target`}
                         onClick={() => setShowInvite((prev) => !prev)}
                       >
                         Invite
@@ -536,12 +566,8 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                         {project.members.map(({ avatar, user }, index) => (
                           <img
                             key={user || index} // Prefer `user` as a unique key if available
-                            src={
-                              avatar ||
-                              'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                            }
+                            src={avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                             alt={`Member: ${user || `Unknown ${index + 1}`}`}
-                            className='w-8 h-8 rounded-full object-cover'
                           />
                         ))}
                       </div>
@@ -554,7 +580,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                 <div className='flex flex-row sm:-mt-4 lg:mt-0 relative'>
                   <div className='flex flex-col'>
                     <div className='flex flex-col'>
-                      <p className='text-white font-semibold mt-6 text-2xl sm:text-3xl lg:text-2xl xl:text-3xl break-words'>
+                      <p className=' font-semibold mt-6 text-2xl sm:text-3xl lg:text-2xl xl:text-3xl break-words'>
                         {project?.name || 'project Name'}
                       </p>
                       <div className='flex flex-row block xsm:mt-2 lg:hidden lg:static'>
@@ -563,12 +589,8 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                             {project.members.map(({ avatar, user }, index) => (
                               <img
                                 key={user || index} // Prefer `user` as a unique key if available
-                                src={
-                                  avatar ||
-                                  'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                                }
+                                src={avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                                 alt={`Member: ${user || `Unknown ${index + 1}`}`}
-                                className='w-8 h-8 rounded-full object-cover'
                               />
                             ))}
                           </div>
@@ -577,7 +599,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                     </div>
                     <button
                       className={`transition-colors font-semibold sm:hidden duration-300 ease-in-out w-20 h-5 xsm:h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target my-1 xsm:my-2 mt-2 xsm:mt-4
-        ${hasJoined ? 'bg-gray-500 text-white hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:text-white'}`}
+        ${hasJoined ? 'bg-Accent/Target  hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:'}`}
                       onClick={hasJoined ? handleLeave : handleJoin}
                       onMouseEnter={() => setIsHovered(true)}
                       onMouseLeave={() => setIsHovered(false)}
@@ -588,7 +610,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                       <div className='relative sm:hidden'>
                         <button
                           className={`transition-colors font-semibold duration-300 ease-in-out w-20 h-5 xsm:h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target my-1 xsm:my-2
-                          ${showInvite ? 'bg-Accent/Target text-white' : 'bg-white text-Accent/Target'}`}
+                         bg-white text-Accent/Target`}
                           onClick={() => setShowInvite((prev) => !prev)}
                         >
                           Invite
@@ -609,8 +631,8 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                   </div>
                 </div>
 
-                <div className='bg-Background/Middle sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] xsm:h-1/2 sm:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static'>
-                  <p className='text-Primary/Light p-4'>{project?.bio || 'Group Description'}</p>
+                <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] xsm:h-1/2 sm:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static'>
+                  <p className='p-4'>{project?.bio || 'Group Description'}</p>
                 </div>
               </div>
             </div>
@@ -620,13 +642,13 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
         <div className='flex justify-center mt-8 sm:max-lg:mt-6 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
           <div className='flex flex-row justify-center gap-32 w-1/2'>
             <button
-              className={`${!viewMember ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              className={`${!viewMember ? 'text-gray-500' : ''} text-xl font-semibold whitespace-nowrap`}
               onClick={() => navigate(`/project/${projectId}/sections/root`)}
             >
               Overview
             </button>
             <button
-              className={`${viewMember ? 'text-gray-500' : 'text-white'} text-xl font-semibold whitespace-nowrap`}
+              className={`${viewMember ? 'text-gray-500' : ''} text-xl font-semibold whitespace-nowrap`}
               onClick={() => navigate(`/project/${projectId}/members`)}
             >
               Members
@@ -635,7 +657,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
         </div>
         <div className='flex lg:justify-center mt-2 xsm:mt-2 sm:max-lg:mt-4 lg:mt-2 mx-6 sm:max-lg:mx-20 lg:mx-20'>
           <div className=' flex w-1/2 ml-8 sm:ml-0'>
-            <p className='text-2xl font-semibold text-white'>{`${viewMember ? 'Members' : 'Sections'}`}</p>
+            <p className='text-2xl font-semibold '>{`${viewMember ? 'Members' : 'Sections'}`}</p>
           </div>
         </div>
       </>
@@ -652,17 +674,17 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
 
           <div className='mx-7 xsm:mx-8 sm:mx-14 lg:mx-0 mt-4 sm:mt-4 lg:mt-0 lg:absolute top-[610px] right-4'>
             <div
-              className={`bg-Background/Bottom bg-center bg-cover border-2 sm:h-64 lg:h-[360px]  border-Primary/Dark px-6 py-6 w-full flex flex-col rounded-3xl lg:w-[19vw] sm:max-lg:rounded-3xl  lg:mt-2 lg:rounded-3xl
+              className={`bg-[var(--background-side)]  border-2 border-[var(--border)] bg-center bg-cover  sm:h-64 lg:h-[360px]   px-6 py-6 w-full flex flex-col rounded-3xl lg:w-[19vw] sm:max-lg:rounded-3xl  lg:mt-2 lg:rounded-3xl
         border-solid box-border `}
             >
               <div className='flex flex-row gap-6'>
-                <p className='text-xl font-semibold text-white text-left mb-2'>Notes</p>
-                <button className=' text-white text-left flex'>
+                <p className='text-xl font-semibold  text-left mb-2'>Notes</p>
+                <button className='  text-left flex'>
                   <BiSolidEdit className='text-2xl mt-1' />
                 </button>
               </div>
               <input
-                className='bg-Background/Middle h-[280px] w-96 text-white rounded-3xl w-full p-4'
+                className='bg-Background/Middle h-[280px] w-96  rounded-3xl w-full p-4'
                 placeholder='Notes to be displayed...'
               ></input>
             </div>
@@ -712,7 +734,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
             <div className='relative'>
               <button
                 className={`transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-32 lg:w-28 h-7 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target sm:my-2
-    ${showInvite ? 'bg-Accent/Target text-white' : 'bg-white text-Accent/Target'}`}
+   bg-white text-Accent/Target`}
                 onClick={() => setShowAddParticipant((prev) => !prev)}
               >
                 Invite
@@ -735,27 +757,35 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
 
       <div className='flex justify-center mt-0 sm:max-lg:mt-0 lg:mt-2 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
         <div
-          className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
-          border-solid box-border mb-5 text-center mt-2  `}
+          className={`${
+            theme === 'original'
+              ? 'bg-Background/Bottom border-2  border-Primary/Dark'
+              : 'bg-[var(--surface)]'
+          } h-18  px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
+        border-solid box-border mb-3 text-center `}
         >
-          <div className='flex flex-row w-full items-center space-x-4 mx-4'>
-            <div className='inline-block flex-shrink-0 w-9 h-9 items-center justify-center flex'>
-              <img src={Search} alt='Search Icon' className='w-9 h-9 rounded-full object-cover' />
+          <div className='flex flex-row w-full items-center space-x-4 mx-4 mt-0'>
+            <div className='text-3xl inline-block flex-shrink-0 w-9 h-9 items-center justify-center flex'>
+              <MdOutlineSearch />
             </div>
 
             {/* Share Text Section */}
             <input
-              className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-Primary/Light text-l'
+              className={`${
+                theme === 'original'
+                  ? 'bg-Background/Middle text-Primary/Light '
+                  : 'bg-[var(--input)] text-[var(--text)]'
+              } inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-md`}
               placeholder={`Search for ${viewMember ? 'Members' : viewParticipant ? 'Participants' : 'Posts'}`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             ></input>
 
             <button
-              className='hover:bg-Background/Middle rounded-lg hover:bg-gray-300 hover:bg-opacity-20 hidden lg:block '
+              className='text-xl hover:bg-Background/Middle rounded-lg hover:bg-gray-300 hover:bg-opacity-20 block '
               onClick={() => setShowTaglistModal(!showTaglistModal)}
             >
-              <img src={Filter} alt='Filter Icon' className='w-9 h-9 rounded-full object-cover' />
+              <FaFilter />
             </button>
 
             {showTaglistModal && (
@@ -802,27 +832,28 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
         <>
           <div className='mb-5'>
             <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-              <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] mb-5 mt-5 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+              <div
+                className={`${
+                  theme === 'original'
+                    ? 'bg-Background/Bottom border-2 border-Primary/Dark'
+                    : 'bg-[var(--surface)] text-[var(--text)]'
+                } w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] mb-5 mt-5 border-Primary/Dark rounded-3xl p-5 md:p-7 lg:p-8`}
+              >
                 <div className='flex flex-row w-full items-center space-x-4'>
                   <div className='inline-block flex-shrink-0'>
                     <img
-                      src={
-                        user?.avatar ||
-                        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                      }
+                      src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                       alt='Profile Icon'
-                      className='w-16 h-16 rounded-full object-cover'
                     />
                   </div>
 
                   {/* Share Text Section */}
                   <button
-                    className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6 overflow-hidden whitespace-nowrap'
+                    className={`bg-[var(--input)] text-gray-400'
+                } inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6 overflow-hidden whitespace-nowrap`}
                     onClick={handleCreate}
                   >
-                    <p className='text-left text-Primary/Light text-l overflow-hidden'>
-                      Share your code...
-                    </p>
+                    <p className='text-left  text-l overflow-hidden'>Share your code...</p>
                   </button>
                 </div>
               </div>
@@ -830,33 +861,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
           </div>
 
           {/* Show NothingPost only after the first load, no posts, and not loading */}
-          {!loading && posts.length === 0 && (
-            <div className='mb-5'>
-              <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-                <div
-                  className={`bg-Background/Bottom border-2 h-32  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
-                      border-solid box-border text-center mt-3`}
-                >
-                  <div className='h-auto'>
-                    <p className='text-left text-white text-l -mt-2 xsmnopost:mt-2 sm:mt-2 xl:mt-4'>
-                      Nothing here... Go explore{' '}
-                      <Link
-                        to='/community/posts'
-                        className='text-Accent/Target cursor-pointer inline'
-                      >
-                        Codemunity
-                      </Link>{' '}
-                      or{' '}
-                      <Link to='/feed' className='text-Primary/Light cursor-pointer inline'>
-                        share your own code
-                      </Link>{' '}
-                      !
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {!loading && posts.length === 0 && <NothingPost />}
 
           {/* Display posts if available */}
           {posts.length > 0 && project && (

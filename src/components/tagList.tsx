@@ -3,10 +3,9 @@ import { BiCalendar } from 'react-icons/bi';
 import { AiFillHeart } from 'react-icons/ai';
 import { BsFileCodeFill } from 'react-icons/bs';
 import { HiUsers } from 'react-icons/hi';
-import Filter from '../assets/filter.svg';
-import Descend from '../assets/descending.svg';
-import Ascend from '../assets/ascending.svg';
 import { tags, tagColors } from '../utils/helpers';
+import { useTheme } from '../context/ThemeContext';
+import { FaFilter } from 'react-icons/fa';
 
 function TagList({
   onFilterChange,
@@ -26,6 +25,7 @@ function TagList({
   handleClose: () => void;
 }) {
   const [selectedTags, setSelectedTags] = useState<string[]>(initialTags);
+  const { theme } = useTheme();
   const [order, setOrder] = useState<'ascending' | 'descending'>(initialOrder);
   const [criteriaPosts, setCriteriaPosts] = useState<'date' | 'likes' | 'comments'>('date');
   const [criteriaUsers, setCriteriaUsers] = useState<'datejoin' | 'likes' | 'followers'>(
@@ -242,48 +242,118 @@ function TagList({
   return (
     <>
       <div
-        className={`justify-center overflow-y-auto w-full ${activeFilter != 'Posts' ? 'lg:h-[50vh]' : 'lg:h-[90vh]'} lg:w-[50vw] min-h-[550px] bg-Background/Bottom p-10  flex flex-col border-Primary/Dark border-solid box-border border-2 rounded-3xl  lg:mt-4  relative`}
+        className={`${
+          theme === 'original'
+            ? 'bg-Background/Bottom text-white lg:border-2'
+            : 'bg-[var(--surface)] text-[var(--text)]'
+        } justify-center overflow-y-auto w-full ${activeFilter != 'Posts' ? 'lg:h-[50vh]' : 'lg:h-[90vh]'} lg:w-[50vw] min-h-[480px] p-10  flex flex-col border-Primary/Dark border-solid box-border rounded-3xl  lg:mt-4  relative`}
       >
         <button
           onClick={handleClose}
-          className='absolute top-6 right-12 text-white text-3xl hover:text-Primary/Light'
+          className='absolute top-6 right-12  text-3xl hover:text-Primary/Light'
         >
           ×
         </button>
         {/* */}
-        <p className=' text-white text-2xl font-semibold flex items-center gap-2'>
-          <img src={Filter} alt='Filter icon' className='w-6 h-6' />
-          {activeFilter} filter:
+        <p className=' flex items-center gap-2 text-xl'>
+          <FaFilter className='text-2xl' />
+          {`${activeFilter} Filter`}
         </p>
 
         <br />
         <div className='flex flex-row justify-center mb-2'>
           {/*ASC/DESC BUTTONS*/}
           <div className='mb-4 flex flex-col space-y-4'>
-            <p className='text-gray-200 text-xl'>Order:</p>
+            <p className='text-[var(--text)] text-xl'>Order:</p>
 
             <button className='w-[140px] ml-14' onClick={() => setOrder('descending')}>
-              <div className='flex flex-row gap-1'>
+              <div
+                className={`rounded-lg pt-1 flex flex-row gap-1 ${order === 'descending' ? 'text-[var(--text-title)] bg-[var(--background-hovered)] ' : ''}`}
+              >
                 <div className='w-8 flex'>
-                  <img src={Descend} alt='Descending icon'></img>
+                  <svg
+                    width='32'
+                    height='32'
+                    viewBox='0 0 32 32'
+                    fill='none'
+                    xmlns='http://www.w3.org/2000/svg'
+                  >
+                    <path
+                      d='M5.3335 21.3333H17.3335'
+                      stroke='currentColor'
+                      stroke-width='2'
+                      stroke-linecap='round'
+                    />
+                    <path
+                      d='M8 14.6667H17.3333'
+                      stroke='currentColor'
+                      stroke-width='2'
+                      stroke-linecap='round'
+                    />
+                    <path
+                      d='M10.6665 8H17.3332'
+                      stroke='currentColor'
+                      stroke-width='2'
+                      stroke-linecap='round'
+                    />
+                    <path
+                      d='M22.6665 5.33325V26.6666L26.6665 21.3333'
+                      stroke='currentColor'
+                      stroke-width='2'
+                      stroke-linecap='round'
+                      stroke-linejoin='round'
+                    />
+                  </svg>
                 </div>
                 <div className='w-28 flex'>
-                  <p
-                    className={` text-left ${order === 'descending' ? 'text-Primary/Light' : 'text-white'} text-lg hover:text-Primary/Target`}
-                  >
-                    Descending
-                  </p>
+                  <p className={`text-left text-lg`}>Descending</p>
                 </div>
               </div>
             </button>
             <button className='w-[140px] ml-14' onClick={() => setOrder('ascending')}>
-              <div className='flex flex-row gap-1 '>
-                <div className='w-8 flex'>
-                  <img src={Ascend} alt='Ascending icon'></img>
+              <div
+                className={`rounded-lg pt-1 flex flex-row gap-1 ${order === 'ascending' ? 'text-[var(--text-title)] bg-[var(--background-hovered)] ' : ''}`}
+              >
+                <div
+                  className={`w-8 flex ${order === 'ascending' ? 'text-[var(--text-title)]' : ' '}`}
+                >
+                  <svg
+                    width='32'
+                    height='32'
+                    viewBox='0 0 32 32'
+                    fill='none'
+                    xmlns='http://www.w3.org/2000/svg'
+                  >
+                    <path
+                      d='M5.3335 10.6667H17.3335'
+                      stroke='currentColor'
+                      stroke-width='2'
+                      stroke-linecap='round'
+                    />
+                    <path
+                      d='M8 17.3333H17.3333'
+                      stroke='currentColor'
+                      stroke-width='2'
+                      stroke-linecap='round'
+                    />
+                    <path
+                      d='M10.6665 24H17.3332'
+                      stroke='currentColor'
+                      stroke-width='2'
+                      stroke-linecap='round'
+                    />
+                    <path
+                      d='M22.6665 26.6667V5.33341L26.6665 10.6667'
+                      stroke='currentColor'
+                      stroke-width='2'
+                      stroke-linecap='round'
+                      stroke-linejoin='round'
+                    />
+                  </svg>
                 </div>
                 <div className='w-28 flex'>
                   <p
-                    className={`text-left ${order === 'ascending' ? 'text-Primary/Light hover:text-Primary/Target' : 'text-white hover:text-gray-300'} text-lg hover:text-Primary/Target`}
+                    className={`text-left ${order === 'ascending' ? 'text-[var(--text-title)]' : ' '} text-lg`}
                   >
                     Ascending
                   </p>
@@ -294,16 +364,16 @@ function TagList({
 
           {/*date,likes,comments*/}
           <div className='mb-2 flex flex-col space-y-4 ml-14'>
-            <p className='text-gray-200 text-xl'>Criteria:</p>
+            <p className='text-[var(--text)] text-xl'>Criteria:</p>
             {activeFilter == 'Posts' && (
               <>
                 {buttonsPosts.map(({ label, criteriaKey, svg }) => (
                   <button
                     key={criteriaKey}
-                    className={`w-[140px] ml-14 mb-4 flex items-center space-x-2 ${
+                    className={`w-[140px] p-1 rounded-lg ml-14 mb-4 flex items-center space-x-2 ${
                       criteriaPosts === criteriaKey
-                        ? 'text-Primary/Light hover:text-Primary/Target'
-                        : 'text-white hover:text-gray-300'
+                        ? 'text-[var(--text-title)] bg-[var(--background-hovered)] '
+                        : ''
                     }`}
                     onClick={() => setCriteriaPosts(criteriaKey)}
                   >
@@ -318,10 +388,10 @@ function TagList({
                 {buttonsUsers.map(({ label, criteriaKey, svg }) => (
                   <button
                     key={criteriaKey}
-                    className={`w-[140px] ml-14 mb-4 flex items-center space-x-2 ${
+                    className={`w-[140px] p-1 rounded-lg ml-14 mb-4 flex items-center space-x-2 ${
                       criteriaUsers === criteriaKey
-                        ? 'text-Primary/Light hover:text-Primary/Target'
-                        : 'text-white hover:text-gray-300'
+                        ? 'text-[var(--text-title)] bg-[var(--background-hovered)] '
+                        : ''
                     }`}
                     onClick={() => setCriteriaUsers(criteriaKey)}
                   >
@@ -337,10 +407,10 @@ function TagList({
                 {buttonsGroupProject.map(({ label, criteriaKey, svg }) => (
                   <button
                     key={criteriaKey}
-                    className={`w-[140px] ml-14 mb-4 flex items-center space-x-2 ${
+                    className={`w-[140px] p-1 rounded-lg ml-14 mb-4 flex items-center space-x-2 ${
                       criteriaGroupProject === criteriaKey
-                        ? 'text-Primary/Light hover:text-Primary/Target'
-                        : 'text-white hover:text-gray-300'
+                        ? 'text-[var(--text-title)] bg-[var(--background-hovered)] '
+                        : ''
                     }`}
                     onClick={() => setCriteriaGroupProject(criteriaKey)}
                   >
@@ -357,7 +427,7 @@ function TagList({
             {/*filter by tags*/}
             <div className='mb-4 flex'>
               <div className='w-32 flex'>
-                <p className='text-left text-gray-200 text-xl'>Tags:</p>
+                <p className='text-left text-[var(--text)] text-xl'>Tags:</p>
               </div>
             </div>
 
@@ -368,13 +438,13 @@ function TagList({
                 <button key={tag} className='w-24 my-2 mr-6' onClick={() => handleButtonClick(tag)}>
                   <div className='flex flex-col'>
                     <div
-                      className={`${
+                      className={`${theme === 'original' ? 'text-Primary/Dark' : ''} ${
                         selectedTags.includes(tag)
-                          ? `${tagColors[tag]}`
-                          : 'bg-white hover:bg-gray-300'
+                          ? `${tagColors[tag]} text-Primary/Dark`
+                          : 'bg-[var(--button)] hover:bg-[var(--button-hovered)]'
                       } rounded-2xl p-1`}
                     >
-                      <p className='text-Primary/Dark'>{tag}</p>
+                      <p>{tag}</p>
                     </div>
                   </div>
                 </button>
@@ -385,15 +455,12 @@ function TagList({
         {/* Submit and Reset Buttons */}
         <div className='flex justify-center items-center gap-10 mt-2 mr-8'>
           <button
-            className='bg-Primary/Light hover:bg-Primary/Target  font-semibold text-Primary/Dark px-4 py-2 rounded-md'
+            className='bg-Primary/Light  font-semibold text-Primary/Dark px-4 py-2 rounded-md'
             onClick={handleSubmit}
           >
             Apply filter
           </button>
-          <button
-            className='bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md'
-            onClick={handleReset}
-          >
+          <button className='bg-[var(--border)]  px-4 py-2 rounded-md' onClick={handleReset}>
             Reset filter
           </button>
         </div>

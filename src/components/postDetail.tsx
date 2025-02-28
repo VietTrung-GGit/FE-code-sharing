@@ -24,6 +24,7 @@ import {
   unstorePost,
   fetchComments,
 } from '../services/postService';
+import { useTheme } from '../context/ThemeContext';
 
 interface PostDetailProps {
   proppost: Post;
@@ -46,6 +47,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
   closeModal: propcloseModal,
   shareAction = () => {},
 }) => {
+  const { theme } = useTheme();
   const [post, setPost] = useState<Post>(proppost);
   const [comments, setComments] = useState<Comment[]>([]);
   const [showPicker, setShowPicker] = useState(false);
@@ -138,6 +140,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
       const [entry] = entries;
       if (entry.isIntersecting && hasMore && !loading && post.totalComments > 0) {
         console.log('Fetching comments...');
+        alert('due to scroll');
         fetchComment();
       }
     };
@@ -230,9 +233,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
           code: newCommentCode,
           text: newCommentText,
           authorname: user?.displayname || 'Display Name',
-          avatar:
-            user?.avatar ||
-            'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+          avatar: user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png',
           postId: post._id,
         };
         console.log('Comment posted successfully:');
@@ -256,15 +257,16 @@ const PostDetail: React.FC<PostDetailProps> = ({
           isAuthor: true,
         };
         alert(2);
-        setComments((prevComments) => {
-          if (prevComments) {
-            return [
-              displayedComment, // Add the new comment at the top
-              ...prevComments,
-            ];
-          }
-          return [displayedComment]; // Initialize with the new comment if prevComments is null
-        });
+        fetchComment();
+        // setComments((prevComments) => {
+        //   if (prevComments) {
+        //     return [
+        //       displayedComment, // Add the new comment at the top
+        //       ...prevComments,
+        //     ];
+        //   }
+        //   return [displayedComment]; // Initialize with the new comment if prevComments is null
+        // });
         setNewCommentText('');
         setNewCommentCode('');
         toast.success('Comment success');
@@ -343,44 +345,39 @@ const PostDetail: React.FC<PostDetailProps> = ({
   };
 
   return (
-    <div className='w-full h-full lg:h-[95vh] lg:w-3/5 flex flex-col  text-white bg-Background/Bottom lg:my-10 relative border-Primary/Dark border-solid box-border lg:border-2 lg:rounded-3xl p-5 md:p-7 lg:p-8 xl-10'>
+    <div
+      className={`${
+        theme === 'original'
+          ? 'bg-Background/Bottom text-white lg:border-2'
+          : 'bg-[var(--surface)] text-[var(--text)]'
+      } w-full h-full lg:h-[95vh] lg:w-3/5 flex flex-col   bg-Background/Bottom dark:bg-Dark/Background lg:my-10 relative border-Primary/Dark border-solid box-border lg:rounded-3xl p-5 md:p-7 lg:p-8 xl-10`}
+    >
       {/* Avatar, Name, and Date */}
       <button
         onClick={propcloseModal}
-        className='absolute top-6 right-12 text-white text-3xl hover:text-Primary/Light z-40'
+        className='absolute top-6 right-12  text-3xl hover:text-[var(--text-title)] z-40'
       >
         ×
       </button>
-      <div
-        ref={parentRef}
-        className='overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'
-      >
+      <div ref={parentRef} className='overflow-y-auto scrollbar'>
         <div className='flex items-center justify-between mb-4'>
           <div className='flex items-center gap-4'>
             <Link to={`/user/${post.author}`} className='flex items-center gap-4'>
               <img
-                src={
-                  post.avatar ||
-                  'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                }
-                alt='Avatar'
-                className='w-[52px] h-[52px] rounded-full object-cover'
+                src={post.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+                className='w-[52px] h-[52px] rounded-full object-cover' //i.postimg.cc/02Xx40Yq/default.png
               />
             </Link>
             <div>
               <Link to={`/user/${post.author}`} className='font-bold text-md'>
                 {post ? post.authorname : ''}
               </Link>
-              <p className='text-sm text-Accent/Light'>
+              <p className='text-sm text-[var(--green-highlight)]'>
                 {post ? formatDate(post.createdAt) : 'Loading...'}&nbsp;
                 {post &&
                   post.editedAt &&
                   Math.abs(new Date(post.createdAt).getTime() - new Date(post.editedAt).getTime()) >
-                    100 && (
-                    <span className='text-xs text-white'>
-                      (Edited: {formatDate(post.editedAt)})
-                    </span>
-                  )}
+                    100 && <span className='text-xs '>(Edited: {formatDate(post.editedAt)})</span>}
               </p>
               {/* Check if `updatedAt` is different from `createdAt` */}
             </div>
@@ -394,7 +391,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
               {post.tags.map((tagName, index) => (
                 <span
                   key={index}
-                  className='bg-Primary/Light flex justify-center text-Primary/Dark text-sm w-20 px-2 rounded-3xl py-1'
+                  className='bg-[var(--text-title)] flex justify-center text-Primary/Dark text-sm w-20 px-2 rounded-3xl py-1'
                 >
                   {tagName}
                 </span>
@@ -403,7 +400,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
           </div>
         )}
 
-        <p className='font-semibold w-full py-1 overflow-hidden resize-none focus:outline-none focus:border-transparent text-lg text-Primary/Light break-words'>
+        <p className='font-semibold w-full py-1 overflow-hidden resize-none focus:outline-none focus:border-transparent text-lg text-[var(--text-title)] break-words'>
           {post?.title}
         </p>
         {post.refId && <PostRef postId={post.refId} />}
@@ -416,7 +413,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
             post.files.map((file, index) => (
               <div
                 key={index}
-                className={`flex-shrink-0 font-semibold px-2 py-1 cursor-pointer ${activeTab === index ? 'min-w-[120px]  border-b-4 text-Primary/Light border-Primary/Dark' : 'w-[120px] truncate text-white'}`}
+                className={`flex-shrink-0 font-semibold px-2 py-1 cursor-pointer ${activeTab === index ? 'min-w-[120px]  border-b-4 text-[var(--text-title)] border-Primary/Dark' : 'w-[120px] truncate '}`}
                 onClick={() => setActiveTab(index)}
               >
                 <div className='flex justify-between items-center w-full space-x-2'>
@@ -427,7 +424,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                         // alert(file.fileUrl);
                         downloadTextFile(file.fileUrl, file.fileName);
                       }}
-                      className='inline-flex justify-center text-white text-lg mt-auto'
+                      className='inline-flex justify-center  text-lg mt-auto'
                     >
                       <IoCodeDownload />
                     </button>
@@ -443,7 +440,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
             post?.files.map((file, index) => (
               <div
                 key={index}
-                className={`flex-shrink-0 text-Primary/Light font-bold max-w-[150px] truncate px-2 py-1 cursor-pointer ${
+                className={`flex-shrink-0 text-[var(--text-title)] font-bold max-w-[150px] truncate px-2 py-1 cursor-pointer ${
                   activeTab === index ? 'border-b-4 border-Primary/Dark' : ''
                 }`}
                 onClick={() => setActiveTab(index)}
@@ -495,7 +492,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
               data-tooltip-id='share'
               data-tooltip-content='Share'
               data-tooltip-place='top' // Auto-adjusts the position
-              className='text-Accent/Light hover:text-Accent/Target'
+              className='text-[var(--green-highlight)] hover:text-Accent/Target'
             >
               <FaShareSquare className='text-lg' />
               <Tooltip id='share' classNameArrow='noArrow' />
@@ -509,7 +506,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                         shareAction(post._id);
                         setIsDropdownOpen(false);
                       }}
-                      className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                      className='block px-4 py-2  hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
                     >
                       <TbMessage2Share className='text-lg lg:text-xl' />
                       Share in a new post
@@ -523,7 +520,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                         setIsDropdownOpen(false);
                         toast.success('Link copied to clipboard!');
                       }}
-                      className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                      className='block px-4 py-2  hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
                     >
                       <TbLink className='text-lg lg:text-xl' />
                       Copy Link
@@ -537,7 +534,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
           <div className='flex justify-end'>
             <button
               onClick={handleLike}
-              className={`text-sm w-12 xsm:w-16 text-sm h-5 xsm:h-7 transition-colors duration-200 ease-in-out inline-flex items-center justify-center py-2 px-4 rounded-lg ${hasLiked ? 'bg-Accent/Target text-white' : 'bg-white text-Accent/Target'}`}
+              className={`text-sm w-12 xsm:w-16 text-sm h-5 xsm:h-7 transition-colors duration-200 ease-in-out inline-flex items-center justify-center py-2 px-4 rounded-lg ${hasLiked ? 'bg-Accent/Target ' : 'bg-white text-Accent/Target'}`}
             >
               <svg
                 className={`xsm:w-6 xsm:h-4 w-3 h-4 mr-1 stroke-current fill-current`} // Tailwind class for color
@@ -550,7 +547,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
 
             <svg
               onClick={handleSave}
-              className={`transition-colors duration-200 ease-in-out cursor-pointer w-6 h-6 ml-2 stroke-current fill-current ${hasSaved ? 'text-Accent/Target' : 'text-Accent/Light'}`}
+              className={`transition-colors duration-200 ease-in-out cursor-pointer w-6 h-6 ml-2 stroke-current fill-current ${hasSaved ? 'text-Accent/Target' : 'text-[var(--green-highlight)]'}`}
               viewBox='0 0 24 24'
             >
               <path
@@ -571,7 +568,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
         {/* Comments Section */}
         {post && comments && post.totalComments > 0 && (
           <div className='mt-4 divide-y-2 divide-Primary/Dark'>
-            <h3 className='text-lg font-bold text-Primary/Light'>
+            <h3 className='text-lg font-bold text-[var(--text-title)]'>
               Comments ({formatNumber(post.totalComments)})
             </h3>
 
@@ -589,23 +586,16 @@ const PostDetail: React.FC<PostDetailProps> = ({
           </div>
         )}
         {/* Loading Indicator */}
-        {loading && <div className='text-center text-Accent/Light'>Loading...</div>}
+        {loading && <div className='text-center text-[var(--green-highlight)]'>Loading...</div>}
         {/* Sentinel for Infinite Scroll */}
         <div ref={sentinelRef} className='h-2'></div>
       </div>
       {/* New Comment Section */}
       <div className='mt-auto flex-none divide-y-2 divide-Primary/Dark'>
-        <h3 className='text-lg font-bold text-Primary/Light'>New Comment</h3>
+        <h3 className='text-lg font-bold text-[var(--text-title)]'>New Comment</h3>
         <div className='bg-Background/Light pt-3 px-2'>
           <div className='flex justify-center gap-4'>
-            <img
-              src={
-                user?.avatar ||
-                'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-              }
-              alt='Avatar'
-              className='w-8 h-8 rounded-full object-cover'
-            />
+            <img src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'} alt='Avatar' />
             <div className='w-full'>
               <div className='relative flex items-center mb-1'>
                 <textarea
@@ -648,7 +638,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
               <div className='flex justify-end'>
                 <button
                   onClick={handleCommentSubmit}
-                  className='mt-2 w-24 h-8 bg-Primary/Dark flex items-center justify-center text-white py-2 px-4 rounded-lg hover:bg-Primary/Light hover:text-Primary/Dark'
+                  className='mt-2 w-24 h-8 bg-Primary/Dark flex items-center justify-center  py-2 px-4 rounded-lg hover:bg-[var(--text-title)] hover:text-Primary/Dark'
                 >
                   {/* Like Icon */}
                   Comment

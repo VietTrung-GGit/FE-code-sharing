@@ -368,6 +368,7 @@ export const fetchSectionPosts = async (
   limit: number = 10,
   order: 'ascending' | 'descending' = 'descending',
   criteria: string,
+  mode: string,
   search?: string,
   tags?: string[],
 ): Promise<PostResponse> => {
@@ -382,6 +383,7 @@ export const fetchSectionPosts = async (
         tags || [],
         order,
         criteria,
+        mode,
       ),
     );
     if (!response.data.posts) {

@@ -49,7 +49,7 @@ const TagsScroll: React.FC<TagsScrollProps> = ({
           tags.map((tagName, index) => (
             <span
               key={index}
-              className={`flex-shrink-0 ${tagColors[tagName]} text-[11px] flex justify-center text-Primary/Dark text-sm px-2 w-16 rounded-xl py-[1px]`}
+              className={`flex-shrink-0 ${tagColors[tagName]} text-[11px] flex justify-center text-Primary/Dark px-2 w-16 rounded-xl py-[1px]`}
             >
               {tagName}
             </span>

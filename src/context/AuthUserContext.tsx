@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { loginUser, logoutUser, refreshAccessToken, signupUser } from '../services/authService';
 import { getUserFullData, updateUserFullData, UserDataFull } from '../services/userService';
 
+
 interface AuthUserContextType {
   isAuthenticated: boolean;
   authLoading: boolean;

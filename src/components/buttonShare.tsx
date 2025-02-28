@@ -5,7 +5,7 @@ import { getUserFullData } from '../services/userService';
 const ButtonShare: React.FC = () => {
   const [showPostCreate, setShowPostCreate] = useState<boolean>(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(
-    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+    'https://i.postimg.cc/02Xx40Yq/default.png',
   );
 
   useEffect(() => {

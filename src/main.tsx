@@ -25,12 +25,13 @@ import { AuthUserProvider } from './context/AuthUserContext';
 import PassReset from './pages/Passreset';
 import PassNew from './pages/Passnew';
 import { PinnedProvider } from './context/PinnedContext';
-
+import { ThemeProvider } from './context/ThemeContext';
 const root = document.getElementById('root');
 
 if (root) {
   ReactDOM.createRoot(root).render(
     <Router>
+      <ThemeProvider>
       <AuthUserProvider>
         <NotificationsProvider>
           <PinnedProvider>
@@ -98,6 +99,7 @@ if (root) {
           </PinnedProvider>
         </NotificationsProvider>
       </AuthUserProvider>
+      </ThemeProvider>
       <ToastContainer
         position='top-right'
         autoClose={1000}

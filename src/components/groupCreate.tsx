@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { urlToFile } from '../utils/helpers';
+import { useTheme } from '../context/ThemeContext';
 
 interface PostCreateProps {
   groupData?: GroupData; // Optional prop to enable edit mode
@@ -80,6 +81,7 @@ const GroupCreate: React.FC<PostCreateProps> = ({
       toast.warning('Group details are empty!');
     }
   };
+  const { theme } = useTheme();
   useEffect(() => {
     if (groupData) {
       setTitle(groupData.name || '');
@@ -109,14 +111,20 @@ const GroupCreate: React.FC<PostCreateProps> = ({
   }, []);
 
   return (
-    <div className='overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent w-full h-full lg:h-[80vh] lg:w-[50vw] bg-Background/Bottom bg-center bg-cover px-14 py-10  flex flex-col border-Primary/Dark border-solid box-border lg:border-2 lg:rounded-3xl sm:max-lg:rounded-3xl  lg:mt-4  relative'>
+    <div
+      className={`${
+        theme === 'original'
+          ? 'bg-Background/Bottom text-white lg:border-2'
+          : 'bg-[var(--surface)] text-[var(--text)]'
+      } overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent w-full h-full lg:h-[80vh] lg:w-[50vw] bg-center bg-cover px-14 py-10  flex flex-col border-Primary/Dark border-solid box-border lg:border-2 lg:rounded-3xl sm:max-lg:rounded-3xl  lg:mt-4  relative`}
+    >
       <button
         onClick={propcloseModal}
-        className='absolute top-6 right-12 text-white text-3xl hover:text-Primary/Light'
+        className='absolute top-6 right-12  text-3xl hover:text-Primary/Light'
       >
         ×
       </button>
-      <p className='text-white font-semibold text-left text-2xl'>
+      <p className=' font-semibold text-left text-2xl'>
         {groupId ? 'Edit group profile' : 'New group'}
       </p>
 
@@ -130,13 +138,13 @@ const GroupCreate: React.FC<PostCreateProps> = ({
                   ? groupData.avatar
                   : avatarFile
                     ? URL.createObjectURL(avatarFile)
-                    : 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+                    : 'https://i.postimg.cc/02Xx40Yq/default.png'
               }
               alt='Profile Icon'
               className='w-40 h-40 rounded-3xl object-cover transition duration-300 group-hover:brightness-60'
             />
             {/* Overlay Text */}
-            <div className='absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-50 rounded-3xl text-white font-semibold'>
+            <div className='absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-50 rounded-3xl  font-semibold'>
               Choose image
             </div>
           </label>
@@ -160,14 +168,14 @@ const GroupCreate: React.FC<PostCreateProps> = ({
               placeholder='Title'
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className='w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 '
+              className='w-full mt-1 px-3 py-2 bg-gray-800  rounded-md border border-gray-700 focus:outline-none focus:ring-2 '
             />
             {/* <input
               type='text'
               placeholder='Description'
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className='w-full h-28 mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 '
+              className='w-full h-28 mt-1 px-3 py-2 bg-gray-800  rounded-md border border-gray-700 focus:outline-none focus:ring-2 '
             /> */}
             <textarea
               value={description}
@@ -185,23 +193,23 @@ const GroupCreate: React.FC<PostCreateProps> = ({
                 setDescription(target.value.slice(0, 2000));
               }}
               placeholder='Description'
-              className='w-full h-28 mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 resize-none overflow-y-auto'
+              className='w-full h-28 mt-1 px-3 py-2 bg-gray-800  rounded-md border border-gray-700 focus:outline-none focus:ring-2 resize-none overflow-y-auto'
               rows={4}
             />
           </div>
         </div>
       </div>
       <div className='mt-8 space-y-2'>
-        <p className='text-xl text-Primary/Light'>Privacy setting</p>
+        <p className='text-lg text-Primary/Light'>Privacy setting</p>
         <Menu as='div' className='relative inline-block w-full'>
-          <MenuButton className='w-full px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2'>
+          <MenuButton className='w-full px-3 py-2 bg-gray-800  rounded-md border border-gray-700 focus:outline-none focus:ring-2'>
             <div className='flex gap-3 flex-row items-center'>
               {!privacy ? (
                 <MdOutlinePublic className='text-2xl' />
               ) : (
                 <MdOutlinePublicOff className='text-2xl' />
               )}
-              <p className='text-lg text-white'>{privacy ? 'Private' : 'Public'}</p>
+              <p className='text-md '>{privacy ? 'Private' : 'Public'}</p>
               <div className='absolute right-4 top-4'>
                 <svg
                   width='20'
@@ -216,31 +224,43 @@ const GroupCreate: React.FC<PostCreateProps> = ({
             </div>
           </MenuButton>
 
-          <MenuItems className='mt-1 absolute w-full bg-gray-800 text-white rounded-md border-2 border-Primary/Dark shadow-lg z-10'>
-            <ul className='py-1 my-3'>
+          <MenuItems className='mt-1 absolute w-full bg-gray-800  rounded-md border-2 border-Primary/Dark shadow-lg z-10'>
+            <ul className='py-1 my-1'>
               <MenuItem>
                 <button
                   className={
-                    'block px-3 py-2 text-white w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
+                    'block px-3 py-1  w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
                   }
                   onClick={() => handleSelect('privacy', false)}
                 >
                   <div className='flex gap-3 flex-row items-center'>
                     <MdOutlinePublic className='text-2xl' />
-                    <p className='text-lg text-white'>Public</p>
+                    <div className='flex-col justify-center'>
+                      {' '}
+                      <p className='text-md '>Public</p>
+                      <p className='text-sm text-gray-400'>
+                        Anyone could find this group and its content
+                      </p>
+                    </div>
                   </div>
                 </button>
               </MenuItem>
               <MenuItem>
                 <button
                   className={
-                    'block px-3 py-2 text-white w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
+                    'block px-3 py-1  w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
                   }
                   onClick={() => handleSelect('privacy', true)}
                 >
                   <div className='flex gap-3 flex-row items-center'>
                     <MdOutlinePublicOff className='text-2xl' />
-                    <p className='text-lg text-white'>Private</p>
+                    <div className='flex-col justify-center'>
+                      {' '}
+                      <p className='text-md '>Private</p>
+                      <p className='text-sm text-gray-400'>
+                        The content of this group is not visible to the public
+                      </p>
+                    </div>
                   </div>
                 </button>
               </MenuItem>
@@ -249,12 +269,12 @@ const GroupCreate: React.FC<PostCreateProps> = ({
         </Menu>
       </div>
       <div className='mt-8 space-y-2'>
-        <p className='text-xl text-Primary/Light'>Post moderation setting</p>
+        <p className='text-lg text-Primary/Light'>Post moderation setting</p>
         <Menu as='div' className='relative inline-block w-full'>
-          <MenuButton className='w-full px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2'>
+          <MenuButton className='w-full px-3 py-2 bg-gray-800  rounded-md border border-gray-700 focus:outline-none focus:ring-2'>
             <div className='flex gap-3 flex-row items-center'>
               {!moderation ? <TbFlagOff className='text-2xl' /> : <TbFlag className='text-2xl' />}
-              <p className='text-lg text-white'>{moderation ? 'Required' : 'None'}</p>
+              <p className='text-md '>{moderation ? 'Required' : 'None'}</p>
               <div className='absolute right-4 top-4'>
                 <svg
                   width='20'
@@ -269,31 +289,41 @@ const GroupCreate: React.FC<PostCreateProps> = ({
             </div>
           </MenuButton>
 
-          <MenuItems className='mt-1 absolute w-full bg-gray-800 text-white rounded-md border-2 border-Primary/Dark shadow-lg z-10'>
-            <ul className='py-1 my-3'>
+          <MenuItems className='mt-1 absolute w-full bg-gray-800  rounded-md border-2 border-Primary/Dark shadow-lg z-10'>
+            <ul className='py-1 my-1'>
               <MenuItem>
                 <button
                   className={
-                    'block px-3 py-2 text-white w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
+                    'block px-3 py-1  w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
                   }
                   onClick={() => handleSelect('moderation', false)}
                 >
                   <div className='flex gap-3 flex-row items-center'>
                     <TbFlagOff className='text-2xl' />
-                    <p className='text-lg text-white'>None</p>
+                    <div className='flex-col justify-center'>
+                      {' '}
+                      <p className='text-md '>None</p>
+                      <p className='text-sm text-gray-400'>Posts can be published directly</p>
+                    </div>
                   </div>
                 </button>
               </MenuItem>
               <MenuItem>
                 <button
                   className={
-                    'block px-3 py-2 text-white w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
+                    'block px-3 py-1  w-full text-left flex flex-row gap-4 data-[active]:bg-Background/Middle'
                   }
                   onClick={() => handleSelect('moderation', true)}
                 >
                   <div className='flex gap-3 flex-row items-center'>
                     <TbFlag className='text-2xl' />
-                    <p className='text-lg text-white'>Required</p>
+                    <div className='flex-col justify-center'>
+                      {' '}
+                      <p className='text-md '>Required</p>
+                      <p className='text-sm text-gray-400'>
+                        Posts need admin approval before published
+                      </p>
+                    </div>
                   </div>
                 </button>
               </MenuItem>
@@ -303,7 +333,7 @@ const GroupCreate: React.FC<PostCreateProps> = ({
       </div>
       <button
         onClick={handleSubmit}
-        className='mt-10 ml-auto justify-center transition-colors duration-300 ease-in-out w-32 h-8 rounded-xl bg-Accent/Target text-lg text-white mb-4 hover:bg-white hover:text-Accent/Target flex flex-row gap-2 px-6 py-2 items-center'
+        className='mt-10 ml-auto justify-center transition-colors duration-300 ease-in-out w-32 h-8 rounded-xl bg-Accent/Target text-lg  mb-4 hover:bg-white hover:text-Accent/Target flex flex-row gap-2 px-6 py-2 items-center'
       >
         {' '}
         {groupId ? (

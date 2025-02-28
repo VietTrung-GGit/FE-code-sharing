@@ -7,6 +7,10 @@ import { formatNumber } from '../utils/helpers';
 import { FaUserGroup } from 'react-icons/fa6';
 import { BsFileCodeFill } from 'react-icons/bs';
 import { Tooltip } from 'react-tooltip';
+import { IoIosMore } from 'react-icons/io';
+import { usePinned } from '../context/PinnedContext';
+import { TbPin, TbPinnedOff } from 'react-icons/tb';
+import { useTheme } from '../context/ThemeContext';
 interface GroupBriefProps {
   groupData?: GroupDataBrief;
 }
@@ -19,21 +23,35 @@ const mockGroup: GroupDataBrief = {
   private: false,
   totalPosts: 0,
   totalMembers: 0,
-  avatar:
-    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+  avatar: 'https://i.postimg.cc/02Xx40Yq/default.png',
   visibleMembers: [
-    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
-    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
-    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+    'https://i.postimg.cc/02Xx40Yq/default.png',
+    'https://i.postimg.cc/02Xx40Yq/default.png',
+    'https://i.postimg.cc/02Xx40Yq/default.png',
   ],
 };
 
 const GroupBrief: React.FC<GroupBriefProps> = ({ groupData }) => {
   const [group, setGroup] = useState<GroupDataBrief>(mockGroup);
+  const { theme } = useTheme();
   const [joined, setJoined] = useState<boolean>(false);
   const [isHovered, setIsHovered] = useState(false);
   const [memberCount, setMemberCount] = useState(0);
   const { user } = useAuthUser();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { pin, isPinned, unPin } = usePinned();
+  const alreadyPinned = group._id ? isPinned('group', group._id) : false;
+  const [pinned, setPinned] = useState(alreadyPinned);
+  const handlePinToggle = () => {
+    if (pinned) {
+      unPin(undefined, group._id);
+    } else {
+      pin('group', group._id);
+    }
+    setIsDropdownOpen(false);
+    setPinned((prev) => !prev);
+  };
+
   useEffect(() => {
     if (groupData) {
       setGroup(groupData);
@@ -68,7 +86,7 @@ const GroupBrief: React.FC<GroupBriefProps> = ({ groupData }) => {
     }
   };
   const textGroupRef = useRef<HTMLDivElement>(null);
-  
+
   const [isGroupnameOverflowing, setIsGroupnameOverflowing] = useState(false);
   const checkOverflow = () => {
     if (textGroupRef.current) {
@@ -82,74 +100,118 @@ const GroupBrief: React.FC<GroupBriefProps> = ({ groupData }) => {
     window.addEventListener('resize', checkOverflow);
     return () => window.removeEventListener('resize', checkOverflow);
   }, [group.name]);
+
+  const dropdownConfigRef = useRef<HTMLDivElement>(null);
+  const handleOptionSelect = () => {
+    setIsDropdownOpen(false); // Close after selection
+  };
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownConfigRef.current && !dropdownConfigRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   return (
     <div className='flex justify-center items-center relative'>
-      <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] my-3 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+      <div
+        className={`${
+          theme === 'original'
+            ? 'bg-Background/Bottom text-white border-2'
+            : 'bg-[var(--surface)] text-[var(--text)]'
+        } border-Primary/Dark relative min-h-max break-all w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] my-3 rounded-3xl p-5 md:p-7 lg:p-8`}
+      >
+        <div className='absolute right-3 top-2 h-6'>
+          {group && (
+            <>
+              <button
+                className='hover:text-gray-300   text-3xl'
+                onClick={() => setIsDropdownOpen((prev) => !prev)}
+              >
+                <IoIosMore />
+              </button>
+              {isDropdownOpen && (
+                <div
+                  className='text-sm absolute right-0 lg:left-0 lg:right-full top-full w-56 bg-Background/Bottom border rounded-xl border-2 border-Primary/Dark shadow-lg z-10'
+                  ref={dropdownConfigRef}
+                >
+                  <ul className='py-1 my-2'>
+                    {/* Assign Admin */}
+                    <li>
+                      <button
+                        className='block px-4 py-2 w-full text-left flex items-center gap-4 rounded hover:bg-Background/Middle transition'
+                        onClick={() => {
+                          handlePinToggle(), handleOptionSelect();
+                        }}
+                      >
+                        {pinned ? (
+                          <TbPinnedOff className='text-lg lg:text-xl' />
+                        ) : (
+                          <TbPin className='text-lg lg:text-xl' />
+                        )}
+
+                        {pinned ? 'Unpin' : 'Pin'}
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
         <div className='flex items-center w-full space-x-4'>
           {/* Group Avatar */}
           <Link to={`/group/${groupData?._id ?? '#'}`} className='flex-shrink-0'>
             <img
-              src={
-                group.avatar ||
-                'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-              }
+              src={group.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
               alt='Group Icon'
-              className='w-28 h-28 rounded-3xl object-cover'
+              className='w-12 h-12 sm:w-20 sm:h-20 lg:w-28 lg:h-28 rounded-lg sm:rounded-xl lg:rounded-3xl object-cover'
             />
           </Link>
 
           {/* Group Info */}
-          <div className='flex flex-col -mt-4 flex-grow '>
+          <div className='flex flex-col space-x-4 w-full'>
             {' '}
             <Link to={`/group/${groupData?._id ?? '#'}`}>
-              <div
-                className='w-[15vw] sm:w-full lg:w-[15vw] xl:w-full'
-                ref={textGroupRef}
-                data-tooltip-id='groupname'
-                data-tooltip-content={group.name}
-                data-tooltip-place='bottom-start'
-              >
-                <p className='text-white font-semibold text-2xl truncate'>
-                  {isGroupnameOverflowing ? `${group.name.slice(0, 10)}...` : group.name}
+              <div className='max-w-full' ref={textGroupRef}>
+                <p className='  font-semibold text-lg md:text-2xl break-words'>
+                  {isGroupnameOverflowing ? `${group.name.slice(0, 20)}...` : group.name}
                 </p>
-                <Tooltip id='groupname' classNameArrow='noArrow' />
               </div>
             </Link>
-            <div className='flex gap-4 text-Primary/Light text-xs lg:text-sm mt-1'>
+            <div className='flex gap-4 text-[var(--blue-highlight)] text-xs lg:text-sm mt-1'>
               <p className='flex items-center gap-1'>
-                <FaUserGroup className='w-4 h-4 text-Accent/Light' />
-                <span className='font-semibold text-white'>{formatNumber(memberCount) || 0}</span>
+                <FaUserGroup className='w-4 h-4 text-[var(--green-highlight)]' />
+                <span className='font-semibold  '>{formatNumber(memberCount) || 0}</span>
               </p>
               <p className='flex items-center gap-1'>
-                <BsFileCodeFill className='w-4 h-4 text-Accent/Light' />
-                <span className='font-semibold text-white'>
-                  {formatNumber(group.totalPosts) || 0}
-                </span>
+                <BsFileCodeFill className='w-4 h-4 text-[var(--green-highlight)]' />
+                <span className='font-semibold  '>{formatNumber(group.totalPosts) || 0}</span>
               </p>
             </div>
             {/* Avatar Members */}
-            {group.visibleMembers && (
-              <div className='flex mt-2 relative'>
-                {group.visibleMembers.map((avatar, index) => (
-                  <img
-                    key={index}
-                    src={
-                      avatar ||
-                      'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                    }
-                    alt={`Member ${index + 1}`}
-                    className='w-8 h-8 rounded-full object-cover absolute border-2 border-Background/Bottom'
-                    style={{ left: `${index * 20}px` }}
-                  />
-                ))}
-              </div>
-            )}
+            <div className='flex space-x-1 mt-2'>
+              {group.visibleMembers.map((avatar, index) => (
+                <img
+                  key={index}
+                  src={avatar}
+                  alt={`Member ${index + 1}`}
+                  className='w-8 h-8 rounded-full object-cover'
+                />
+              ))}
+            </div>
           </div>
 
           {user && (
             <button
-              className={`transition-colors duration-300 ease-in-out w-28 xl:w-32 h-8 rounded-xl text-md text-Accent/Target m-4 font-semibold flex-shrink-0
-              ${joined ? 'bg-gray-500 text-white hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:text-white'}`}
+              className={`hidden xxsm:block transition-colors duration-300 ease-in-out w-20 md:w-28 xl:w-32 h-6 md:h-8 rounded-xl text-sm sm:text-base text-Accent/Target m-4 font-semibold flex-shrink-0
+              ${joined ? 'bg-Accent/Target  hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover: '}`}
               onClick={joined ? handleLeave : handleJoin}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}

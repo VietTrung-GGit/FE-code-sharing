@@ -27,7 +27,7 @@ const UserSuggestion: React.FC<{
         <img src={user.avatar} alt='Profile Icon' className='w-12 h-12 rounded-full object-cover' />
         <div className='flex flex-col items-start'>
           <p className='text-white font-semibold text-xl'>{user.name}</p>
-          <p className='text-Primary/Light text-sm'>@{user.username}</p>
+          <p className='text-[var(text-title)] text-sm'>@{user.username}</p>
         </div>
       </div>
 
@@ -176,7 +176,7 @@ const AddMember: React.FC<AddMemberProps> = ({ type, desId, closeModal }) => {
         </div>
 
         <input
-          className='bg-Background/Middle flex-grow py-2 px-4 rounded-3xl h-10 w-full text-Primary/Light text-l'
+          className='bg-Background/Middle flex-grow py-2 px-4 rounded-3xl h-10 w-full text-[var(text-title)] text-l'
           placeholder='Search for users...'
         />
       </div>

@@ -314,10 +314,7 @@ function Groups() {
             <div className='flex flex-row space-x-4 xsm:space-x-20 sm:space-x-0 xl:space-x-2 -mt-4 mb-44 xsm:mb-48 sm:mb-1 xl:-ml-5 lg:-ml-8 sm:-ml-8'>
               <div className='sm:-mt-10 lg:-mt-4 flex flex-col h-[380px] items-center'>
                 <img
-                  src={
-                    user?.avatar ||
-                    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                  }
+                  src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                   alt='Profile Icon'
                   className='w-32 h-32 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-56 xl:w-56 rounded-full object-cover mt-8 mx-0 sm:mx-8 sm:mt-14 xl:mx-6 mb-5'
                 />
@@ -473,10 +470,7 @@ function Groups() {
                 <div className='flex flex-row w-full items-center space-x-4'>
                   <div className='inline-block flex-shrink-0'>
                     <img
-                      src={
-                        user?.avatar ||
-                        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                      }
+                      src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                       alt='Profile Icon'
                       className='w-16 h-16 rounded-full object-cover'
                     />

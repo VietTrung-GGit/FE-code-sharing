@@ -31,6 +31,8 @@ export interface ProjectDataBrief {
   avatar: string;
   groupData: GroupDataBrief[];
   group: string;
+  joined: boolean;
+  joinable: boolean;
   visibleMembers: (string | undefined)[];
 }
 
@@ -205,6 +207,18 @@ export const removeProjectMember = async (
   );
   return response.data;
 };
+
+// Remove a participant from a section
+export const removeSectionParticipant = async (
+  sectionId: string,
+  userId: string,
+): Promise<string> => {
+  const response = await axiosInstance.delete<string>(
+    API_ENDPOINTS.SECTION_REMOVE_PARTICIPANT(sectionId, userId),
+  );
+  return response.data;
+};
+
 
 // Assign an admin to a project
 export const assignProjectAdmin = async (

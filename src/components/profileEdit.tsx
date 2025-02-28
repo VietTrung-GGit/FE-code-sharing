@@ -17,9 +17,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
     displayname: user?.displayname || 'Displayname', // Fallback to empty string if null
     email: user?.email || 'Email', // Fallback to empty string if null
     story: user?.story || '',
-    avatar:
-      user?.avatar ||
-      'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541', // Placeholder image URL
+    avatar: user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png', // Placeholder image URL
   });
 
   const [passwords, setPasswords] = useState({

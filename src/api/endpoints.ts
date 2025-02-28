@@ -145,12 +145,14 @@ export const API_ENDPOINTS = {
     tags: string[] = [],
     order: 'ascending' | 'descending' = 'ascending',
     criteria: string,
+    mode: string,
   ) => {
     const queryParams = new URLSearchParams();
     queryParams.append('page', String(page));
     queryParams.append('limit', String(limit));
     queryParams.append('order', order);
     queryParams.append('criteria', criteria);
+    queryParams.append('mode', mode);
     if (search) queryParams.append('search', search);
     if (tags.length > 0) queryParams.append('tags', tags.join(','));
     return `/project/${sectionId != 'root' ? `section/${sectionId}` : `posts/${projectId}`}?${queryParams.toString()}`;

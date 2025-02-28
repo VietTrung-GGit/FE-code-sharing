@@ -12,6 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import '../index.css';
 import { Post, createPost, PostFile, PostUpload, updatePost } from '../services/postService';
 import { tags, tagColors } from '../utils/helpers';
+import { useTheme } from '../context/ThemeContext';
 
 interface PostCreateProps {
   postData?: Post; // Optional prop to enable edit mode
@@ -44,6 +45,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
   const [title, setTitle] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { user } = useAuthUser();
+  const { theme } = useTheme();
   useEffect(() => {
     // Disable body scroll
     document.body.style.overflow = 'hidden';
@@ -200,23 +202,26 @@ const PostCreate: React.FC<PostCreateProps> = ({
   };
 
   return (
-    <div className='w-full h-full lg:h-[95vh] lg:w-3/5 flex flex-col  text-white bg-Background/Bottom lg:my-10 relative border-Primary/Dark border-solid box-border lg:border-2 lg:rounded-3xl p-5 md:p-7 lg:p-8 xl-10'>
+    <div
+      className={`${
+        theme === 'original'
+          ? 'bg-Background/Bottom text-white lg:border-2'
+          : 'bg-[var(--surface)] text-[var(--text)]'
+      } w-full h-full lg:h-[95vh] lg:w-3/5 flex flex-col lg:my-10 relative border-Primary/Dark border-solid box-border  lg:rounded-3xl p-5 md:p-7 lg:p-8 xl-10`}
+    >
       {/* Close Button */}
       <button
         onClick={propcloseModal}
-        className='absolute top-6 right-12 text-white text-3xl hover:text-Primary/Light'
+        className='absolute top-6 right-12 text-3xl hover:text-[var(--text-title)] z-40'
       >
         ×
       </button>
 
-      <div className='overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
+      <div className='overflow-y-auto scrollbar'>
         {/* Avatar, Name, and Date */}
         <div className='flex items-center gap-4 mb-4'>
           <img
-            src={
-              user?.avatar ||
-              'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-            } // Placeolder if no avatar
+            src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'} // Placeolder if no avatar
             alt='Avatar'
             className='w-12 h-12 rounded-full object-cover'
           />
@@ -227,7 +232,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
                 {formatDate(postData.createdAt)}. Updating:&nbsp;
               </span>
             )}
-            <span className='text-sm text-Accent/Light'>Now</span>
+            <span className='text-sm text-[var(--green-highlight)]'>Now</span>
           </div>
         </div>
 
@@ -244,7 +249,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
             }
           }}
           placeholder='Title'
-          className='font-semibold w-full px-2 text-Primary/Light bg-Background/Bottom text-lg focus:outline-none focus:border-transparent'
+          className='font-semibold w-full px-2 text-[var(--text-title)] bg-[var(--input)] text-lg focus:outline-none focus:border-transparent'
         />
         {postRefId && <PostRef postId={postRefId} />}
 
@@ -269,7 +274,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
             target.style.height = `${Math.min(target.scrollHeight, 2000)}px`; // Adjust height to content, with max height of 2000px
           }}
           placeholder={postRefId ? 'Share your thoughts about this post...' : 'Share your code...'}
-          className='mb-4 w-full py-2 px-4 bg-Background/Middle overflow-hidden resize-none rounded-md focus:outline-none focus:border-transparent'
+          className='my-2 w-full py-2 px-4 bg-[var(--input)] overflow-hidden resize-none rounded-md focus:outline-none focus:border-transparent'
           rows={1}
         />
 
@@ -280,16 +285,18 @@ const PostCreate: React.FC<PostCreateProps> = ({
             className={`flex-1 border-2 ${
               files.length >= MAX_FILES
                 ? 'border-gray-300 bg-Background/Middle cursor-not-allowed '
-                : 'border-dashed border-white bg-Accent/Target cursor-pointer'
+                : 'border-dashed border-[var(--green-highlight)] bg-Accent/Target cursor-pointer'
             } p-2 rounded text-center flex items-center justify-between`}
           >
             <input {...getInputProps()} />
             {files.length >= MAX_FILES ? (
               <p className='text-red-500'>File limit reached (6 files max)</p>
             ) : isDragActive ? (
-              <p className='flex-1 text-left'>Drop your files here...</p>
+              <p className='flex-1 text-left text-white'>Drop your files here...</p>
             ) : (
-              <p className='flex-1 text-left'>Drag & drop files here, or click to select</p>
+              <p className='flex-1 text-left text-white'>
+                Drag & drop files here, or click to select
+              </p>
             )}
 
             {/* Add Image */}
@@ -306,7 +313,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
           {files.map((file, index) => (
             <div
               key={index}
-              className={`text-Primary/Light font-semibold w-[120px] truncate px-2 py-1 cursor-pointer ${
+              className={`text-[var(--text-title)] font-semibold w-[120px] truncate px-2 py-1 cursor-pointer ${
                 activeTab === index ? 'border-b-4 border-Primary/Dark' : ''
               }`}
               onClick={() => setActiveTab(index)}
@@ -386,7 +393,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
         )}
 
         <div className='w-32'>
-          <p className='text-left text-Primary/Light text-lg'>Choose tags:</p>
+          <p className='text-left font-semibold text-[var(--text-title)] text-lg'>Choose tags:</p>
         </div>
         <div className='text-left text-md'>
           <div className='flex flex-wrap flex justify-center'>
@@ -428,13 +435,13 @@ const PostCreate: React.FC<PostCreateProps> = ({
                 </MenuButton>
               </div>
 
-              <MenuItems className='absolute w-max bottom-full mb-2  origin-bottom-left bg-white divide-y divide-gray-100 rounded-md shadow-lg'>
+              <MenuItems className='overflow-hidden absolute w-max bottom-full mb-2  origin-bottom-left bg-white divide-y divide-gray-100 rounded-md shadow-lg'>
                 <div>
                   <MenuItem>
                     <button
                       onClick={() => handlePrivacyChange('public')}
-                      className='data-[active]:bg-Primary/Dark data-[active]:text-white  text-gray-900
-                   group flex rounded-md items-center w-full p-2 text-sm'
+                      className='data-[active]:bg-Primary/Dark data-[active]:text-white bg-[var(--background)]
+                   group flex items-center  w-full p-2 text-sm'
                     >
                       <TbEye className='text-lg mr-2' />
                       <span className='font-semibold'>Public</span>: Everyone could view this post.
@@ -443,8 +450,8 @@ const PostCreate: React.FC<PostCreateProps> = ({
                   <MenuItem>
                     <button
                       onClick={() => handlePrivacyChange('private')}
-                      className='data-[active]:bg-Primary/Dark data-[active]:text-white  text-gray-900
-                     group flex rounded-md items-center w-full p-2 text-sm'
+                      className='data-[active]:bg-Primary/Dark data-[active]:text-white  bg-[var(--background)]
+                     group flex items-center w-full p-2 text-sm'
                     >
                       <TbLock className='text-lg mr-2' />
                       <span className='font-semibold'>Private</span>: Only you could view this post.

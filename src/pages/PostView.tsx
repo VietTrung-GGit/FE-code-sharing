@@ -10,9 +10,11 @@ import { Post, fetchPostDetail } from '../services/postService';
 import LoadingSpinner from '../components/loadingAnimate';
 import { toast } from 'react-toastify';
 import PostCreate from '../components/postCreate';
+import { useTheme } from '../context/ThemeContext';
 
 function PostView() {
   const { postId } = useParams<{ postId: string }>();
+  const { theme } = useTheme();
   const [post, setPost] = useState<Post | null>(null);
   useEffect(() => {
     const fetchData = async () => {
@@ -116,7 +118,7 @@ function PostView() {
   };
 
   return (
-    <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full pt-16'>
+    <div className='bg-[var(--background)] text-[var(--text)]  relative min-h-screen flex flex-col w-full pt-16'>
       <div className='mb-5'>
         <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
           {showPostCreate && (

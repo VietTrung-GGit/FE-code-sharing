@@ -24,6 +24,7 @@ import {
   setPostVisibility,
   moderateGroupPost,
 } from '../services/postService';
+import { useTheme } from '../context/ThemeContext';
 
 interface PostBriefProps {
   postData: Post;
@@ -60,7 +61,7 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) 
       {/* Show status with bold color once moderated */}
       {currentStatus === 'approved' && <div></div>}
       {currentStatus === 'rejected' && (
-        <div className='flex items-center justify-center gap-2 w-28 py-1 px-1 rounded-full bg-red-400 text-white font-semibold'>
+        <div className='flex items-center justify-center gap-2 w-28 py-1 px-1 rounded-full bg-red-400  font-semibold'>
           <TbFlagCancel className='text-xl' />
           Rejected
         </div>
@@ -93,6 +94,7 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) 
 
 const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {}, role }) => {
   const [post, setPost] = useState<Post>(postData);
+  const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState<number>(0);
   const [showPostDetail, setShowPostDetail] = useState<boolean>(false); // New state for modal visibility
   const [showPostCreate, setShowPostCreate] = useState<boolean>(false); // New state for modal visibility
@@ -244,6 +246,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
       console.error('Error deleting post:', error);
     }
   };
+
   const [showDeletePostModal, setShowDeletePostModal] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const modalShareRef = useRef<HTMLDivElement>(null);
@@ -287,14 +290,20 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
   return (
     <div className={`flex justify-center items-center relative `}>
       {visible && (
-        <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+        <div
+          className={`${
+            theme === 'original'
+              ? 'bg-Background/Bottom text-white border-2'
+              : 'bg-[var(--surface)] text-[var(--text)]'
+          } w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark  light:border-0 rounded-3xl p-5 md:p-7 lg:p-8`}
+        >
           {showDeletePostModal && (
             <div className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'>
               <div
                 className='bg-Background/Bottom p-8 rounded-lg max-w-sm w-full border-2 border-Primary/Dark'
                 ref={modalRef}
               >
-                <h3 className='text-xl mb-8 text-white text-center'>
+                <h3 className='text-xl mb-8 text-center'>
                   Are you sure you want to delete this post?
                 </h3>
                 <div className='flex justify-between'>
@@ -305,7 +314,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
                     Cancel
                   </button>
                   <button
-                    className='mr-7 text-Accent/Light px-4 py-2 hover:text-Accent/Target '
+                    className='mr-7 text-[var(--green-highlight)] px-4 py-2 hover:text-Accent/Target '
                     onClick={handleDelete}
                   >
                     Confirm
@@ -320,10 +329,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
             <div className='flex items-center gap-4'>
               <Link to={`/user/${post.author}`} className='flex items-center gap-4'>
                 <img
-                  src={
-                    post.avatar ||
-                    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                  }
+                  src={post.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                   alt='Avatar'
                   className='w-[52px] h-[52px] rounded-full object-cover'
                 />
@@ -332,16 +338,14 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
                 <Link to={`/user/${post.author}`} className='font-bold text-md'>
                   {post ? post.authorname : ''}
                 </Link>
-                <p className='text-xs text-Accent/Light'>
+                <p className='text-xs text-[var(--green-highlight)]'>
                   {post ? formatDate(post.createdAt) : 'Loading...'}&nbsp;
                   {post &&
                     post.editedAt &&
                     Math.abs(
                       new Date(post.createdAt).getTime() - new Date(post.editedAt).getTime(),
                     ) > 100 && (
-                      <span className='text-xs text-white'>
-                        (Edited: {formatDate(post.editedAt)})
-                      </span>
+                      <span className='text-xs'>(Edited: {formatDate(post.editedAt)})</span>
                     )}
                 </p>
                 {post.tags.length > 0 && <TagsScroll tags={post.tags} />}
@@ -355,7 +359,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
 
           {/* Title */}
           {post.title && (
-            <div className='flex items-center text-lg text-Primary/Light font-semibold'>
+            <div className='text-[var(--text-title)] flex items-center text-lg font-semibold'>
               <p
                 className='w-full py-1 overflow-hidden break-anywhere line-clamp-2'
                 style={{ overflowWrap: 'anywhere' }}
@@ -380,7 +384,10 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
               </CustomLinkify>
 
               {isTruncated && (
-                <p onClick={handleMoreClick} className='text-Accent/Light text-sm cursor-pointer'>
+                <p
+                  onClick={handleMoreClick}
+                  className='text-[var(--blue-highlight)] text-sm cursor-pointer'
+                >
                   {' '}
                   Read more
                 </p>
@@ -394,7 +401,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
               post.files.map((file, index) => (
                 <div
                   key={index}
-                  className={`flex-shrink-0 font-semibold px-2 py-1 cursor-pointer ${activeTab === index ? 'min-w-[90px]  border-b-4 text-Primary/Light border-Primary/Dark' : 'w-[90px] truncate text-white'}`}
+                  className={`flex-shrink-0 font-semibold px-2 py-1 cursor-pointer ${activeTab === index ? 'min-w-[90px]  border-b-4 text-[var(--text-title)] border-Primary/Dark' : 'w-[90px] truncate'}`}
                   onClick={() => setActiveTab(index)}
                 >
                   {file.fileName || 'Untitled'}
@@ -415,7 +422,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
                 }
                 // language='markdown'
                 value={post.files[activeTab]?.fileUrl || ''}
-                theme='vs-dark'
+                theme='hc-dark'
                 options={{
                   minimap: { enabled: false },
                   fontSize: 14,
@@ -439,7 +446,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
                   data-tooltip-id='delete'
                   data-tooltip-content='Delete post'
                   data-tooltip-place='top' // Auto-adjusts the position
-                  className='text-white rounded-lg hover:text-red-300'
+                  className='rounded-lg hover:text-[var(--red-highlight)]'
                 >
                   <BiTrashAlt className='text-2xl' />
                   <Tooltip id='delete' classNameArrow='noArrow' />
@@ -450,7 +457,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
                   data-tooltip-id='edit'
                   data-tooltip-content='Edit post'
                   data-tooltip-place='top' // Auto-adjusts the position
-                  className=' text-white rounded-lg hover:text-Accent/Light'
+                  className=' rounded-lg hover:text-[var(--green-highlight)]'
                 >
                   <BiSolidEdit className='text-2xl' />
                   <Tooltip id='edit' classNameArrow='noArrow' />
@@ -463,7 +470,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
                   data-tooltip-id='setprivate'
                   data-tooltip-content={`Set ${post.visibility === 'public' ? 'private' : 'public'}`}
                   data-tooltip-place='top' // Auto-adjusts the position
-                  className='text-white rounded-lg hover:text-Primary/Light'
+                  className='rounded-lg hover:text-[var(--blue-highlight)]'
                 >
                   {post.visibility === 'private' ? (
                     <TbLock className=' text-2xl ' />
@@ -487,7 +494,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
                   data-tooltip-id='share'
                   data-tooltip-content='Share'
                   data-tooltip-place='top' // Auto-adjusts the position
-                  className='text-Accent/Light hover:text-Accent/Target'
+                  className='text-[var(--green-highlight)] hover:text-Accent/Target'
                 >
                   <FaShareSquare className='text-lg' />
                   <Tooltip id='share' classNameArrow='noArrow' />
@@ -501,7 +508,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
                             shareAction(post._id);
                             setIsDropdownOpen(false);
                           }}
-                          className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                          className='block px-4 py-2 hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
                         >
                           <TbMessage2Share className='text-lg lg:text-xl' />
                           Share in a new post
@@ -515,7 +522,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
                             setIsDropdownOpen(false);
                             toast.success('Link copied to clipboard!');
                           }}
-                          className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                          className='block px-4 py-2 hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
                         >
                           <TbLink className='text-lg lg:text-xl' />
                           Copy link
@@ -528,7 +535,11 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
 
               <button
                 onClick={handleMoreClick}
-                className='w-12 xsm:w-16 text-sm h-5 xsm:h-7 bg-white text-Primary/Dark inline-flex items-center justify-center py-2 xsm:px-4 rounded-lg hover:bg-gray-300'
+                className={`${
+                  theme === 'original'
+                    ? 'bg-white hover:bg-gray-300 text-Primary/Dark '
+                    : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'
+                } w-12 xsm:w-16 text-sm h-5 xsm:h-7 inline-flex items-center justify-center py-2 xsm:px-4 rounded-lg`}
               >
                 <svg
                   className='xsm:w-6 xsm:h-4 w-3 h-4 mr-2 stroke-current stroke-2'
@@ -546,11 +557,16 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
 
               <button
                 onClick={() => handleLike(false)}
-                className={`text-sm w-12 xsm:w-16 text-sm h-5 xsm:h-7 transition-colors duration-200 ease-in-out inline-flex items-center justify-center py-2 xsm:px-4  rounded-lg ${
-                  hasLiked
-                    ? 'bg-Accent/Target text-white'
-                    : 'bg-white text-Accent/Target hover:bg-gray-300'
-                }`}
+                className={`text-sm w-12 xsm:w-16 h-5 xsm:h-7 transition-colors duration-200 ease-in-out inline-flex items-center justify-center py-2 xsm:px-4 rounded-lg 
+    ${
+      theme === 'original'
+        ? hasLiked
+          ? 'bg-Accent/Target text-white'
+          : 'bg-white hover:bg-gray-300 text-Accent/Target'
+        : hasLiked
+          ? 'bg-[var(--button)] hover:bg-[var(--button-hovered)] text-[var(--text-selected)] border-[1px] border-[var(--border)]'
+          : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'
+    }`}
               >
                 <svg
                   className='xsm:w-6 xsm:h-4 w-3 h-4 mr-1 stroke-current fill-current'
@@ -569,7 +585,9 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
               >
                 <svg
                   className={`transition-colors duration-200 ease-in-out w-6 h-6 stroke-current fill-current ${
-                    hasSaved ? 'text-Accent/Target' : 'text-Accent/Light hover:text-green-300'
+                    hasSaved
+                      ? 'text-Accent/Target'
+                      : 'text-[var(--green-highlight)] hover:text-green-300'
                   }`}
                   viewBox='0 0 24 24'
                 >

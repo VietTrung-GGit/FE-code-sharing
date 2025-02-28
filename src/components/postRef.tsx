@@ -4,13 +4,14 @@ import LoadingSpinner from '../components/loadingAnimate';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { fetchHalfPostDetail, PostRefData } from '../services/postService';
+import { useTheme } from '../context/ThemeContext';
 
 interface PostRefProps {
   postId: string;
 }
 
 const PostRef: React.FC<PostRefProps> = ({ postId }) => {
-  const navigate = useNavigate();
+  const { theme } = useTheme();
   const [isTruncated, setIsTruncated] = useState(false);
   const textRef = useRef<HTMLParagraphElement>(null);
   const [post, setPost] = useState<PostRefData | null>(null);
@@ -53,7 +54,13 @@ const PostRef: React.FC<PostRefProps> = ({ postId }) => {
       onClick={() => openNewTabAndRedirect(`/post/${postId}`)}
       className='flex justify-center items-center relative cursor-pointer'
     >
-      <div className='bg-Background/Middle text-white w-full my-3 rounded-3xl p-3 md:p-5 lg:p-6'>
+      <div
+        className={`${
+          theme === 'original'
+            ? 'bg-Background/Middle text-white'
+            : 'bg-[var(--button)] text-[var(--text)]'
+        } w-full my-3 rounded-3xl p-3 md:p-5 lg:p-6`}
+      >
         {/* Avatar and Tags */}
         <div className='flex flex-col sm:flex-row sm:items-center justify-between mb-4'>
           <div className='flex items-center gap-4'>
@@ -67,16 +74,15 @@ const PostRef: React.FC<PostRefProps> = ({ postId }) => {
             />
             <div>
               <p className='font-bold text-md'>{post.authorname}</p>
-              <p className='text-xs text-Accent/Light'>
+              <p
+                className={`${
+                  theme === 'original' ? 'text-[var(--green-highlight)]' : 'text-[var(--text)]'
+                } text-xs`}
+              >
                 {formatDate(post.createdAt)}
                 {post.editedAt &&
                   Math.abs(new Date(post.createdAt).getTime() - new Date(post.editedAt).getTime()) >
-                    100 && (
-                    <span className='text-xs text-white'>
-                      {' '}
-                      (Edited: {formatDate(post.editedAt)})
-                    </span>
-                  )}
+                    100 && <span className='text-xs'> (Edited: {formatDate(post.editedAt)})</span>}
               </p>
             </div>
           </div>
@@ -84,7 +90,11 @@ const PostRef: React.FC<PostRefProps> = ({ postId }) => {
 
         {/* Title */}
         {post.title && (
-          <div className='flex items-center text-lg text-Primary/Light'>
+          <div
+            className={`${
+              theme === 'original' ? 'text-Primary/Light' : 'text-[var(--text-selected)]'
+            } flex items-center text-lg`}
+          >
             <p className='w-full py-2 overflow-hidden break-all line-clamp-2'>{post.title}</p>
           </div>
         )}
@@ -99,7 +109,7 @@ const PostRef: React.FC<PostRefProps> = ({ postId }) => {
               {post.content}
             </p>
             {isTruncated && (
-              <p className='text-Accent/Light text-sm cursor-pointer'> View detail </p>
+              <p className='text-[var(--green-highlight)] text-sm cursor-pointer'> View detail </p>
             )}
           </div>
         </div>

@@ -49,6 +49,10 @@ import LoadingSpinner from '../components/loadingAnimate';
 import { Link } from 'react-router-dom';
 import { usePinned } from '../context/PinnedContext';
 import { TbPin } from 'react-icons/tb';
+import { useTheme } from '../context/ThemeContext';
+import NothingPost from '../components/nothingPost';
+import { FaFilter } from 'react-icons/fa';
+import { MdOutlineSearch } from 'react-icons/md';
 
 interface UserDashboardProps {
   active: string;
@@ -364,7 +368,10 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
   //// Toggle dropdown visibility
 
   const toggleDropdownFilter = () => setIsDropdownFilterOpen((prev) => !prev);
-
+  // Handle option selection
+  const handleOptionSelect = () => {
+    setIsDropdownConfigOpen(false); // Close after selection
+  };
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -487,16 +494,22 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
     const [name, domain] = email.split('@');
     return `${name.slice(0, 5)}...@${domain}`;
   };
-
+  const { theme } = useTheme();
   return (
-    <div className='bg-Background/Middle relative min-h-screen flex flex-col w-full'>
+    <div className='bg-[var(--background)] text-[var(--text)]  relative min-h-screen flex flex-col w-full'>
       <>
         <div className='mx-8 xsm:mx-8 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
-          <div className='bg-Background/Bottom text-white justify-center w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[720px] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] border-Primary/Dark border-2 rounded-3xl lg:p-5 relative flex items-center'>
+          <div
+            className={`${
+              theme === 'original'
+                ? 'bg-Background/Bottom text-white border-2'
+                : 'bg-[var(--surface)] text-[var(--text)]'
+            }  justify-center w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[720px] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] border-Primary/Dark rounded-3xl lg:p-5 relative flex items-center`}
+          >
             <div className='absolute right-3 top-2' ref={dropdownConfigRef}>
               <button
                 onClick={() => setIsDropdownConfigOpen(!isDropdownConfigOpen)}
-                className='hover:text-gray-300 text-white text-3xl'
+                className='hover:text-gray-300  text-3xl'
               >
                 <IoIosMore />
               </button>
@@ -521,10 +534,11 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                       <>
                         <li>
                           <button
-                            className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                            className='block px-4 py-2  hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
                             onClick={() => {
                               setShowProfileEditModal((prev) => !prev),
-                                setModeEditChange('editprofile');
+                                setModeEditChange('editprofile'),
+                                handleOptionSelect();
                             }}
                           >
                             <BiSolidEdit className='text-lg lg:text-xl' />
@@ -533,10 +547,11 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                         </li>
                         <li>
                           <button
-                            className='block px-4 py-2 text-white hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                            className='block px-4 py-2  hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
                             onClick={() => {
                               setShowProfileEditModal((prev) => !prev),
                                 setModeEditChange('editpassword');
+                              handleOptionSelect();
                             }}
                           >
                             <CgPassword className='text-lg lg:text-xl' />
@@ -563,18 +578,15 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
             <div className='flex flex-row justify-center space-x-4 xsm:space-x-10 sm:space-x-4 xl:space-x-2 mt-10 xsm:mt-8 sm:-mt-2 lg:-mt-1 mb-44 xsm:mb-48 sm:mb-0 lg:-ml-2 xl:-ml-4'>
               <div className=' sm:-mt-10 lg:-mt-6 flex flex-col h-[380px] items-center'>
                 <img
-                  src={
-                    host?.avatar ||
-                    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                  }
+                  src={host?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                   alt='Profile Icon'
-                  className='w-28 h-28 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-56 xl:w-56 rounded-full object-cover mt-8 mx-0 sm:mx-0 sm:mt-14 lg:mx-2 xl:mx-4 mb-5 flex-shrink-0'
+                  className='w-16 h-16 xxsm:w-28 xxsm:h-28 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-56 xl:w-56 rounded-full object-cover mt-8 mx-0 sm:mx-0 sm:mt-14 lg:mx-2 xl:mx-4 mb-5 flex-shrink-0'
                 />
                 {!own && (
                   <div className='flex hidden sm:block lg:hidden'>
                     <button
                       className={`transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-28 lg:w-28 h-8 lg:h-8 px-[2px] rounded-xl text-xs sm:text-lg lg:text-base text-Accent/Target mb-4 
-        ${isFollowing ? 'bg-gray-500 text-white hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:text-white'}`}
+        ${isFollowing ? 'bg-Accent/Target  hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:'}`}
                       onClick={isFollowing ? handleUnfollow : handleFollow}
                       onMouseEnter={() => setIsHovered(true)}
                       onMouseLeave={() => setIsHovered(false)}
@@ -586,12 +598,12 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                 <div
                   className={` flex items-center lg:mt-12 xl:mt-4 ${!own ? '' : 'mt-[50px]'} space-x-2 hidden sm:block `}
                 >
-                  <IoIosMail className='text-Primary/Light text-3xl -mt-2 sm:inline-block' />
+                  <IoIosMail className='text-[var(--text-title)] text-3xl -mt-2 sm:inline-block' />
 
                   <div className='flex flex-row w-40 sm:inline-block   ' ref={textEmailRef}>
                     <a
                       href={host?.email ? `mailto:${host.email}` : '#'}
-                      className='text-white whitespace-nowrap block '
+                      className=' whitespace-nowrap block '
                       data-tooltip-id='email'
                       data-tooltip-content={host?.email ? host.email : 'null'}
                       data-tooltip-place='bottom'
@@ -611,12 +623,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                 <div className='flex flex-row sm:-mt-4 lg:mt-0'>
                   <div className='flex flex-col '>
                     <div className=''>
-                      <p
-                        className='text-white font-semibold mt-6 text-2xl  sm:text-3xl  break-words'
-                        data-tooltip-id='displayname'
-                        data-tooltip-content={host?.displayname ? host.displayname : 'null'}
-                        data-tooltip-place='top-end'
-                      >
+                      <p className=' font-semibold mt-6 text-2xl  sm:text-3xl  break-words'>
                         {host && host.displayname.length > 12
                           ? `${host?.displayname.slice(0, 9)}...` || 'Display name'
                           : host?.displayname || 'Display name'}
@@ -624,12 +631,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                       </p>
                     </div>
                     <div className='-mt-8 xsm:-mt-8 lg:-mt-8 xl:-mt-6 '>
-                      <p
-                        className='text-Primary/Light mt-8 text-md sm:text-lg lg:text-xl '
-                        data-tooltip-id='usernameprof'
-                        data-tooltip-content={host?.username ? host.username : 'null'}
-                        data-tooltip-place='top-end'
-                      >
+                      <p className='text-[var(--text-title)] mt-8 text-md sm:text-lg lg:text-xl '>
                         @
                         {host && host.username.length > 20
                           ? ` ${host?.username.slice(0, 17)}...` || 'Username'
@@ -638,12 +640,12 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                       </p>
                     </div>
                     <div className=' flex items-center mt-1 xsm:mt-1 sm:space-x-2 block sm:hidden text-xs sm:text-lg lg:text-xl '>
-                      <IoIosMail className='text-Primary/Light text-xl' />
+                      <IoIosMail className='text-[var(--text-title)] text-xl' />
 
                       <div className='flex w-32 flex-row overflow-x-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
                         <a
                           href={host?.email ? `mailto:${host.email}` : '#'}
-                          className='text-white text-sm whitespace-nowrap block'
+                          className=' text-sm whitespace-nowrap block'
                         >
                           {host?.email || 'Email'}
                         </a>
@@ -653,7 +655,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                       <div className='flex sm:hidden xsm:mt-4 mt-3'>
                         <button
                           className={`transition-colors font-semibold duration-300 ease-in-out w-24 md:w-20 lg:w-28 h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target mt-2 xsm:mt-4 
-        ${isFollowing ? 'bg-gray-500 text-white hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:text-white'}`}
+        ${isFollowing ? 'bg-Accent/Target  hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:'}`}
                           onClick={isFollowing ? handleUnfollow : handleFollow}
                           onMouseEnter={() => setIsHovered(true)}
                           onMouseLeave={() => setIsHovered(false)}
@@ -665,8 +667,8 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                   </div>
                 </div>
 
-                <div className='bg-Background/Middle sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] xsm:h-1/2 sm:h-full rounded-xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static '>
-                  <p className='text-white p-4'>{host?.story || "I'm here to share my code!"}</p>
+                <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] xsm:h-1/2 sm:h-full rounded-xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static '>
+                  <p className=' p-4'>{host?.story || "I'm here to share my code!"}</p>
                 </div>
               </div>
             </div>
@@ -674,14 +676,14 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
         </div>
         <div className='flex justify-center mx-8 xsm:mx-8 sm:max-lg:mx-14 lg:mx-8 lg:hidden'>
           <div
-            className={`bg-Background/Bottom bg-center bg-cover border-2 h-36  border-Primary/Dark px-6 py-4 w-full flex items-center justify-center rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl  lg:mt-4 lg:rounded-3xl
+            className={` bg-center bg-cover bg-[var(--background-side)]  border-2 border-[var(--border)] h-36   px-6 py-4 w-full flex items-center justify-center rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl  lg:mt-4 lg:rounded-3xl
         border-solid box-border text-center mt-5`}
           >
             {host && (
               <div className='flex flex-col items-center'>
                 <div className='flex items-center mx-2 mb-4'>
                   <div className='flex flex-col'>
-                    <p className='text-Primary/Light xsm:text-xl text-lg font-semibold text-center break-words'>
+                    <p className='text-[var(--text-title)] xsm:text-xl text-lg font-semibold text-center break-words'>
                       @{host?.username || 'Username'}&nbsp;
                     </p>
 
@@ -692,31 +694,35 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                 </div>
                 <div className='flex flex-row gap-6 xsm:gap-8 sm:gap-20 '>
                   <div className='flex flex-col'>
-                    <p className='text-white xsm:text-xl text-lg flex justify-center'>
+                    <p className=' xsm:text-xl text-lg flex justify-center'>
                       {formatNumber(host?.totalPosts) || 0}
                     </p>
 
-                    <p className='text-Primary/Light text-md flex justify-center'>Posts</p>
+                    <p className='text-[var(--text-title)] text-md flex justify-center'>Posts</p>
                   </div>
 
                   <div className='flex flex-col'>
-                    <p className='text-white xsm:text-xl text-lg flex justify-center'>
+                    <p className=' xsm:text-xl text-lg flex justify-center'>
                       {formatNumber(host?.totalLikes) || 0}
                     </p>
-                    <p className='text-Primary/Light text-md flex justify-center'>Likes</p>
+                    <p className='text-[var(--text-title)] text-md flex justify-center'>Likes</p>
                   </div>
 
                   <div className='flex flex-col'>
-                    <p className='text-white xsm:text-xl text-lg flex justify-center'>
+                    <p className=' xsm:text-xl text-lg flex justify-center'>
                       {formatNumber(followersCount) || 0}
                     </p>
-                    <p className='text-Primary/Light text-md flex justify-center'>Followers</p>
+                    <p className='text-[var(--text-title)] text-md flex justify-center'>
+                      Followers
+                    </p>
                   </div>
                   <div className='flex flex-col'>
-                    <p className='text-white xsm:text-xl text-lg flex justify-center'>
+                    <p className=' xsm:text-xl text-lg flex justify-center'>
                       {formatNumber(host?.totalFollowing) || 0}
                     </p>
-                    <p className='text-Primary/Light text-md flex justify-center'>Following</p>
+                    <p className='text-[var(--text-title)] text-md flex justify-center'>
+                      Following
+                    </p>
                   </div>
                 </div>
               </div>
@@ -727,25 +733,25 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
         <div className='flex justify-center mt-8 sm:max-lg:mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
           <div className='flex flex-row justify-center gap-8 xsm:gap-14 sm:gap-24 lg:gap-16 xl:gap-28 2xl:gap-36 w-1/2'>
             <button
-              className={`${active === 'Posts' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
+              className={`${active === 'Posts' ? '' : 'text-gray-500'} text-xl font-semibold`}
               onClick={() => navigate(`/user/${userId}/posts`)}
             >
               Posts
             </button>
             <button
-              className={`${active === 'Users' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
+              className={`${active === 'Users' ? '' : 'text-gray-500'} text-xl font-semibold`}
               onClick={() => navigate(`/user/${userId}/users`)}
             >
               Following
             </button>
             <button
-              className={`${active === 'Groups' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
+              className={`${active === 'Groups' ? '' : 'text-gray-500'} text-xl font-semibold`}
               onClick={() => navigate(`/user/${userId}/groups`)}
             >
               Groups
             </button>
             <button
-              className={`${active === 'Projects' ? 'text-white' : 'text-gray-500'} text-xl font-semibold`}
+              className={`${active === 'Projects' ? '' : 'text-gray-500'} text-xl font-semibold`}
               onClick={() => navigate(`/user/${userId}/projects`)}
             >
               Projects
@@ -754,44 +760,49 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
         </div>
         <div className='flex lg:justify-center mt-2 xsm:mt-2 sm:max-lg:mt-4 lg:mt-6 mx-6 sm:max-lg:mx-20 lg:mx-20'>
           <div className='flex flex-start w-1/2 xl:min-w-[650px] mb-10 lg:mb-0 ml-8 sm:ml-0'>
-            <p className='text-2xl font-semibold text-white'>
-              {active === 'Users' ? 'Following' : active}
-            </p>
+            <p className='text-2xl font-semibold '>{active === 'Users' ? 'Following' : active}</p>
           </div>
         </div>
       </>
 
       <div className='flex justify-center -mt-8 lg:mt-2 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-3'>
         <div
-          className={`bg-Background/Bottom border-2 h-18  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
-        border-solid box-border text-center `}
+          className={`${
+            theme === 'original'
+              ? 'bg-Background/Bottom border-2  border-Primary/Dark'
+              : 'bg-[var(--surface)]'
+          } h-18  px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl  sm:max-lg:rounded-3xl lg:mt-0 lg:border-t-0 lg:rounded-none lg:rounded-b-3xl
+        border-solid box-border mb-3 text-center mt-28 `}
         >
           <div className='flex flex-row w-full items-center space-x-4 mx-4 mt-0'>
-            <div className='inline-block flex-shrink-0 w-9 h-9 items-center justify-center flex'>
-              <img src={Search} alt='Search Icon' className='w-9 h-9 rounded-full object-cover' />
+            <div className='text-3xl inline-block flex-shrink-0 w-9 h-9 items-center justify-center flex'>
+              <MdOutlineSearch />
             </div>
 
             {/* Share Text Section */}
             <input
-              className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-Primary/Light text-l'
+              className={`${
+                theme === 'original'
+                  ? 'bg-Background/Middle text-[var(--text-title)] '
+                  : 'bg-[var(--input)] text-[var(--text)]'
+              } inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-md`}
               placeholder={`Search for ${active.toLowerCase()}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             ></input>
 
             <button
-              className='hover:bg-Background/Middle rounded-lg hover:bg-gray-300 hover:bg-opacity-20 block '
+              className='text-xl hover:bg-Background/Middle rounded-lg hover:bg-gray-300 hover:bg-opacity-20 block '
               onClick={() => setShowTaglistModal(!showTaglistModal)}
             >
-              <img src={Filter} alt='Filter Icon' className='w-9 h-9 rounded-full object-cover' />
+              <FaFilter />
             </button>
 
             {showTaglistModal && (
-              <div>
-                <div
-                  ref={tagListRef}
-                  className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'
-                >
+              <div
+                className={`fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50`}
+              >
+                <div ref={tagListRef}>
                   <div ref={modalRef}>
                     <TagList
                       onFilterChange={handleFilterChange}
@@ -816,27 +827,28 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
         <div className='mb-5'>
           <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
             {own && (
-              <div className='bg-Background/Bottom text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark border-2 rounded-3xl p-5 md:p-7 lg:p-8'>
+              <div
+                className={`${
+                  theme === 'original'
+                    ? 'bg-Background/Bottom border-2 border-Primary/Dark'
+                    : 'bg-[var(--surface)] text-[var(--text)]'
+                } w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] mb-5 mt-5 border-Primary/Dark rounded-3xl p-5 md:p-7 lg:p-8`}
+              >
                 <div className='flex flex-row w-full items-center space-x-4'>
                   <div className='inline-block flex-shrink-0'>
                     <img
-                      src={
-                        user?.avatar ||
-                        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                      }
+                      src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                       alt='Profile Icon'
-                      className='w-[52px] h-[52px] rounded-full object-cover'
                     />
                   </div>
 
                   {/* Share Text Section */}
                   <button
-                    className='bg-Background/Middle inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6 overflow-hidden whitespace-nowrap'
+                    className={`bg-[var(--input)] text-gray-400'
+                } inline-block flex-grow py-4 px-4 rounded-3xl h-14 w-5/6 overflow-hidden whitespace-nowrap`}
                     onClick={handleCreate}
                   >
-                    <p className='text-left text-Primary/Light text-sm overflow-hidden'>
-                      Share your code...
-                    </p>
+                    <p className='text-left text-sm overflow-hidden'>Share your code...</p>
                   </button>
                 </div>
               </div>
@@ -865,30 +877,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
             (active === 'Users' && users.length === 0) ||
             (active === 'Groups' && groups.length === 0) ||
             (active === 'Projects' && projects.length === 0)) &&
-            !loading && (
-              <div className='mb-5'>
-                <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
-                  <div
-                    className={`bg-Background/Bottom border-2 h-32  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
-                    border-solid box-border text-center mt-3`}
-                  >
-                    <div className='h-auto'>
-                      <p className='text-left text-white text-l mt-2'>
-                        Nothing here... Go explore{' '}
-                        <Link to='/community' className='text-Accent/Target cursor-pointer inline'>
-                          Codemunity
-                        </Link>{' '}
-                        or{' '}
-                        <Link to='/feed' className='text-Primary/Light cursor-pointer inline'>
-                          share your own code
-                        </Link>{' '}
-                        !
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            !loading && <NothingPost />}
 
           {/* Display posts if available */}
           {active == 'Posts' && posts.length > 0 && (
@@ -943,11 +932,11 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
 
       <div className=' fixed flex flex-col top-12 lg:right-2 xl:right-4 sm:max-lg:invisible invisible lg:visible'>
         {host && (
-          <div className='bg-Background/Bottom bg-cover rounded-3xl border-2 border-Primary/Dark lg:w-[22vw] xl:w-[19vw] h-[400px] mt-4 ml-[3rem] '>
+          <div className=' bg-cover rounded-3xl bg-[var(--background-side)]  border-2 border-[var(--border)] lg:w-[22vw] xl:w-[19vw] h-[400px] mt-4 ml-[3rem] '>
             <div className='flex flex-col'>
               <div className='flex justify-center mx-2' ref={textUserDashboardRef}>
                 <p
-                  className='text-Primary/Light text-2xl font-semibold mt-16 text-center break-words'
+                  className='text-[var(--text-title)] text-2xl font-semibold mt-16 text-center break-words'
                   data-tooltip-id='username'
                   data-tooltip-content={host?.username ? host.username : 'null'}
                   data-tooltip-place='top-end'
@@ -967,26 +956,26 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                 <div className='flex flex-col items-start '>
                   <div className='ml-auto w-16'>
                     {' '}
-                    <p className='text-white text-xl'>{formatNumber(host?.totalPosts) || 0}</p>
-                    <p className='text-Primary/Light text-md'>Posts</p>{' '}
+                    <p className=' text-xl'>{formatNumber(host?.totalPosts) || 0}</p>
+                    <p className='text-[var(--text-title)] text-md'>Posts</p>{' '}
                   </div>
                 </div>
 
                 <div className='flex flex-col items-start'>
-                  <p className='text-white text-xl'>{formatNumber(host?.totalLikes) || 0}</p>
-                  <p className='text-Primary/Light text-md'>Likes</p>
+                  <p className=' text-xl'>{formatNumber(host?.totalLikes) || 0}</p>
+                  <p className='text-[var(--text-title)] text-md'>Likes</p>
                 </div>
 
                 <div className='flex flex-col items-start'>
                   <div className='ml-auto w-16'>
-                    <p className='text-white text-xl'>{formatNumber(followersCount) || 0}</p>
-                    <p className='text-Primary/Light text-md'>Followers</p>
+                    <p className=' text-xl'>{formatNumber(followersCount) || 0}</p>
+                    <p className='text-[var(--text-title)] text-md'>Followers</p>
                   </div>
                 </div>
 
                 <div className='flex flex-col items-start'>
-                  <p className='text-white text-xl'>{formatNumber(host?.totalFollowing) || 0}</p>
-                  <p className='text-Primary/Light text-md'>Following</p>
+                  <p className=' text-xl'>{formatNumber(host?.totalFollowing) || 0}</p>
+                  <p className='text-[var(--text-title)] text-md'>Following</p>
                 </div>
               </div>
             </div>
@@ -994,7 +983,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
               <div className='flex justify-center lg:-mt-4 xl:ml-0'>
                 <button
                   className={`transition-colors font-semibold duration-300 ease-in-out w-12 md:w-20 lg:w-28 h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target m-4 
-       ${isFollowing ? 'bg-gray-500 text-white hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:text-white'}`}
+       ${isFollowing ? 'bg-Accent/Target  hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:'}`}
                   onClick={isFollowing ? handleUnfollow : handleFollow}
                   onMouseEnter={() => setIsHovered(true)}
                   onMouseLeave={() => setIsHovered(false)}

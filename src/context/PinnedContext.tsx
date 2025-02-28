@@ -8,6 +8,7 @@ import {
   pinItem,
 } from '../services/pinService'; // Adjust import based on your file structure
 import { toast } from 'react-toastify';
+import { useAuthUser } from '../context/AuthUserContext';
 
 type PinnedContextType = {
   pinnedItems: PinnedItem[];
@@ -15,13 +16,14 @@ type PinnedContextType = {
   recentItems: PinnedItem[];
   pin: (type: 'group' | 'user' | 'project', id: string) => void;
   isPinned: (type: 'group' | 'user' | 'project', id: string) => boolean;
-  unPin: (index: number) => void;
+  unPin: (index?: number, id?: string) => void;
   refreshData: () => void;
 };
 
 const PinnedContext = createContext<PinnedContextType | undefined>(undefined);
 
 export const PinnedProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAuthUser();
   const [pinnedItems, setPinnedItems] = useState<PinnedItem[]>([]);
   const [popularItems, setPopularItems] = useState<PinnedItem[]>([]);
   const [recentItems, setRecentItems] = useState<PinnedItem[]>([]);
@@ -39,13 +41,17 @@ export const PinnedProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (isAuthenticated) {
+      fetchData();
+    }
+  }, [isAuthenticated]);
 
   // Function to pin an item
   const pin = async (type: 'group' | 'user' | 'project', id: string) => {
     try {
       const newPinnedItem = await pinItem(type, id);
+      console.log('new');
+      console.log(newPinnedItem);
       if (newPinnedItem) {
         setPinnedItems((prev) => [...prev, newPinnedItem]);
       }
@@ -55,14 +61,23 @@ export const PinnedProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
-  // Function to unpin an item
-  const unPin = async (index: number) => {
+  const unPin = async (index?: number, id?: string) => {
     try {
-      const itemToUnpin = pinnedItems[index];
-      if (!itemToUnpin) return; // Prevent errors if index is invalid
-      await unpinItem(index); // Use the item's ID instead of index
+      // Find the index if only id is provided
+      if (index === undefined && id !== undefined) {
+        const foundIndex = pinnedItems.findIndex((item) => item.id === id);
+        if (foundIndex === -1) return; // Return if no matching item is found
+        index = foundIndex; // Assign the found index
+      }
+
+      // Ensure the index is valid
+      if (index === undefined) return;
+
+      await unpinItem(index); // API requires index
+
       setPinnedItems((prev) => prev.filter((_, i) => i !== index));
-      toast.info('Unpin');
+
+      toast.info('Unpinned');
     } catch (error) {
       console.error('Error unpinning item:', error);
     }

@@ -184,10 +184,7 @@ function ProfileTemp() {
         <div className='bg-Background/Bottom rounded-xl border-2 border-Primary/Dark w-3/5 ml-40 flex flex-row'>
           <div className='flex flex-col h-[450px]'>
             <img
-              src={
-                user?.avatar ||
-                'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-              }
+              src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
               alt='Profile Icon'
               className='h-20 w-20 lg:h-56 lg:w-56 rounded-full object-cover mx-10 mt-10'
             />

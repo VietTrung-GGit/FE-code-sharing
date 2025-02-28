@@ -17,6 +17,7 @@ import {
 import { toast } from 'react-toastify';
 import Editor from '@monaco-editor/react';
 import { formatDate, formatNumber } from '../utils/helpers';
+import { useTheme } from '../context/ThemeContext';
 
 interface CommentItemProps {
   comment: Comment;
@@ -220,22 +221,15 @@ const CommentItem: React.FC<CommentItemProps> = ({
       return updatedReplies;
     });
   };
-
+  const { theme } = useTheme();
   return (
-    <div
-      key={index}
-      className='bg-Background/Light rounded w-full px-0 py-4'
-      ref={replyContainerRef}
-    >
+    <div key={index} className='rounded w-full px-0 py-4' ref={replyContainerRef}>
       <div className='flex items-start gap-4 relative'>
         {/* Avatar on the left */}
         <div className='relative'>
           {/* Avatar */}
           <img
-            src={
-              comment.avatar ||
-              'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-            }
+            src={comment.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
             alt='Avatar'
             className='w-8 h-8 rounded-full object-cover'
           />
@@ -286,7 +280,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
             <div className='flex justify-between items-center mb-2'>
               <div>
                 <span className='font-semibold text-md'>{comment.authorname}</span>&nbsp;&nbsp;
-                <span className='text-xs text-Accent/Light'>
+                <span className='text-xs text-[var(--green-highlight)]'>
                   {comment ? formatDate(comment.createdAt) : 'Loading...'}&nbsp;
                 </span>
                 {comment?.editedAt &&
@@ -366,7 +360,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
               {levelprop < 3 && (
                 <button
-                  className='text-sm text-Accent/Light hover:text-white flex items-center gap-x-1'
+                  className='text-sm text-[var(--green-highlight)] hover:text-white flex items-center gap-x-1'
                   onClick={() => setShowReplyInput(!showReplyInput)}
                 >
                   {!showReplyInput && 'New Reply'}
@@ -398,7 +392,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     ) : (
                       <>
                         <button
-                          className='text-lg hover:text-Accent/Light text-white'
+                          className='text-lg hover:text-[var(--green-highlight)] text-white'
                           onClick={() => setEditing(true)}
                         >
                           <BiSolidEdit />
@@ -434,14 +428,11 @@ const CommentItem: React.FC<CommentItemProps> = ({
             {/* Reply Input Box */}
             {showReplyInput && (
               <div className='mt-3'>
-                <h3 className='text-md font-semibold text-Accent/Light'>New Reply</h3>
+                <h3 className='text-md font-semibold text-[var(--green-highlight)]'>New Reply</h3>
                 <div className='bg-Background/Light pt-3 px-2'>
                   <div className='flex justify-center gap-4'>
                     <img
-                      src={
-                        user?.avatar ||
-                        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
-                      }
+                      src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                       alt='Avatar'
                       className='w-8 h-8 rounded-full object-cover'
                     />

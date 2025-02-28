@@ -2,6 +2,7 @@ import React from 'react';
 import { IoMenuOutline } from 'react-icons/io5';
 import { TbPin } from 'react-icons/tb';
 import Logo from '../assets/logo.svg';
+import { useTheme } from '../context/ThemeContext';
 
 // Base properties shared by all cases
 interface BaseProps {
@@ -37,6 +38,7 @@ function CollapseMenu(props: CollapseMenuProps) {
     sidebarButtonRef,
   } = props;
   // Type guard to check if props include TagListProps
+  const { theme } = useTheme();
   const hasQuickNavProps = (props: CollapseMenuProps): props is BaseProps & QuickNavProps =>
     'onToggleQuickNav' in props;
 
