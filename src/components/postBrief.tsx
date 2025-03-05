@@ -25,10 +25,13 @@ import {
   moderateGroupPost,
 } from '../services/postService';
 import { useTheme } from '../context/ThemeContext';
+import { BriefData, getGroupPublicData } from '../services/groupService';
+import { getProjectPublicData } from '../services/projectService';
 
 interface PostBriefProps {
   postData: Post;
   shareAction?: (postRefId: string) => void;
+  detail?: boolean;
   role?: string;
 }
 
@@ -41,6 +44,7 @@ interface ToggleButtonProps {
 const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) => {
   const [loading, setLoading] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(status);
+  const { theme } = useTheme();
 
   const handleModeration = async (action: 'approve' | 'reject') => {
     if (loading) return;
@@ -59,9 +63,14 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) 
   return (
     <div className='absolute text-sm top-0 right-0 flex gap-2 p-2'>
       {/* Show status with bold color once moderated */}
-      {currentStatus === 'approved' && <div></div>}
+      {currentStatus === 'pending' && !isAdmin && (
+        <div className='flex items-center justify-center gap-2 w-28 py-1 px-1 rounded-full bg-[#e8c64d] text-white font-semibold'>
+          <TbFlag className='text-xl' />
+          Pending
+        </div>
+      )}
       {currentStatus === 'rejected' && (
-        <div className='flex items-center justify-center gap-2 w-28 py-1 px-1 rounded-full bg-red-400  font-semibold'>
+        <div className='flex items-center justify-center gap-2 w-28 py-1 px-1 rounded-full bg-red-400 text-white font-semibold'>
           <TbFlagCancel className='text-xl' />
           Rejected
         </div>
@@ -73,7 +82,11 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) 
           <button
             onClick={() => handleModeration('approve')}
             disabled={loading}
-            className='flex items-center justify-center gap-2 w-24 py-1 rounded-l-full border-r-4 border-green-400 bg-white text-green-500 hover:bg-green-400 hover:text-white transition disabled:opacity-50'
+            className={`   ${
+              theme === 'original'
+                ? 'bg-white hover:bg-green-400 hover:text-white  text-green-500'
+                : 'bg-[var(--button)] hover:bg-[var(--button-hovered)]'
+            } flex items-center justify-center gap-2 w-24 py-1 rounded-l-full border-r-4 border-green-400  transition disabled:opacity-50`}
           >
             <TbFlagCheck className='text-xl' />
             Approve
@@ -81,7 +94,11 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) 
           <button
             onClick={() => handleModeration('reject')}
             disabled={loading}
-            className='flex items-center justify-center gap-2 w-24 py-1 rounded-r-full border-l-4 border-red-400 bg-white text-red-400 hover:bg-red-400 hover:text-white transition disabled:opacity-50'
+            className={`   ${
+              theme === 'original'
+                ? ' bg-white text-red-400 hover:bg-red-300 hover:text-white '
+                : 'bg-[var(--button)] hover:bg-[var(--button-hovered)]'
+            } flex items-center justify-center gap-2 w-24 py-1 rounded-r-full border-l-4 border-red-400 transition disabled:opacity-50`}
           >
             <TbFlagCancel className='text-xl' />
             Reject
@@ -92,7 +109,12 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) 
   );
 };
 
-const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {}, role }) => {
+const PostBrief: React.FC<PostBriefProps> = ({
+  postData,
+  shareAction = () => {},
+  detail = true,
+  role,
+}) => {
   const [post, setPost] = useState<Post>(postData);
   const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState<number>(0);
@@ -105,6 +127,26 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
   const [hovered, setHovered] = useState(false);
   const textRef = useRef<HTMLParagraphElement>(null);
   const isAdmin = role == 'admin' || role == 'creator';
+  const [source, setSource] = useState<BriefData>({ name: '', avatar: '' });
+
+  useEffect(() => {
+    if (post.group || post.project) {
+      const getSource = async () => {
+        try {
+          if (post.project) {
+            const data = await getProjectPublicData(post.project);
+            setSource(data);
+          } else if (post.group) {
+            const data = await getGroupPublicData(post.group);
+            setSource(data);
+          }
+        } catch (error) {
+          toast.error('Failed to load post');
+        }
+      };
+      getSource();
+    }
+  }, [post]);
 
   useEffect(() => {
     // Initialize the post state with the postData prop
@@ -295,26 +337,39 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
             theme === 'original'
               ? 'bg-Background/Bottom text-white border-2'
               : 'bg-[var(--surface)] text-[var(--text)]'
-          } w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark  light:border-0 rounded-3xl p-5 md:p-7 lg:p-8`}
+          } w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark  light:border-0 rounded-3xl p-5 md:p-7 lg:p-8`}
         >
           {showDeletePostModal && (
             <div className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'>
               <div
-                className='bg-Background/Bottom p-8 rounded-lg max-w-sm w-full border-2 border-Primary/Dark'
+                className={`
+    ${
+      theme === 'original'
+        ? 'bg-Background/Bottom text-white border-2'
+        : 'bg-[var(--surface)] text-[var(--text)]'
+    } border-Primary/Dark p-8 rounded-3xl max-w-sm w-full justify-center flex-col items-center`}
                 ref={modalRef}
               >
-                <h3 className='text-xl mb-8 text-center'>
-                  Are you sure you want to delete this post?
+                <div className='flex justify-center items-center mb-4 -translate-x-2'>
+                  <BiTrashAlt className='text-6xl  text-red-300' />
+                </div>
+                <h3 className='text-xl mb-2 text-center font-semibold'>Delete post?</h3>
+                <h3 className='text-base mb-4 text-gray-400 text-center'>
+                  Are you sure you want to permanently delete this post?
                 </h3>
-                <div className='flex justify-between'>
+                <div className='flex justify-between text-base'>
                   <button
-                    className='ml-7 text-red-200 px-4 py-2 hover:text-red-500'
+                    className={`${
+                      theme === 'original'
+                        ? 'bg-white text-Primary/Dark'
+                        : 'bg-[var(--button)] text-[var(--text)]  '
+                    }  ml-7 border-[var(--border)] px-4 py-1 rounded-lg hover:bg-[var(--button-hovered)] `}
                     onClick={closeDeleteModal}
                   >
                     Cancel
                   </button>
                   <button
-                    className='mr-7 text-[var(--green-highlight)] px-4 py-2 hover:text-Accent/Target '
+                    className='mr-7 bg-red-400 px-4 py-1 rounded-lg hover:bg-red-500'
                     onClick={handleDelete}
                   >
                     Confirm
@@ -327,7 +382,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
           {/* Avatar and Tags */}
           <div className='relative flex flex-col sm:flex-row sm:items-center justify-between mb-4'>
             <div className='flex items-center gap-4'>
-              <Link to={`/user/${post.author}`} className='flex items-center gap-4'>
+              <Link to={`/user/${post.author}/posts`} className='flex items-center gap-4'>
                 <img
                   src={post.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                   alt='Avatar'
@@ -335,9 +390,27 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
                 />
               </Link>
               <div>
-                <Link to={`/user/${post.author}`} className='font-bold text-md'>
-                  {post ? post.authorname : ''}
-                </Link>
+                <div className='flex flex-row items-center space-x-1'>
+                  {' '}
+                  <Link to={`/user/${post.author}/posts`} className='font-bold text-base flex'>
+                    {post ? post.authorname : ''}
+                  </Link>
+                  {(post.project || post.group) && detail && (
+                    <Link
+                      to={`/${post.project ? 'project' : 'group'}/${post.project ? post.project : post.group}/${post.project ? 'sections/root' : ''}/posts`}
+                      className='flex flex-row items-center text-xs space-x-1  text-[var(--text-title)]'
+                    >
+                      <p>in</p>
+                      <img
+                        src={source.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+                        alt='Source Avatar'
+                        className='w-5 h-5 rounded-md object-cover'
+                      />
+                      <p className='font-semibold'>{source.name || 'Loading'}</p>
+                    </Link>
+                  )}
+                </div>
+
                 <p className='text-xs text-[var(--green-highlight)]'>
                   {post ? formatDate(post.createdAt) : 'Loading...'}&nbsp;
                   {post &&
@@ -422,7 +495,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
                 }
                 // language='markdown'
                 value={post.files[activeTab]?.fileUrl || ''}
-                theme='hc-dark'
+                theme={`${theme == 'light' ? 'light' : 'vs-dark'}`}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 14,
@@ -500,7 +573,13 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
                   <Tooltip id='share' classNameArrow='noArrow' />
                 </button>
                 {isDropdownOpen && (
-                  <div className='text-xs lg:text-sm absolute -left-10 md:-left-24 top-full mt-1 w-40 md:w-52 bg-Background/Bottom border rounded-xl border-2 border-Primary/Dark shadow-lg z-10'>
+                  <div
+                    className={`${
+                      theme === 'original'
+                        ? 'bg-Background/Bottom text-white'
+                        : 'bg-[var(--surface)] text-[var(--text)]'
+                    } border border-[var(--border)] text-xs lg:text-sm absolute -left-10 md:-left-24  top-full mt-1 w-40 md:w-52 rounded-xl border-Primary/Dark shadow-lg z-10`}
+                  >
                     <ul className='py-1 my-1'>
                       <li>
                         <button
@@ -508,7 +587,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
                             shareAction(post._id);
                             setIsDropdownOpen(false);
                           }}
-                          className='block px-4 py-2 hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                          className='block px-4 py-2 hover:bg-[var(--button-hovered)] w-full text-left flex flex-row gap-4'
                         >
                           <TbMessage2Share className='text-lg lg:text-xl' />
                           Share in a new post
@@ -522,7 +601,7 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
                             setIsDropdownOpen(false);
                             toast.success('Link copied to clipboard!');
                           }}
-                          className='block px-4 py-2 hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                          className='block px-4 py-2 hover:bg-[var(--button-hovered)] w-full text-left flex flex-row gap-4'
                         >
                           <TbLink className='text-lg lg:text-xl' />
                           Copy link
@@ -561,10 +640,10 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
     ${
       theme === 'original'
         ? hasLiked
-          ? 'bg-Accent/Target text-white'
+          ? 'bg-[var(--button-active)] text-white'
           : 'bg-white hover:bg-gray-300 text-Accent/Target'
         : hasLiked
-          ? 'bg-[var(--button)] hover:bg-[var(--button-hovered)] text-[var(--text-selected)] border-[1px] border-[var(--border)]'
+          ? 'bg-[var(--button-active)] text-[var(--text-selected)] border-[1px] border-[var(--border)]'
           : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'
     }`}
               >
@@ -636,4 +715,8 @@ const PostBrief: React.FC<PostBriefProps> = ({ postData, shareAction = () => {},
 };
 
 export default PostBrief;
+
+function getGroupProjectData(group: string | null): any {
+  throw new Error('Function not implemented.');
+}
 

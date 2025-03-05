@@ -12,7 +12,7 @@ function NothingPost() {
             theme === 'original'
               ? 'bg-Background/Bottom text-white border-2'
               : 'bg-[var(--surface)] text-[var(--text)]'
-          } h-32  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
+          } h-32  border-Primary/Dark px-6 py-4 w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-center rounded-3xl
         border-solid box-border text-center mt-3`}
         >
           <div className='h-auto'>

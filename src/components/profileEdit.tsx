@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { updateUserPassword, UserDataProfile } from '../services/userService'; // Import update functions
 import { toast } from 'react-toastify';
 import { isValidEmail, isStrongPassword } from '../utils/helpers';
-
+import { useTheme } from '../context/ThemeContext';
 import { useAuthUser } from '../context/AuthUserContext';
 interface ProfileEditProps {
   modeChange: 'editprofile' | 'editpassword' | null;
@@ -10,7 +10,7 @@ interface ProfileEditProps {
 }
 const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propcloseModal }) => {
   const { user, updateUser } = useAuthUser();
-
+  const { theme } = useTheme();
   const [profileData, setProfileData] = useState<UserDataProfile>({
     _id: user?._id || '',
     username: user?.username || 'Username', // Fallback to empty string if null
@@ -150,11 +150,17 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
   }, []);
   return (
     <div className='flex absolute items-center'>
-      <div className='w-full h-full lg:h-full lg:w-[50vw] bg-Background/Bottom bg-center bg-cover px-14 py-10  flex flex-col border-Primary/Dark border-solid box-border border-2 rounded-3xl  lg:mt-4  relative'>
+      <div
+        className={`${
+          theme === 'original'
+            ? 'bg-Background/Bottom text-white lg:border-2'
+            : 'bg-[var(--surface)] text-[var(--text)]'
+        } w-full h-full lg:h-full lg:w-[50vw] bg-center bg-cover px-14 py-10  flex flex-col border-Primary/Dark border-solid box-border rounded-3xl  lg:mt-4  relative`}
+      >
         {/* Close Button */}
         <button
           onClick={propcloseModal}
-          className='absolute top-6 right-12 text-white text-3xl hover:text-Primary/Light'
+          className='absolute top-6 right-12  text-3xl hover:text-[var(--text-title)]'
         >
           ×
         </button>
@@ -178,7 +184,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                     id='currentPassword'
                     value={passwords.currentPassword}
                     onChange={handleInputChange}
-                    className='w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 '
+                    className='w-full mt-1 px-3 py-2 bg-[var(--input)]  rounded-md border border-[var(--text-placeholder)] focus:outline-none focus:ring-2 '
                   />
                 </div>
                 <div>
@@ -190,7 +196,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                     id='newPassword'
                     value={passwords.newPassword}
                     onChange={handleInputChange}
-                    className='w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 '
+                    className='w-full mt-1 px-3 py-2 bg-[var(--input)]  rounded-md border border-[var(--text-placeholder)] focus:outline-none focus:ring-2 '
                   />
                 </div>
                 <div>
@@ -202,7 +208,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                     id='confirmNewPassword'
                     value={passwords.confirmNewPassword}
                     onChange={handleInputChange}
-                    className='w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 '
+                    className='w-full mt-1 px-3 py-2 bg-[var(--input)]  rounded-md border border-[var(--text-placeholder)] focus:outline-none focus:ring-2 '
                   />
                 </div>
               </>
@@ -226,7 +232,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                             document.getElementById('imageUpload')?.click()
                           }
                         />
-                        <div className='absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-50 rounded-full text-white font-semibold'>
+                        <div className=' absolute w-32 h-32 inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-50 rounded-full  font-semibold'>
                           Choose image
                         </div>
                       </label>
@@ -248,7 +254,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                     <div>
                       <label
                         htmlFor='username'
-                        className='block text-sm font-medium text-Primary/Light'
+                        className='block text-sm font-medium text-[var(--text-title)]'
                       >
                         Username
                       </label>
@@ -258,7 +264,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                         value={profileData.username}
                         maxLength={30}
                         onChange={handleInputChange}
-                        className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md focus:outline-none ${
+                        className={`w-full mt-1 px-3 py-2 bg-[var(--input)] border-[var(--text-placeholder)]  rounded-md focus:outline-none ${
                           modeChange === 'editprofile' &&
                           'focus:border focus:ring-2 focus:border-Primary/Dark'
                         }`}
@@ -268,7 +274,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                     <div>
                       <label
                         htmlFor='email'
-                        className='block text-sm font-medium text-Primary/Light'
+                        className='block text-sm font-medium text-[var(--text-title)]'
                       >
                         Email
                       </label>
@@ -277,7 +283,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                         id='email'
                         value={profileData.email}
                         onChange={handleInputChange}
-                        className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md focus:outline-none ${
+                        className={`w-full mt-1 px-3 py-2 bg-[var(--input)] border-[var(--text-placeholder)]  rounded-md focus:outline-none ${
                           modeChange === 'editprofile' &&
                           'focus:border focus:ring-2 focus:border-Primary/Dark'
                         }`}
@@ -289,7 +295,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                     <div className='col-span-2'>
                       <label
                         htmlFor='displayName'
-                        className='block text-sm font-medium text-Primary/Light'
+                        className='block text-sm font-medium text-[var(--text-title)] border-[var(--text-placeholder)] '
                       >
                         Display name
                       </label>
@@ -299,7 +305,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                         maxLength={30}
                         value={profileData.displayname}
                         onChange={handleInputChange}
-                        className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md focus:outline-none ${
+                        className={`w-full mt-1 px-3 py-2 bg-[var(--input)]  rounded-md focus:outline-none ${
                           modeChange === 'editprofile' &&
                           'focus:border focus:ring-2 focus:border-Primary/Dark'
                         }`}
@@ -313,7 +319,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                 <div className='mt-4'>
                   <label
                     htmlFor='biography'
-                    className='block text-sm font-medium text-Primary/Light'
+                    className='block text-sm font-medium text-[var(--text-title)]'
                   >
                     Biography
                   </label>
@@ -323,7 +329,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                     maxLength={300}
                     rows={4}
                     onChange={handleInputChange}
-                    className={`w-full mt-1 px-3 py-2 bg-gray-800 text-white rounded-md focus:outline-none resize-none ${
+                    className={`w-full mt-1 px-3 py-2 bg-[var(--input)] border-[var(--text-placeholder)]  rounded-md focus:outline-none resize-none ${
                       modeChange === 'editprofile' &&
                       'focus:border focus:ring-2 focus:border-Primary/Dark'
                     }`}
@@ -341,7 +347,11 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
             <>
               <button
                 onClick={modeChange === 'editpassword' ? handlePasswordUpdate : handleSave} // Call handleSave or handlePasswordUpdate based on the mode
-                className='px-4 py-2 rounded-md text-sm font-medium bg-Accent/Target text-white hover:text-Accent/Target hover:bg-white'
+                className={`${
+                  theme === 'original'
+                    ? 'bg-Accent/Target  hover:text-Accent/Target hover:bg-white'
+                    : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border border-[var(--border)]'
+                }  px-4 py-2 rounded-md text-sm font-medium `}
               >
                 Save
               </button>

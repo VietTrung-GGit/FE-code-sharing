@@ -284,7 +284,6 @@ export const fetchSectionUsers = async (
   }
 };
 
-// Fetch users in a project
 export const fetchProjectUsers = async (
   projectId: string,
   page: number = 1,
@@ -297,13 +296,19 @@ export const fetchProjectUsers = async (
     const response = await axiosInstance.get<{ users: UserBriefData[]; hasMore: boolean }>(
       API_ENDPOINTS.PROJECT_USERS(projectId, page, limit, order, criteria, search),
     );
-    return response.data;
+
+    return {
+      users: response.data.users.map((user) => ({
+        ...user,
+        role: user.role === 'participant' ? 'member' : user.role,
+      })),
+      hasMore: response.data.hasMore,
+    };
   } catch (error) {
     console.error('Error fetching project users:', error);
     throw error;
   }
 };
-
 
 // Invite users to a project
 export const inviteProjectMembers = async (projectId: string, members: string[]) => {

@@ -10,12 +10,14 @@ import { TbPin, TbPinnedOff } from 'react-icons/tb';
 import { useTheme } from '../context/ThemeContext';
 import Dropzone from 'react-dropzone/.';
 interface ProjectBriefProps {
+  userId: string;
   projectData: ProjectDataBrief;
   detail: boolean;
 }
 
-const ProjectBrief: React.FC<ProjectBriefProps> = ({ projectData, detail }) => {
+const ProjectBrief: React.FC<ProjectBriefProps> = ({ userId, projectData, detail }) => {
   const [project, setProject] = useState<ProjectDataBrief>(projectData);
+  const [isHovered, setIsHovered] = useState(false);
   const [joined, setJoined] = useState<boolean>(false);
   const { theme } = useTheme();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -107,27 +109,30 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ projectData, detail }) => {
       <div
         className={`${
           theme === 'original'
-            ? 'bg-Background/Bottom text-white lg:border-2'
+            ? 'bg-Background/Bottom text-white border-2'
             : 'bg-[var(--surface)] text-[var(--text)]'
-        } relative w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] my-3 border-Primary/Dark rounded-3xl p-5 md:p-7 lg:p-8`}
+        } border-Primary/Dark relative min-h-max break-all w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] my-3 rounded-3xl p-5 md:p-7 lg:p-8`}
       >
-        <div className='absolute right-3 top-2 h-6'>
+        <div className='absolute right-3 top-2 h-6' ref={dropdownConfigRef}>
           <button
-            className='hover:text-gray-300  text-3xl'
-            onClick={() => setIsDropdownOpen((prev) => !prev)}
+            className='hover:text-[var(--text-hovered)] text-3xl'
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             <IoIosMore />
           </button>
           {isDropdownOpen && (
             <div
-              className='text-sm absolute right-0 lg:left-0 lg:right-full top-full  w-56 bg-Background/Bottom border rounded-xl border-2 border-Primary/Dark shadow-lg z-10'
-              ref={dropdownConfigRef}
+              className={`${
+                theme === 'original'
+                  ? 'bg-Background/Bottom text-white'
+                  : 'bg-[var(--surface)] text-[var(--text)]'
+              } border border-[var(--border)]  text-sm absolute right-0 lg:left-0 lg:right-full top-full  w-56 rounded-xl shadow-lg z-10`}
             >
               <ul className='py-1 my-2'>
                 {/* Assign Admin */}
                 <li>
                   <button
-                    className='block px-4 py-2 w-full text-left flex items-center gap-4 rounded hover:bg-Background/Middle transition'
+                    className='block px-4 py-2 w-full text-left flex items-center gap-4 hover:bg-[var(--background-hovered)]  transition'
                     onClick={() => {
                       handlePinToggle(), handleOptionSelect();
                     }}
@@ -141,36 +146,33 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ projectData, detail }) => {
                     {pinned ? 'Unpin' : 'Pin'}
                   </button>
                 </li>
-                <li>
-                  <button className='block px-4 py-2 text-red-500 hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
-                    <BiTrashAlt className='text-lg lg:text-xl' />
-                    Delete project
-                  </button>
-                </li>
               </ul>
             </div>
           )}
         </div>
         <div className='flex items-center w-full space-x-4'>
           {/* Project Avatar */}
-          <Link to={`/project/${projectData?._id ?? '#'}`} className='flex-shrink-0'>
+          <Link
+            to={`/project/${projectData?._id ?? '#'}/sections/root/posts`}
+            className='flex-shrink-0'
+          >
             <img
               src={project.avatar}
               alt='Project Icon'
-              className='w-28 h-28 rounded-3xl object-cover'
+              className='w-12 h-12 sm:w-20 sm:h-20 lg:w-28 lg:h-28 rounded-lg sm:rounded-xl lg:rounded-3xl object-cover'
             />
           </Link>
 
           {/* Project Info */}
           <Link
-            to={`/project/${projectData?._id ?? '#'}`}
+            to={`/project/${projectData?._id ?? '#'}/sections/root/posts`}
             className='flex flex-col justify-center flex-grow'
           >
             <p
-              className='w-[20vw] xsm:w-[25vw] sm:w-[35vw] lg:w-[15vw] xl:w-full  font-semibold text-2xl truncate'
+              className='w-[20vw] xsm:w-[25vw] sm:w-[35vw] lg:w-[15vw] xl:w-full  font-semibold text-lg md:text-2xl truncate'
               ref={textProjectRef}
             >
-              {isProjectnameOverflowing ? `${project.name.slice(0, 10)}...` : project.name}&nbsp;
+              {isProjectnameOverflowing ? `${project.name.slice(0, 10)}...` : project.name}
             </p>
             <Tooltip id='projectname' classNameArrow='noArrow' />
 
@@ -187,26 +189,36 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ projectData, detail }) => {
             )}
 
             {/* Avatar Members */}
-            <div className='flex space-x-1 mt-2'>
+            <div className='flex space-x-1 mt-1'>
               {project.visibleMembers.map((avatar, index) => (
                 <img
                   key={index}
                   src={avatar}
                   alt={`Member ${index + 1}`}
-                  className='w-8 h-8 rounded-full object-cover'
+                  className='w-6 h-6 lg:w-8 lg:h-8 rounded-full object-cover'
                 />
               ))}
             </div>
           </Link>
 
           {/* Join/Leave Button */}
-          {(joined || project.joinable) && (
+          {(joined || project.joinable) && project.creator != userId && (
             <button
+              className={`hidden xxsm:block transition-colors duration-300 ease-in-out w-20 md:w-28 xl:w-32 h-6 md:h-8 rounded-xl text-sm sm:text-base m-4 font-semibold flex-shrink-0
+            ${
+              theme === 'original'
+                ? joined
+                  ? 'bg-[var(--button-active)] hover:bg-red-400 text-white'
+                  : 'bg-white hover:bg-Accent/Target hover:text-white text-Accent/Target'
+                : joined
+                  ? 'bg-[var(--button-active)] text-[var(--text-selected)] border-[1px] border-[var(--border)]'
+                  : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'
+            }`}
               onClick={joined ? handleLeave : handleJoin}
-              className={`transition-colors duration-300 ease-in-out w-32 h-8 rounded-xl text-md text-Accent/Target m-4 
-              ${joined ? 'bg-gray-500  hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:'}`}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
             >
-              {joined ? 'Leave' : project.joinable ? 'Join' : ''}
+              {joined ? (isHovered ? 'Leave' : 'Joined') : 'Join'}
             </button>
           )}
         </div>

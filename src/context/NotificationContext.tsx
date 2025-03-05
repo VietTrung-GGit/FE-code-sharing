@@ -87,7 +87,8 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
 
   useEffect(() => {
     if (isAuthenticated == true) {
-      socket.current = io('wss://tv5dh9-4000.csb.app', {
+      fetchNotifications();
+      socket.current = io('wss://njdjq5-4000.csb.app', {
         withCredentials: true,
         transports: ['websocket'],
         query: {

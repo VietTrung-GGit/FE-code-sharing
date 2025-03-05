@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { Tooltip } from 'react-tooltip';
 import { IoIosMore, IoIosMail, IoMdArrowDropdown } from 'react-icons/io';
 import { BiSolidEdit } from 'react-icons/bi';
-import { AiOutlineUserDelete } from 'react-icons/ai';
+import { AiFillPlusCircle, AiOutlineUserDelete } from 'react-icons/ai';
 import { CgPassword } from 'react-icons/cg';
 
 import { useAuthUser } from '../context/AuthUserContext';
@@ -53,6 +53,7 @@ import { useTheme } from '../context/ThemeContext';
 import NothingPost from '../components/nothingPost';
 import { FaFilter } from 'react-icons/fa';
 import { MdOutlineSearch } from 'react-icons/md';
+import GroupCreate from '../components/groupCreate';
 
 interface UserDashboardProps {
   active: string;
@@ -69,7 +70,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
   const textEmailRef = useRef<HTMLDivElement>(null);
   const textUserDashboardRef = useRef<HTMLDivElement>(null);
   const textUserProfileRef = useRef<HTMLDivElement>(null);
-
   const { userId } = useParams<string>();
   const alreadyPinned = userId ? isPinned('user', userId) : false;
   {
@@ -100,11 +100,8 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [firstLoad, setFirstLoad] = useState(true); // To track the initial load
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [firstLoad, setFirstLoad] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [order, setOrder] = useState<'ascending' | 'descending'>('descending');
-  const [criteria, setCriteria] = useState<'date' | 'likes' | 'comments'>('date');
   const [isDropdownConfigOpen, setIsDropdownConfigOpen] = useState(false);
   const dropdownConfigRef = useRef<HTMLDivElement>(null);
   const [isDropdownFilterOpen, setIsDropdownFilterOpen] = useState(false);
@@ -115,7 +112,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-
+  const [showGroupCreate, setShowGroupCreate] = useState<boolean>(false); // New state for modal visibility
   const fetchAndUpdatePosts = async () => {
     if (userId) {
       setLoading(true);
@@ -139,6 +136,10 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
         console.error('Error fetching posts:', error);
       }
     }
+  };
+
+  const handleCloseGroupModal = () => {
+    setShowGroupCreate(false); // Close the modal when the close button is clicked
   };
 
   const fetchAndUpdateUsers = async () => {
@@ -229,11 +230,11 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
     if (active === 'Projects') fetchAndUpdateProjects();
   }, [active, debouncedSearchTerm, searchParams]);
 
-  useEffect(() => {
-    if (active) {
-      navigate(`/user/${userId}/${active.replace(/\s+/g, '')?.toLowerCase()}`);
-    }
-  }, [active, navigate]);
+  // useEffect(() => {
+  //   if (active) {
+  //     navigate(`/user/${userId}/${active.replace(/\s+/g, '')?.toLowerCase()}`);
+  //   }
+  // }, [active, navigate]);
 
   useEffect(() => {
     if (hasMore && !firstLoad) {
@@ -295,7 +296,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
   }, [host]);
 
   const handleFilterChange = (querySortParam: string) => {
-    navigate(`/community/posts?${querySortParam}`);
+    navigate(`/user/${userId}/posts?${querySortParam}`);
   };
 
   const observer = useRef<IntersectionObserver | null>(null);
@@ -340,10 +341,16 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
   };
   const refetchPosts = () => {
     setPage(1);
-    setPosts([]);
     setHasMore(true);
     setFirstLoad(true);
-    fetchAndUpdatePosts();
+    if (active === 'Posts') {
+      setPosts([]);
+      fetchAndUpdatePosts();
+    }
+    if (active === 'Projects') {
+      setProjects([]);
+      fetchAndUpdateProjects();
+    }
   };
 
   useEffect(() => {
@@ -504,22 +511,28 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
               theme === 'original'
                 ? 'bg-Background/Bottom text-white border-2'
                 : 'bg-[var(--surface)] text-[var(--text)]'
-            }  justify-center w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[720px] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] border-Primary/Dark rounded-3xl lg:p-5 relative flex items-center`}
+            }  justify-center w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[720px] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] border-Primary/Dark rounded-3xl lg:p-5 relative flex items-center`}
           >
             <div className='absolute right-3 top-2' ref={dropdownConfigRef}>
               <button
                 onClick={() => setIsDropdownConfigOpen(!isDropdownConfigOpen)}
-                className='hover:text-gray-300  text-3xl'
+                className='hover:text-[var(--text-hovered)] text-3xl'
               >
                 <IoIosMore />
               </button>
               {isDropdownConfigOpen && (
-                <div className='absolute -right-10 xsm:-right-10 sm:-right-[50px] lg:-right-40 w-40 md:w-52 bg-Background/Bottom border rounded-xl border-2 border-Primary/Dark shadow-lg z-10'>
+                <div
+                  className={`${
+                    theme === 'original'
+                      ? 'bg-Background/Bottom text-white border-2'
+                      : 'bg-[var(--surface)] text-[var(--text)]'
+                  } border-Primary/Dark absolute -right-10 xsm:-right-10 sm:-right-[50px] lg:-right-40 w-40 md:w-52 rounded-xl shadow-lg z-10`}
+                >
                   <ul className=' py-2 text-sm'>
                     <li>
                       {userId && !own && (
                         <button
-                          className={`block px-4 py-2 w-full text-left flex items-center gap-4 rounded  hover:bg-Background/Middle transition ${
+                          className={`block px-4 py-2 w-full text-left flex items-center gap-4 rounded  hover:bg-[var(--background-hovered)]  transition ${
                             alreadyPinned ? 'text-gray-500 cursor-not-allowed' : ''
                           }`}
                           onClick={() => !alreadyPinned && pin('user', userId)}
@@ -534,7 +547,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                       <>
                         <li>
                           <button
-                            className='block px-4 py-2  hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                            className='block px-4 py-2  hover:bg-[var(--background-hovered)]  w-full text-left flex flex-row gap-4'
                             onClick={() => {
                               setShowProfileEditModal((prev) => !prev),
                                 setModeEditChange('editprofile'),
@@ -547,7 +560,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                         </li>
                         <li>
                           <button
-                            className='block px-4 py-2  hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                            className='block px-4 py-2  hover:bg-[var(--background-hovered)]  w-full text-left flex flex-row gap-4'
                             onClick={() => {
                               setShowProfileEditModal((prev) => !prev),
                                 setModeEditChange('editpassword');
@@ -558,12 +571,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                             Change password
                           </button>
                         </li>
-                        {/* <li>
-                          <button className='text-sm block px-4 py-2 text-red-500 hover:bg-Background/Middle w-full text-left flex flex-row gap-4'>
-                            <AiOutlineUserDelete className='text-lg lg:text-xl' />
-                            Delete account
-                          </button>
-                        </li> */}
                       </>
                     )}
                   </ul>
@@ -580,13 +587,21 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                 <img
                   src={host?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                   alt='Profile Icon'
-                  className='w-16 h-16 xxsm:w-28 xxsm:h-28 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-56 xl:w-56 rounded-full object-cover mt-8 mx-0 sm:mx-0 sm:mt-14 lg:mx-2 xl:mx-4 mb-5 flex-shrink-0'
+                  className='w-20 h-20 xxsm:w-28 xxsm:h-28 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-56 xl:w-56 rounded-full object-cover mt-8 mx-0 sm:mx-0 sm:mt-14 lg:mx-2 xl:mx-4 mb-5 flex-shrink-0'
                 />
                 {!own && (
                   <div className='flex hidden sm:block lg:hidden'>
                     <button
                       className={`transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-28 lg:w-28 h-8 lg:h-8 px-[2px] rounded-xl text-xs sm:text-lg lg:text-base text-Accent/Target mb-4 
-        ${isFollowing ? 'bg-Accent/Target  hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:'}`}
+                      ${
+                        theme === 'original'
+                          ? isFollowing
+                            ? 'bg-[var(--button-active)] hover:bg-red-400 text-white'
+                            : 'bg-white hover:bg-Accent/Target hover:text-white text-Accent/Target'
+                          : isFollowing
+                            ? 'bg-[var(--button-active)] text-[var(--text-selected)] border-[1px] border-[var(--border)]'
+                            : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'
+                      }`}
                       onClick={isFollowing ? handleUnfollow : handleFollow}
                       onMouseEnter={() => setIsHovered(true)}
                       onMouseLeave={() => setIsHovered(false)}
@@ -620,7 +635,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
               <div
                 className={`flex flex-col space-y-4 mb-6 sm:mb-6 lg:mb-10 ml-4 xsm:ml-20 sm:ml-0 ${!own ? 'xsm:mt-4' : 'xsm:mt-8 mt-4'}  sm:mt-0`}
               >
-                <div className='flex flex-row sm:-mt-4 lg:mt-0'>
+                <div className='flex flex-row -mt-2 xxsm:mt-0 sm:-mt-4 lg:mt-0'>
                   <div className='flex flex-col '>
                     <div className=''>
                       <p className=' font-semibold mt-6 text-2xl  sm:text-3xl  break-words'>
@@ -655,7 +670,15 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                       <div className='flex sm:hidden xsm:mt-4 mt-3'>
                         <button
                           className={`transition-colors font-semibold duration-300 ease-in-out w-24 md:w-20 lg:w-28 h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target mt-2 xsm:mt-4 
-        ${isFollowing ? 'bg-Accent/Target  hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:'}`}
+                          ${
+                            theme === 'original'
+                              ? isFollowing
+                                ? 'bg-[var(--button-active)] hover:bg-red-400 text-white'
+                                : 'bg-white hover:bg-Accent/Target hover:text-white text-Accent/Target'
+                              : isFollowing
+                                ? 'bg-[var(--button-active)] text-[var(--text-selected)] border-[1px] border-[var(--border)]'
+                                : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'
+                          }`}
                           onClick={isFollowing ? handleUnfollow : handleFollow}
                           onMouseEnter={() => setIsHovered(true)}
                           onMouseLeave={() => setIsHovered(false)}
@@ -694,33 +717,37 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                 </div>
                 <div className='flex flex-row gap-6 xsm:gap-8 sm:gap-20 '>
                   <div className='flex flex-col'>
-                    <p className=' xsm:text-xl text-lg flex justify-center'>
+                    <p className=' xsm:text-xl xxsm:text-lg text-base flex justify-center'>
                       {formatNumber(host?.totalPosts) || 0}
                     </p>
 
-                    <p className='text-[var(--text-title)] text-md flex justify-center'>Posts</p>
+                    <p className='text-[var(--text-title)] text-sm xxsm:text-base flex justify-center'>
+                      Posts
+                    </p>
                   </div>
 
                   <div className='flex flex-col'>
-                    <p className=' xsm:text-xl text-lg flex justify-center'>
+                    <p className=' xsm:text-xl xxsm:text-lg text-base flex justify-center'>
                       {formatNumber(host?.totalLikes) || 0}
                     </p>
-                    <p className='text-[var(--text-title)] text-md flex justify-center'>Likes</p>
+                    <p className='text-[var(--text-title)] text-sm xxsm:text-base flex justify-center'>
+                      Likes
+                    </p>
                   </div>
 
                   <div className='flex flex-col'>
-                    <p className=' xsm:text-xl text-lg flex justify-center'>
+                    <p className=' xsm:text-xl xxsm:text-lg text-base flex justify-center'>
                       {formatNumber(followersCount) || 0}
                     </p>
-                    <p className='text-[var(--text-title)] text-md flex justify-center'>
+                    <p className='text-[var(--text-title)] text-sm xxsm:text-base flex justify-center'>
                       Followers
                     </p>
                   </div>
                   <div className='flex flex-col'>
-                    <p className=' xsm:text-xl text-lg flex justify-center'>
+                    <p className=' xsm:text-xl xxsm:text-lg text-base flex justify-center'>
                       {formatNumber(host?.totalFollowing) || 0}
                     </p>
-                    <p className='text-[var(--text-title)] text-md flex justify-center'>
+                    <p className='text-[var(--text-title)] text-sm xxsm:text-base flex justify-center'>
                       Following
                     </p>
                   </div>
@@ -730,28 +757,28 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
           </div>
         </div>
 
-        <div className='flex justify-center mt-8 sm:max-lg:mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
+        <div className='flex justify-center mt-8 sm:max-lg:mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-2'>
           <div className='flex flex-row justify-center gap-8 xsm:gap-14 sm:gap-24 lg:gap-16 xl:gap-28 2xl:gap-36 w-1/2'>
             <button
-              className={`${active === 'Posts' ? '' : 'text-gray-500'} text-xl font-semibold`}
+              className={`${active === 'Posts' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-base xxsm:text-lg sm:text-xl`}
               onClick={() => navigate(`/user/${userId}/posts`)}
             >
               Posts
             </button>
             <button
-              className={`${active === 'Users' ? '' : 'text-gray-500'} text-xl font-semibold`}
+              className={`${active === 'Users' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-base xxsm:text-lg sm:text-xl`}
               onClick={() => navigate(`/user/${userId}/users`)}
             >
               Following
             </button>
             <button
-              className={`${active === 'Groups' ? '' : 'text-gray-500'} text-xl font-semibold`}
+              className={`${active === 'Groups' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-base xxsm:text-lg sm:text-xl`}
               onClick={() => navigate(`/user/${userId}/groups`)}
             >
               Groups
             </button>
             <button
-              className={`${active === 'Projects' ? '' : 'text-gray-500'} text-xl font-semibold`}
+              className={`${active === 'Projects' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-base xxsm:text-lg sm:text-xl`}
               onClick={() => navigate(`/user/${userId}/projects`)}
             >
               Projects
@@ -759,8 +786,24 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
           </div>
         </div>
         <div className='flex lg:justify-center mt-2 xsm:mt-2 sm:max-lg:mt-4 lg:mt-6 mx-6 sm:max-lg:mx-20 lg:mx-20'>
-          <div className='flex flex-start w-1/2 xl:min-w-[650px] mb-10 lg:mb-0 ml-8 sm:ml-0'>
+          <div className='flex justify-between w-[94vw] lg:w-1/2 xl:min-w-[650px] mb-10 lg:mb-0 ml-8 sm:ml-0'>
             <p className='text-2xl font-semibold '>{active === 'Users' ? 'Following' : active}</p>
+
+            {active === 'Groups' && (
+              <button
+                onClick={() => {
+                  setShowGroupCreate(true);
+                }}
+                className={`${
+                  theme === 'original'
+                    ? 'bg-Accent/Target  hover:text-Accent/Target hover:bg-white'
+                    : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border border-[var(--border)] text-Accent/Target'
+                } transition-colors duration-300 ease-in-out w-28 rounded-2xl text-lg flex flex-row gap-2 px-6 py-[2px] items-center`}
+              >
+                <p>New</p>
+                <AiFillPlusCircle className=' text-3xl' />
+              </button>
+            )}
           </div>
         </div>
       </>
@@ -769,10 +812,9 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
         <div
           className={`${
             theme === 'original'
-              ? 'bg-Background/Bottom border-2  border-Primary/Dark'
+              ? 'bg-Background/Bottom border-2 border-Primary/Dark'
               : 'bg-[var(--surface)]'
-          } h-18  px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl  sm:max-lg:rounded-3xl lg:mt-0 lg:border-t-0 lg:rounded-none lg:rounded-b-3xl
-        border-solid box-border mb-3 text-center mt-28 `}
+          } h-18 px-6 py-4 w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl border-solid box-border text-center`}
         >
           <div className='flex flex-row w-full items-center space-x-4 mx-4 mt-0'>
             <div className='text-3xl inline-block flex-shrink-0 w-9 h-9 items-center justify-center flex'>
@@ -792,17 +834,17 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
             ></input>
 
             <button
-              className='text-xl hover:bg-Background/Middle rounded-lg hover:bg-gray-300 hover:bg-opacity-20 block '
+              className='text-xl hover:bg-[var(--background-hovered)]  rounded-lg hover:bg-gray-300 hover:bg-opacity-20 block '
               onClick={() => setShowTaglistModal(!showTaglistModal)}
             >
               <FaFilter />
             </button>
 
             {showTaglistModal && (
-              <div
-                className={`fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50`}
-              >
-                <div ref={tagListRef}>
+              <div>
+                <div
+                  className={`fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50`}
+                >
                   <div ref={modalRef}>
                     <TagList
                       onFilterChange={handleFilterChange}
@@ -824,7 +866,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
       </div>
 
       {active === 'Posts' && (
-        <div className='mb-5'>
+        <div className=''>
           <div className='flex justify-center mx-6 sm:max-lg:mx-14 lg:mx-8'>
             {own && (
               <div
@@ -832,13 +874,14 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                   theme === 'original'
                     ? 'bg-Background/Bottom border-2 border-Primary/Dark'
                     : 'bg-[var(--surface)] text-[var(--text)]'
-                } w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] mb-5 mt-5 border-Primary/Dark rounded-3xl p-5 md:p-7 lg:p-8`}
+                } w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark rounded-3xl p-5 md:p-7 lg:p-8`}
               >
                 <div className='flex flex-row w-full items-center space-x-4'>
                   <div className='inline-block flex-shrink-0'>
                     <img
                       src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                       alt='Profile Icon'
+                      className='w-8 h-8 rounded-full object-cover'
                     />
                   </div>
 
@@ -902,21 +945,21 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
           )}
 
           {/* Display groups if available */}
-          {active == 'Groups' && groups.length > 0 && (
+          {active == 'Groups' && groups.length > 0 && user && (
             <div id='posts-container' className={'mx-6 sm:max-lg:mx-14 lg:mx-10 '}>
               {groups.map((group) => (
                 <div key={group._id}>
-                  <GroupBrief groupData={group} />
+                  <GroupBrief userId={user._id} groupData={group} />
                 </div>
               ))}
             </div>
           )}
           {/* Display projects if available */}
-          {active == 'Projects' && projects.length > 0 && (
+          {active == 'Projects' && projects.length > 0 && user && (
             <div id='posts-container' className={'mx-6 sm:max-lg:mx-14 lg:mx-10 '}>
               {projects.map((project) => (
                 <div key={project._id}>
-                  <ProjectBrief projectData={project} detail={false} />
+                  <ProjectBrief userId={user._id} projectData={project} detail={false} />
                 </div>
               ))}
             </div>
@@ -983,7 +1026,15 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
               <div className='flex justify-center lg:-mt-4 xl:ml-0'>
                 <button
                   className={`transition-colors font-semibold duration-300 ease-in-out w-12 md:w-20 lg:w-28 h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-md lg:text-base text-Accent/Target m-4 
-       ${isFollowing ? 'bg-Accent/Target  hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover:'}`}
+                  ${
+                    theme === 'original'
+                      ? isFollowing
+                        ? 'bg-[var(--button-active)] hover:bg-red-400 text-white'
+                        : 'bg-white hover:bg-Accent/Target hover:text-white text-Accent/Target'
+                      : isFollowing
+                        ? 'bg-[var(--button-active)] text-[var(--text-selected)] border-[1px] border-[var(--border)]'
+                        : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'
+                  }`}
                   onClick={isFollowing ? handleUnfollow : handleFollow}
                   onMouseEnter={() => setIsHovered(true)}
                   onMouseLeave={() => setIsHovered(false)}
@@ -995,6 +1046,12 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
           </div>
         )}
       </div>
+
+      {showGroupCreate && (
+        <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
+          <GroupCreate closeModal={handleCloseGroupModal} onGroupCreated={refetchPosts} />
+        </div>
+      )}
 
       {/* Sidebar */}
       <div ref={sidebarRef}>

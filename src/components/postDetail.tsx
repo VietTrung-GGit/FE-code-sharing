@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
-import EmojiPicker from 'emoji-picker-react';
+import { EmojiClickData } from 'emoji-picker-react';
 import { CustomLinkify } from '../utils/linkifyConfig';
-import { Theme } from 'emoji-picker-react';
 import { TbMessage2Share, TbLink } from 'react-icons/tb';
 import CommentItem from './comment';
 import { Link } from 'react-router-dom';
 import { FaShareSquare } from 'react-icons/fa';
 import PostRef from '../components/postRef';
-import { formatNumber, formatDate, getEditorLanguage } from '../utils/helpers';
+import { formatNumber, formatDate, getEditorLanguage, tagColors } from '../utils/helpers';
 import { useAuthUser } from '../context/AuthUserContext';
 import { toast } from 'react-toastify';
 import { Tooltip } from 'react-tooltip';
@@ -25,6 +24,7 @@ import {
   fetchComments,
 } from '../services/postService';
 import { useTheme } from '../context/ThemeContext';
+import EmojiPickerComponent from './emojiPicker';
 
 interface PostDetailProps {
   proppost: Post;
@@ -60,6 +60,8 @@ const PostDetail: React.FC<PostDetailProps> = ({
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const { user } = useAuthUser();
+  const emojis = ['😀', '😆', '😎', '🔥', '💯', '🚀', '🎉', '🥳'];
+  const getRandomEmoji = () => emojis[Math.floor(Math.random() * emojis.length)];
   const downloadTextFile = (content: string, title: string): void => {
     // Create a Blob with the content as text and the type 'text/plain'
     const blob = new Blob([content], { type: 'text/plain' });
@@ -107,7 +109,6 @@ const PostDetail: React.FC<PostDetailProps> = ({
 
     try {
       const responseComments = await fetchComments(post._id, page, 5, 'descending');
-      alert(1);
       // Ensure newComments is always an array
       const newComments = Array.isArray(responseComments.comments) ? responseComments.comments : [];
       const hasNextPage = responseComments.hasMore;
@@ -140,7 +141,6 @@ const PostDetail: React.FC<PostDetailProps> = ({
       const [entry] = entries;
       if (entry.isIntersecting && hasMore && !loading && post.totalComments > 0) {
         console.log('Fetching comments...');
-        alert('due to scroll');
         fetchComment();
       }
     };
@@ -256,7 +256,6 @@ const PostDetail: React.FC<PostDetailProps> = ({
           __v: 0,
           isAuthor: true,
         };
-        alert(2);
         fetchComment();
         // setComments((prevComments) => {
         //   if (prevComments) {
@@ -359,7 +358,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
       >
         ×
       </button>
-      <div ref={parentRef} className='overflow-y-auto scrollbar'>
+      <div ref={parentRef} className='overflow-y-auto h-full scrollbar'>
         <div className='flex items-center justify-between mb-4'>
           <div className='flex items-center gap-4'>
             <Link to={`/user/${post.author}`} className='flex items-center gap-4'>
@@ -391,7 +390,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
               {post.tags.map((tagName, index) => (
                 <span
                   key={index}
-                  className='bg-[var(--text-title)] flex justify-center text-Primary/Dark text-sm w-20 px-2 rounded-3xl py-1'
+                  className={`text-Primary/Dark ${tagColors[tagName]} flex justify-center text-sm w-20 px-2 rounded-3xl py-[2px]`}
                 >
                   {tagName}
                 </span>
@@ -472,7 +471,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                   : 'markdown'
               }
               value={post && post.files[activeTab]?.fileUrl ? post.files[activeTab]?.fileUrl : ''}
-              theme='vs-dark'
+              theme={`${theme == 'light' ? 'light' : 'vs-dark'}`}
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,
@@ -498,7 +497,13 @@ const PostDetail: React.FC<PostDetailProps> = ({
               <Tooltip id='share' classNameArrow='noArrow' />
             </button>
             {isDropdownOpen && (
-              <div className='text-xs lg:text-sm absolute -left-10 md:-left-24 top-full mt-1 w-40 md:w-52 bg-Background/Bottom border rounded-xl border-2 border-Primary/Dark shadow-lg z-10'>
+              <div
+                className={`${
+                  theme === 'original'
+                    ? 'bg-Background/Bottom text-white'
+                    : 'bg-[var(--surface)] text-[var(--text)]'
+                } border border-[var(--border)] text-xs lg:text-sm absolute -left-10 md:-left-24 top-full mt-1 w-40 md:w-52 border rounded-xl shadow-lg z-10`}
+              >
                 <ul className='py-1 my-1'>
                   <li>
                     <button
@@ -506,7 +511,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                         shareAction(post._id);
                         setIsDropdownOpen(false);
                       }}
-                      className='block px-4 py-2  hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                      className='block px-4 py-2 hover:bg-[var(--button-hovered)] w-full text-left flex flex-row gap-4'
                     >
                       <TbMessage2Share className='text-lg lg:text-xl' />
                       Share in a new post
@@ -520,7 +525,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                         setIsDropdownOpen(false);
                         toast.success('Link copied to clipboard!');
                       }}
-                      className='block px-4 py-2  hover:bg-Background/Middle w-full text-left flex flex-row gap-4'
+                      className='block px-4 py-2 hover:bg-[var(--button-hovered)] w-full text-left flex flex-row gap-4'
                     >
                       <TbLink className='text-lg lg:text-xl' />
                       Copy Link
@@ -534,7 +539,15 @@ const PostDetail: React.FC<PostDetailProps> = ({
           <div className='flex justify-end'>
             <button
               onClick={handleLike}
-              className={`text-sm w-12 xsm:w-16 text-sm h-5 xsm:h-7 transition-colors duration-200 ease-in-out inline-flex items-center justify-center py-2 px-4 rounded-lg ${hasLiked ? 'bg-Accent/Target ' : 'bg-white text-Accent/Target'}`}
+              className={`text-sm w-12 xsm:w-16 text-sm h-5 xsm:h-7 transition-colors duration-200 ease-in-out inline-flex items-center justify-center py-2 px-4 rounded-lg ${
+                theme === 'original'
+                  ? hasLiked
+                    ? 'bg-[var(--button-active)] text-white'
+                    : 'bg-white hover:bg-gray-300 text-Accent/Target'
+                  : hasLiked
+                    ? 'bg-[var(--button-active)] text-[var(--text-selected)] border-[1px] border-[var(--border)]'
+                    : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'
+              }`}
             >
               <svg
                 className={`xsm:w-6 xsm:h-4 w-3 h-4 mr-1 stroke-current fill-current`} // Tailwind class for color
@@ -595,11 +608,15 @@ const PostDetail: React.FC<PostDetailProps> = ({
         <h3 className='text-lg font-bold text-[var(--text-title)]'>New Comment</h3>
         <div className='bg-Background/Light pt-3 px-2'>
           <div className='flex justify-center gap-4'>
-            <img src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'} alt='Avatar' />
+            <img
+              src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+              className='w-8 h-8 rounded-full object-cover'
+              alt='Avatar'
+            />
             <div className='w-full'>
               <div className='relative flex items-center mb-1'>
                 <textarea
-                  className='w-full p-2 bg-Background/Bottom resize-none border-Background/Middle border-2'
+                  className={`w-full rounded-md p-2 bg-[var(--input)] focus:outline-none resize-none`}
                   rows={2}
                   placeholder='Share your thought...'
                   value={newCommentText}
@@ -609,13 +626,16 @@ const PostDetail: React.FC<PostDetailProps> = ({
                   onClick={() => setShowPicker(!showPicker)}
                   className='absolute top-1 right-2 z-40 text-lg hidden lg:block'
                 >
-                  😀
+                  {getRandomEmoji()}
                 </button>
                 {showPicker && (
-                  <div className='absolute bottom-full right-0 mb-2 z-50 bg-gray-800 rounded-lg shadow-lg'>
-                    <EmojiPicker
-                      theme={Theme.DARK}
-                      onEmojiClick={(emoji) => setNewCommentText((prev) => prev + emoji.emoji)}
+                  <div className='absolute bottom-full right-0 mb-2 z-30 bg-gray-800 rounded-lg shadow-lg'>
+                    <EmojiPickerComponent
+                      theme={theme}
+                      onSelect={(emoji: EmojiClickData) =>
+                        setNewCommentText((prev) => prev + emoji.emoji)
+                      }
+                      onClose={() => setShowPicker(false)}
                     />
                   </div>
                 )}
@@ -626,7 +646,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                 language='markdown'
                 value={newCommentCode}
                 onChange={(value) => setNewCommentCode(value || '')}
-                theme='vs-dark'
+                theme={`${theme == 'light' ? 'light' : 'vs-dark'}`}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 14,
@@ -638,7 +658,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
               <div className='flex justify-end'>
                 <button
                   onClick={handleCommentSubmit}
-                  className='mt-2 w-24 h-8 bg-Primary/Dark flex items-center justify-center  py-2 px-4 rounded-lg hover:bg-[var(--text-title)] hover:text-Primary/Dark'
+                  className='mt-2 w-24 h-8 bg-Primary/Dark text-white flex items-center justify-center  py-2 px-4 rounded-lg hover:bg-[var(--text-title)] hover:text-[var(--background)]'
                 >
                   {/* Like Icon */}
                   Comment

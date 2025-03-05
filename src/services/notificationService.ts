@@ -32,13 +32,14 @@ export const getUserNotifications = async (
   filter: string = 'all',
   page: number = 1,
   limit: number = 5,
+  category: string = 'all',
 ) => {
   return await axiosInstance.get<{
     notifications: Notification[];
     hasMore: boolean;
     totalNotifications: number;
   }>(`/notification`, {
-    params: { filter, page, limit },
+    params: { filter, page, limit, category },
   });
 };
 
@@ -69,3 +70,4 @@ export const confirmProjectInvite = async (projectId: string) => {
   const response = await axiosInstance.post(API_ENDPOINTS.PROJECT_CONFIRM_INVITE(projectId));
   return response.data;
 };
+

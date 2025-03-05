@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = 'wss://backendgdscdevteam3-2.onrender.com'; // Adjust as needed
+const SOCKET_URL = 'wss://z2mmgh-4000.csb.app'; // Adjust as needed
 
 let socket: Socket | null = null;
 

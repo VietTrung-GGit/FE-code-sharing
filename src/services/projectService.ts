@@ -1,20 +1,27 @@
 import axiosInstance from '../api/axiosInstance';
 import { API_ENDPOINTS } from '../api/endpoints';
-import { GroupDataBrief } from './groupService';
+import { BriefData, GroupDataBrief } from './groupService';
 
 export interface NodeStructure {
   _id: string;
   name: string;
   isActive?: boolean;
   children: NodeStructure[];
+  isJoined: boolean;
+  description: string;
 }
 
-export function activateNodes(nodes: NodeStructure[], activeSectionId: string): void {
+export function activateNodes(
+  nodes: NodeStructure[],
+  activeSectionId: string,
+  showSubsections: boolean,
+): void {
   function traverse(node: NodeStructure, parentActive: boolean): boolean {
-    node.isActive = node._id === activeSectionId || parentActive;
+    const isCurrentActive = node._id === activeSectionId;
+    node.isActive = isCurrentActive || (showSubsections && parentActive);
 
     for (const child of node.children) {
-      traverse(child, node.isActive);
+      traverse(child, showSubsections ? node.isActive : isCurrentActive);
     }
 
     return node.isActive;
@@ -34,6 +41,8 @@ export interface ProjectDataBrief {
   joined: boolean;
   joinable: boolean;
   visibleMembers: (string | undefined)[];
+  role: string;
+  creator: string;
 }
 
 export interface ProjectData {
@@ -43,15 +52,17 @@ export interface ProjectData {
   groupData: GroupDataBrief[];
   group: string;
   bio: string;
+  note: string;
   canJoin: boolean;
   members: { avatar: string; role: string; user: string }[];
   sections: NodeStructure[];
   role: string;
+  joined: boolean;
 }
 
 export interface ProjectDataCreate {
   name: string;
-  avatar: File;
+  avatar?: File;
   description: string;
   private: boolean;
 }
@@ -116,12 +127,12 @@ export const fetchUserProjects = async (
 };
 
 export const joinProject = async (projectId: string) => {
-  const response = await axiosInstance.get(API_ENDPOINTS.PROJECT_JOIN(projectId));
+  const response = await axiosInstance.post(API_ENDPOINTS.PROJECT_JOIN(projectId));
   return response.data;
 };
 
 export const leaveProject = async (projectId: string) => {
-  const response = await axiosInstance.get(API_ENDPOINTS.PROJECT_LEAVE(projectId));
+  const response = await axiosInstance.post(API_ENDPOINTS.PROJECT_LEAVE(projectId));
   return response.data;
 };
 
@@ -177,6 +188,23 @@ export const updateProject = async (
   return response.data;
 };
 
+// Update an existing group
+export const updateProjectNote = async (groupId: string, note: string): Promise<string> => {
+  const formData = new FormData();
+
+  formData.append('note', note);
+
+  const response = await axiosInstance.put<string>(
+    API_ENDPOINTS.PROJECT_UPDATE(groupId),
+    formData,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    },
+  );
+
+  return response.data;
+};
+
 // Delete a project
 export const deleteProject = async (projectId: string): Promise<string> => {
   const response = await axiosInstance.delete<string>(API_ENDPOINTS.PROJECT_DELETE(projectId));
@@ -184,8 +212,29 @@ export const deleteProject = async (projectId: string): Promise<string> => {
 };
 
 // Fetch full project data
-export const getProjectFullData = async (projectId: string): Promise<any> => {
-  const response = await axiosInstance.get(API_ENDPOINTS.PROJECT_FULL_DATA(projectId));
+export const getProjectFullData = async (projectId: string): Promise<ProjectData> => {
+  const response = await axiosInstance.get<ProjectData>(API_ENDPOINTS.PROJECT_FULL_DATA(projectId));
+  const projectData: ProjectData = response.data;
+
+  return {
+    ...projectData,
+    role: projectData.role === 'participant' ? 'member' : projectData.role,
+    members: projectData.members.map((member) => ({
+      ...member,
+      role: member.role === 'participant' ? 'member' : member.role,
+    })),
+  };
+};
+
+// Fetch full project data
+export const getProjectPublicData = async (projectId: string): Promise<BriefData> => {
+  const response = await axiosInstance.get<BriefData>(API_ENDPOINTS.PROJECT_PUBLIC_DATA(projectId));
+  return response.data;
+};
+
+// Fetch section description
+export const getSectionDescription = async (sectionId: string): Promise<string> => {
+  const response = await axiosInstance.get<string>(API_ENDPOINTS.SECTION_DESCRIPTION(sectionId));
   return response.data;
 };
 
@@ -219,6 +268,15 @@ export const removeSectionParticipant = async (
   return response.data;
 };
 
+export const removeSectionParticipantFromAll = async (
+  sectionId: string,
+  userId: string,
+): Promise<string> => {
+  const response = await axiosInstance.delete<string>(
+    API_ENDPOINTS.SECTION_REMOVE_PARTICIPANT_FROM_ALL(sectionId, userId),
+  );
+  return response.data;
+};
 
 // Assign an admin to a project
 export const assignProjectAdmin = async (
@@ -257,9 +315,14 @@ export const createSection = async (
 };
 
 // Update an existing section
-export const updateSection = async (sectionId: string, name: string): Promise<string> => {
+export const updateSection = async (
+  sectionId: string,
+  name?: string,
+  description?: string,
+): Promise<string> => {
   const response = await axiosInstance.put<string>(API_ENDPOINTS.UPDATE_SECTION(sectionId), {
     name,
+    description,
   });
   return response.data;
 };

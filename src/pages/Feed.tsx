@@ -241,7 +241,7 @@ const Feed: React.FC<FeedProps> = ({ type }) => {
             theme === 'original'
               ? 'bg-Background/Bottom border-2  border-Primary/Dark'
               : 'bg-[var(--surface)]'
-          } h-18  px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl  sm:max-lg:rounded-3xl lg:mt-0 lg:border-t-0 lg:rounded-none lg:rounded-b-3xl
+          } h-18  px-6 py-4 w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl  sm:max-lg:rounded-3xl lg:mt-0 lg:border-t-0 lg:rounded-none lg:rounded-b-3xl
         border-solid box-border mb-3 text-center mt-28 `}
         >
           <div className='flex flex-row w-full items-center space-x-4 mx-4 mt-0'>
@@ -253,7 +253,7 @@ const Feed: React.FC<FeedProps> = ({ type }) => {
             <input
               className={`${
                 theme === 'original'
-                  ? 'bg-Background/Middle text-Primary/Light '
+                  ? 'bg-Background/Middle text-text-[var(--text-title)] '
                   : 'bg-[var(--input)] text-[var(--text)]'
               } inline-block flex-grow py-4 px-4 rounded-3xl h-10 w-5/6 text-left text-md`}
               placeholder={`Search for posts...`}
@@ -269,10 +269,10 @@ const Feed: React.FC<FeedProps> = ({ type }) => {
             </button>
 
             {showTaglistModal && (
-              <div
-                className={`fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50`}
-              >
-                <div ref={tagListRef}>
+              <div>
+                <div
+                  className={`fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50`}
+                >
                   <div ref={modalRef}>
                     <TagList
                       onFilterChange={handleFilterChange}
@@ -300,7 +300,7 @@ const Feed: React.FC<FeedProps> = ({ type }) => {
                 theme === 'original'
                   ? 'bg-Background/Bottom border-2 border-Primary/Dark'
                   : 'bg-[var(--surface)] text-[var(--text)]'
-              } w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark rounded-3xl p-5 md:p-7 lg:p-8`}
+              } w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 border-Primary/Dark rounded-3xl p-5 md:p-7 lg:p-8`}
             >
               <div className='flex flex-row w-full items-center space-x-4'>
                 <div className='inline-block flex-shrink-0'>

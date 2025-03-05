@@ -11,7 +11,9 @@ import { IoIosMore } from 'react-icons/io';
 import { usePinned } from '../context/PinnedContext';
 import { TbPin, TbPinnedOff } from 'react-icons/tb';
 import { useTheme } from '../context/ThemeContext';
+import { MdOutlinePublicOff } from 'react-icons/md';
 interface GroupBriefProps {
+  userId: string;
   groupData?: GroupDataBrief;
 }
 
@@ -23,6 +25,7 @@ const mockGroup: GroupDataBrief = {
   private: false,
   totalPosts: 0,
   totalMembers: 0,
+  creator: '1',
   avatar: 'https://i.postimg.cc/02Xx40Yq/default.png',
   visibleMembers: [
     'https://i.postimg.cc/02Xx40Yq/default.png',
@@ -31,7 +34,7 @@ const mockGroup: GroupDataBrief = {
   ],
 };
 
-const GroupBrief: React.FC<GroupBriefProps> = ({ groupData }) => {
+const GroupBrief: React.FC<GroupBriefProps> = ({ userId, groupData }) => {
   const [group, setGroup] = useState<GroupDataBrief>(mockGroup);
   const { theme } = useTheme();
   const [joined, setJoined] = useState<boolean>(false);
@@ -124,27 +127,30 @@ const GroupBrief: React.FC<GroupBriefProps> = ({ groupData }) => {
           theme === 'original'
             ? 'bg-Background/Bottom text-white border-2'
             : 'bg-[var(--surface)] text-[var(--text)]'
-        } border-Primary/Dark relative min-h-max break-all w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] my-3 rounded-3xl p-5 md:p-7 lg:p-8`}
+        } border-Primary/Dark relative min-h-max break-all w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] my-3 rounded-3xl p-5 md:p-7 lg:p-8`}
       >
-        <div className='absolute right-3 top-2 h-6'>
+        <div className='absolute right-3 top-2 h-6' ref={dropdownConfigRef}>
           {group && (
             <>
               <button
-                className='hover:text-gray-300   text-3xl'
-                onClick={() => setIsDropdownOpen((prev) => !prev)}
+                className='hover:text-[var(--text-hovered)]  text-3xl'
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
                 <IoIosMore />
               </button>
               {isDropdownOpen && (
                 <div
-                  className='text-sm absolute right-0 lg:left-0 lg:right-full top-full w-56 bg-Background/Bottom border rounded-xl border-2 border-Primary/Dark shadow-lg z-10'
-                  ref={dropdownConfigRef}
+                  className={`${
+                    theme === 'original'
+                      ? 'bg-Background/Bottom text-white'
+                      : 'bg-[var(--surface)] text-[var(--text)]'
+                  } border border-[var(--border)]  text-sm absolute right-0 lg:left-0 lg:right-full top-full w-56 rounded-xl shadow-lg z-10`}
                 >
                   <ul className='py-1 my-2'>
                     {/* Assign Admin */}
                     <li>
                       <button
-                        className='block px-4 py-2 w-full text-left flex items-center gap-4 rounded hover:bg-Background/Middle transition'
+                        className='block px-4 py-2 w-full text-left flex items-center gap-4  hover:bg-[var(--background-hovered)]  transition'
                         onClick={() => {
                           handlePinToggle(), handleOptionSelect();
                         }}
@@ -167,20 +173,23 @@ const GroupBrief: React.FC<GroupBriefProps> = ({ groupData }) => {
 
         <div className='flex items-center w-full space-x-4'>
           {/* Group Avatar */}
-          <Link to={`/group/${groupData?._id ?? '#'}`} className='flex-shrink-0'>
+          <Link to={`/group/${groupData?._id ?? '#'}/posts`} className='flex-shrink-0 relative'>
             <img
               src={group.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
               alt='Group Icon'
               className='w-12 h-12 sm:w-20 sm:h-20 lg:w-28 lg:h-28 rounded-lg sm:rounded-xl lg:rounded-3xl object-cover'
             />
+            {group.private && (
+              <MdOutlinePublicOff className='text-xl lg:text-3xl absolute bottom-0 right-0' />
+            )}
           </Link>
 
           {/* Group Info */}
-          <div className='flex flex-col space-x-4 w-full'>
+          <div className='flex flex-col w-full'>
             {' '}
-            <Link to={`/group/${groupData?._id ?? '#'}`}>
+            <Link to={`/group/${groupData?._id ?? '#'}/posts`}>
               <div className='max-w-full' ref={textGroupRef}>
-                <p className='  font-semibold text-lg md:text-2xl break-words'>
+                <p className=' flex items-center font-semibold text-lg md:text-2xl break-words gap-2'>
                   {isGroupnameOverflowing ? `${group.name.slice(0, 20)}...` : group.name}
                 </p>
               </div>
@@ -202,16 +211,24 @@ const GroupBrief: React.FC<GroupBriefProps> = ({ groupData }) => {
                   key={index}
                   src={avatar}
                   alt={`Member ${index + 1}`}
-                  className='w-8 h-8 rounded-full object-cover'
+                  className='w-6 h-6 lg:w-8 lg:h-8 rounded-full object-cover'
                 />
               ))}
             </div>
           </div>
 
-          {user && (
+          {user && (!group.private || joined) && group.creator != userId && (
             <button
-              className={`hidden xxsm:block transition-colors duration-300 ease-in-out w-20 md:w-28 xl:w-32 h-6 md:h-8 rounded-xl text-sm sm:text-base text-Accent/Target m-4 font-semibold flex-shrink-0
-              ${joined ? 'bg-Accent/Target  hover:bg-red-400' : 'bg-white hover:bg-Accent/Target hover: '}`}
+              className={`hidden xxsm:block transition-colors duration-300 ease-in-out w-20 md:w-28 xl:w-32 h-6 md:h-8 rounded-xl text-sm sm:text-base m-4 font-semibold flex-shrink-0
+              ${
+                theme === 'original'
+                  ? joined
+                    ? 'bg-[var(--button-active)] hover:bg-red-400 text-white'
+                    : 'bg-white hover:bg-Accent/Target hover:text-white text-Accent/Target'
+                  : joined
+                    ? 'bg-[var(--button-active)] text-[var(--text-selected)] border-[1px] border-[var(--border)]'
+                    : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'
+              }`}
               onClick={joined ? handleLeave : handleJoin}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}

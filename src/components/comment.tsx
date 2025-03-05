@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useAuthUser } from '../context/AuthUserContext';
 import { BiSolidEdit, BiTrashAlt } from 'react-icons/bi';
-import EmojiPicker from 'emoji-picker-react';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { Theme } from 'emoji-picker-react';
 import { IoIosAddCircleOutline, IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io';
 import {
@@ -18,6 +18,7 @@ import { toast } from 'react-toastify';
 import Editor from '@monaco-editor/react';
 import { formatDate, formatNumber } from '../utils/helpers';
 import { useTheme } from '../context/ThemeContext';
+import EmojiPickerComponent from './emojiPicker';
 
 interface CommentItemProps {
   comment: Comment;
@@ -53,7 +54,8 @@ const CommentItem: React.FC<CommentItemProps> = ({
   const replyContainerRefParent = useRef<HTMLDivElement | null>(null);
   const [replyParentHeight, setReplyParentHeight] = useState<number | null>(null);
   const [showPicker, setShowPicker] = useState(false);
-
+  const emojis = ['😀', '😆', '😎', '🔥', '💯', '🚀', '🎉', '🥳'];
+  const getRandomEmoji = () => emojis[Math.floor(Math.random() * emojis.length)];
   useEffect(() => {
     if (replyContainerRef.current) {
       setReplyHeight(replyContainerRef.current.offsetHeight);
@@ -279,7 +281,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
             {/* Author details and edit/delete buttons */}
             <div className='flex justify-between items-center mb-2'>
               <div>
-                <span className='font-semibold text-md'>{comment.authorname}</span>&nbsp;&nbsp;
+                <span className='font-semibold text-base'>{comment.authorname}</span>&nbsp;&nbsp;
                 <span className='text-xs text-[var(--green-highlight)]'>
                   {comment ? formatDate(comment.createdAt) : 'Loading...'}&nbsp;
                 </span>
@@ -288,9 +290,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     Math.abs(
                       new Date(comment.createdAt).getTime() - new Date(comment.editedAt).getTime(),
                     ) > 100) && (
-                    <span className='text-xs text-white'>
-                      (Edited: {formatDate(comment.editedAt)})
-                    </span>
+                    <span className='text-xs'>(Edited: {formatDate(comment.editedAt)})</span>
                   )}
               </div>
             </div>
@@ -298,7 +298,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
             {editing ? (
               <>
                 <textarea
-                  className='w-full p-2 border border-Primary/Dark bg-Background/Middle rounded mb-2'
+                  className='w-full p-2 border bg-[var(--input)] border-[var(--button-hovered)]  rounded mb-2'
                   value={editedText}
                   onChange={(e) => setEditedText(e.target.value)}
                   placeholder='Edit your comment'
@@ -308,7 +308,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   width='100%'
                   language='markdown'
                   value={editedCode}
-                  theme='vs-dark'
+                  theme={`${theme == 'light' ? 'light' : 'vs-dark'}`}
                   options={{
                     readOnly: false,
                     minimap: { enabled: false },
@@ -329,7 +329,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     width='100%'
                     language='markdown'
                     value={comment.code}
-                    theme='vs-dark'
+                    theme={`${theme == 'light' ? 'light' : 'vs-dark'}`}
                     options={{
                       readOnly: true,
                       minimap: { enabled: false },
@@ -348,7 +348,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
               {commentCount > 0 && levelprop < 3 && (
                 <h3
-                  className='text-sm text-Primary/Light cursor-pointer mr-1 lg:mr-2 inline-flex items-end'
+                  className='text-sm text-text-[var(--text-title)] cursor-pointer mr-1 lg:mr-2 inline-flex items-end'
                   onClick={() => setShowReplies((prev) => !prev)}
                 >
                   Replies ({formatNumber(commentCount)}){' '}
@@ -360,7 +360,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
               {levelprop < 3 && (
                 <button
-                  className='text-sm text-[var(--green-highlight)] hover:text-white flex items-center gap-x-1'
+                  className='text-sm text-[var(--green-highlight)] hover:text-[var(--text-hovered)] flex items-center gap-x-1'
                   onClick={() => setShowReplyInput(!showReplyInput)}
                 >
                   {!showReplyInput && 'New Reply'}
@@ -377,13 +377,13 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     {editing ? (
                       <>
                         <button
-                          className='text-sm text-gray-400 hover:text-white'
+                          className='text-sm text-gray-400 hover:text-[var(--text-hovered)]'
                           onClick={handleCancelEdit}
                         >
                           Cancel&nbsp;
                         </button>
                         <button
-                          className='text-sm min-w-16 xsm:min-w-18 h-5 xsm:h-7 bg-Primary/Dark flex items-center justify-center text-white py-2 px-4 rounded-lg hover:bg-Primary/Light hover:text-Primary/Dark'
+                          className='text-sm min-w-16 xsm:min-w-18 h-5 xsm:h-7 bg-Primary/Dark flex items-center justify-center text-white py-2 px-4 rounded-lg hover:text-[var(--text-title)] hover:text-[var(--background)]'
                           onClick={() => handleSaveComment()}
                         >
                           Submit
@@ -392,13 +392,13 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     ) : (
                       <>
                         <button
-                          className='text-lg hover:text-[var(--green-highlight)] text-white'
+                          className='text-lg hover:text-[var(--green-highlight)]'
                           onClick={() => setEditing(true)}
                         >
                           <BiSolidEdit />
                         </button>
                         <button
-                          className='text-lg hover:text-red-200 text-white'
+                          className='text-lg hover:text-[var(--red-highlight)]'
                           onClick={() => handleDelete()}
                         >
                           <BiTrashAlt />
@@ -428,7 +428,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
             {/* Reply Input Box */}
             {showReplyInput && (
               <div className='mt-3'>
-                <h3 className='text-md font-semibold text-[var(--green-highlight)]'>New Reply</h3>
+                <h3 className='text-base font-semibold text-[var(--green-highlight)]'>New Reply</h3>
                 <div className='bg-Background/Light pt-3 px-2'>
                   <div className='flex justify-center gap-4'>
                     <img
@@ -439,7 +439,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     <div className='w-full'>
                       <div className='relative flex items-center mb-1'>
                         <textarea
-                          className='w-full p-2 bg-Background/Bottom resize-none border-Background/Middle border-2 whitespace-pre-line break-all'
+                          className='w-full p-2 rounded-md bg-[var(--input)] focus:outline-none resize-none whitespace-pre-line break-all'
                           rows={1}
                           placeholder='Share your thought...'
                           value={replyText}
@@ -449,13 +449,16 @@ const CommentItem: React.FC<CommentItemProps> = ({
                           onClick={() => setShowPicker(!showPicker)}
                           className='absolute top-1 right-2 z-40 text-lg hidden lg:block'
                         >
-                          😀
+                          {getRandomEmoji()}
                         </button>
                         {showPicker && (
-                          <div className='absolute bottom-full right-0 mb-2 z-50 bg-gray-800 rounded-lg shadow-lg'>
-                            <EmojiPicker
-                              theme={Theme.DARK}
-                              onEmojiClick={(emoji) => setReplyText((prev) => prev + emoji.emoji)}
+                          <div className='absolute bottom-full right-0 mb-2 z-30 bg-gray-800 rounded-lg shadow-lg'>
+                            <EmojiPickerComponent
+                              theme={theme}
+                              onSelect={(emoji: EmojiClickData) =>
+                                setReplyText((prev) => prev + emoji.emoji)
+                              }
+                              onClose={() => setShowPicker(false)}
                             />
                           </div>
                         )}
@@ -466,7 +469,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                         language='markdown'
                         value={replyCode}
                         onChange={(value) => setReplyCode(value || '')}
-                        theme='vs-dark'
+                        theme={`${theme == 'light' ? 'light' : 'vs-dark'}`}
                         options={{
                           minimap: { enabled: false },
                           fontSize: 14,
@@ -477,14 +480,14 @@ const CommentItem: React.FC<CommentItemProps> = ({
                       />
                       <div className='flex justify-end mt-2'>
                         <button
-                          className='text-sm text-gray-400 hover:text-white'
+                          className='text-sm text-gray-400 hover:text-[var(--text-hovered)]'
                           onClick={() => setShowReplyInput(!showReplyInput)}
                         >
                           {showReplyInput && 'Cancel'}&nbsp;&nbsp;
                         </button>
                         <button
                           onClick={handleAddReply}
-                          className='text-sm min-w-16 xsm:min-w-18 h-5 xsm:h-7  bg-Primary/Dark flex items-center justify-center text-white py-2 px-4 rounded-lg hover:bg-Primary/Light hover:text-Primary/Dark'
+                          className='text-sm min-w-16 xsm:min-w-18 h-5 xsm:h-7  bg-Primary/Dark flex items-center justify-center text-white py-2 px-4 rounded-lg hover:text-[var(--background)]'
                         >
                           {/* Like Icon */}
                           Submit
@@ -520,7 +523,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
               </div>
               {hasMore && comment.totalComments != 0 && (
                 <button className='mt-2 flex justify-start' onClick={fetchReply}>
-                  <h3 className='text-sm font-semibold text-Primary/Light'>View More</h3>
+                  <h3 className='text-sm font-semibold text-text-[var(--text-title)]'>View More</h3>
                 </button>
               )}
             </div>

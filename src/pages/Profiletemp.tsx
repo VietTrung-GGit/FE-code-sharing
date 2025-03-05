@@ -194,7 +194,7 @@ function ProfileTemp() {
               </button>
             </div>
             <div className='flex justify-start ml-10'>
-              <p className='text-Primary/Light text-lg sm:max-xl:text-lg xl:text-base w-56 break-words'>
+              <p className='text-text-[var(--text-title)] text-lg sm:max-xl:text-lg xl:text-base w-56 break-words'>
                 Contact via:
               </p>
             </div>
@@ -208,7 +208,7 @@ function ProfileTemp() {
                 </p>
               </div>
               <div>
-                <p className='text-Primary/Light mt-8 text-lg sm:max-xl:text-lg xl:text-lg w-28 break-words'>
+                <p className='text-text-[var(--text-title)] mt-8 text-lg sm:max-xl:text-lg xl:text-lg w-28 break-words'>
                   {user?.username || 'Username'}
                 </p>
               </div>
@@ -245,7 +245,7 @@ function ProfileTemp() {
               </div>
             </div>
             <div className='bg-Background/Middle w-[480px] h-72 rounded-3xl'>
-              <p className='text-Primary/Light p-4'>bio</p>
+              <p className='text-text-[var(--text-title)] p-4'>bio</p>
             </div>
           </div>
         </div>
@@ -257,16 +257,16 @@ function ProfileTemp() {
               </p>
               <br />
               <p className='text-white text-3xl font-semibold flex justify-center'>1000</p>
-              <p className='text-Primary/Light text-xl flex justify-center'>Posts</p>
+              <p className='text-text-[var(--text-title)] text-xl flex justify-center'>Posts</p>
               <br />
               <p className='text-white text-3xl font-semibold flex justify-center'>321K</p>
-              <p className='text-Primary/Light text-xl flex justify-center'>Likes</p>
+              <p className='text-text-[var(--text-title)] text-xl flex justify-center'>Likes</p>
               <br />
               <p className='text-white text-3xl font-semibold flex justify-center'>123K</p>
-              <p className='text-Primary/Light text-xl flex justify-center'>Followers</p>
+              <p className='text-text-[var(--text-title)] text-xl flex justify-center'>Followers</p>
               <br />
               <p className='text-white text-3xl font-semibold flex justify-center'>2</p>
-              <p className='text-Primary/Light text-xl flex justify-center'>Following</p>
+              <p className='text-text-[var(--text-title)] text-xl flex justify-center'>Following</p>
             </div>
           </div>
         </div>
@@ -292,7 +292,10 @@ function ProfileTemp() {
                         Codemunity
                       </Link>{' '}
                       or{' '}
-                      <Link to='/feed/me' className='text-Primary/Light cursor-pointer inline'>
+                      <Link
+                        to='/feed/me'
+                        className='text-text-[var(--text-title)] cursor-pointer inline'
+                      >
                         share your own code
                       </Link>{' '}
                       !

@@ -17,10 +17,9 @@ const GroupButton: React.FC<PinnedItem & { onUnpin?: () => void; onClose: () => 
 }) => {
   const navigate = useNavigate();
   const handleClick = () => {
-    if (type === 'user') navigate(`/user/${id}`);
-    else if (type === 'group') navigate(`/group/${id}`);
-    else if (type === 'project') navigate(`/project/${id}`);
-    else if (type === 'section') navigate(`/section/${id}`);
+    if (type === 'user') navigate(`/user/${id}/posts`);
+    else if (type === 'group') navigate(`/group/${id}/posts`);
+    else if (type === 'project') navigate(`/project/${id}/sections/root/posts`);
     onClose();
   };
 
@@ -44,10 +43,10 @@ const GroupButton: React.FC<PinnedItem & { onUnpin?: () => void; onClose: () => 
         <img
           src={avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
           alt={`${name} Avatar`}
-          className='w-10 h-10 rounded-full object-cover'
+          className={`w-10 h-10 ${type == 'user' ? 'rounded-full' : 'rounded-lg'} object-cover`}
         />
         <div className='flex flex-col justify-between'>
-          <p className='text-md leading-tight text-left truncate'>
+          <p className='text-base leading-tight text-left truncate'>
             {isTextOverflowing ? `${name.slice(0, 14)}...` : name}
           </p>
           {total && (

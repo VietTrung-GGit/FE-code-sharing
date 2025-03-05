@@ -44,7 +44,11 @@ function CollapseMenu(props: CollapseMenuProps) {
 
   return (
     <header
-      className={`fixed top-0 flex justify-between items-center px-4 py-2 z-20 lg:hidden bg-Background/Bottom w-full h-[60px] border-b-Primary/Dark border-b-2`}
+      className={`${
+        theme === 'original'
+          ? 'bg-Background/Bottom text-white border-b-Primary/Dark'
+          : 'bg-[var(--background-side)] text-[var(--text)] border-b-[var(--border)]'
+      } fixed  border-b-2 top-0 flex justify-between items-center px-4 py-2 z-20 lg:hidden w-full h-[60px] `}
     >
       {/* Sidebar Toggle Button */}
       <button
@@ -52,7 +56,7 @@ function CollapseMenu(props: CollapseMenuProps) {
         onClick={onToggleSidebar}
         className={`p-2 transition-all duration-300 ease-in-out' `}
       >
-        <IoMenuOutline className='text-white text-4xl' />
+        <IoMenuOutline className=' text-4xl' />
       </button>
 
       {/* Logo */}
@@ -65,7 +69,7 @@ function CollapseMenu(props: CollapseMenuProps) {
           onClick={props.onToggleQuickNav}
           className='p-2 transition-all duration-300 ease-in-out'
         >
-          <TbPin className='text-white text-4xl' />
+          <TbPin className=' text-4xl' />
         </button>
       )}
     </header>

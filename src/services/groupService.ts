@@ -5,10 +5,15 @@ import { API_ENDPOINTS } from '../api/endpoints';
 
 export interface GroupDataCreate {
   name: string;
-  avatar: File;
+  avatar?: File;
   description: string;
-  private: boolean;
   moderation: boolean;
+  private: boolean;
+}
+
+export interface BriefData {
+  name: string;
+  avatar: string;
 }
 
 export interface GroupData {
@@ -35,6 +40,7 @@ export interface GroupDataBrief {
   totalMembers: number;
   joined: boolean;
   visibleMembers: (string | undefined)[];
+  creator: string;
 }
 
 // Fetch groups
@@ -201,4 +207,10 @@ export const assignGroupAdmin = async (
   );
   return response.data;
 };
+
+export const getGroupPublicData = async (groupId: string): Promise<BriefData> => {
+  const response = await axiosInstance.get<BriefData>(API_ENDPOINTS.GROUP_PUBLIC_DATA(groupId));
+  return response.data;
+};
+
 

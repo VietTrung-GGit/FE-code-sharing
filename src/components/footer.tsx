@@ -40,14 +40,14 @@ function Modal({ mode, onClose }: { mode: 'about' | 'privacy' | 'terms'; onClose
           <>
             <p className='text-center text-gray-300'>
               We are a team of four passionate developers participating in
-              <span className='font-semibold text-[var(--text-title)]'> Fessior Dev Camp 2024</span>
-              , an event organized by the
-              <span className='font-semibold text-[var(--text-title)]'>
+              <span className='font-semibold text-Primary/Light'> Fessior Dev Camp 2024</span>, an
+              event organized by the
+              <span className='font-semibold text-Primary/Light'>
                 {' '}
                 Google Developer Student Club (GDSC)
               </span>{' '}
               at
-              <span className='font-semibold text-[var(--text-title)]'>
+              <span className='font-semibold text-Primary/Light'>
                 {' '}
                 Ho Chi Minh City University of Technology (HCMUT)
               </span>
@@ -74,10 +74,7 @@ function Modal({ mode, onClose }: { mode: 'about' | 'privacy' | 'terms'; onClose
                 share your thoughts with us!
               </span>{' '}
               You can reach out via email at
-              <a
-                href='mailto:devteam3gdsc@gmail.com'
-                className='text-[var(--text-title)] font-bold'
-              >
+              <a href='mailto:devteam3gdsc@gmail.com' className='text-Primary/Light font-bold'>
                 {' '}
                 devteam3gdsc@gmail.com
               </a>
@@ -106,10 +103,7 @@ function Modal({ mode, onClose }: { mode: 'about' | 'privacy' | 'terms'; onClose
               </li>
               <li>
                 For more details or concerns, contact us at{' '}
-                <a
-                  href='mailto:devteam3gdsc@gmail.com'
-                  className='text-[var(--text-title)] font-bold'
-                >
+                <a href='mailto:devteam3gdsc@gmail.com' className='text-Primary/Light font-bold'>
                   devteam3gdsc@gmail.com
                 </a>
                 .
@@ -133,10 +127,7 @@ function Modal({ mode, onClose }: { mode: 'about' | 'privacy' | 'terms'; onClose
               </li>
               <li>
                 In case of disputes or concerns, please reach out to us via{' '}
-                <a
-                  href='mailto:devteam3gdsc@gmail.com'
-                  className='text-[var(--text-title)] font-bold'
-                >
+                <a href='mailto:devteam3gdsc@gmail.com' className='text-Primary/Light font-bold'>
                   devteam3gdsc@gmail.com
                 </a>
                 .
@@ -171,7 +162,7 @@ function Footer() {
             <span className='text-[var(--green-highlight)]'>Dash</span>
           </div>
           <p className='text-l'>Contact with us:</p>
-          <a href='mailto:devteam3gdsc@gmail.com' className='text-[var(--text-title)]'>
+          <a href='mailto:devteam3gdsc@gmail.com' className='text-Primary/Light'>
             devteam3gdsc@gmail.com
           </a>
         </div>

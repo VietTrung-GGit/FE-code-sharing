@@ -19,9 +19,11 @@ interface NodeProps {
   children?: React.ReactNode;
   isEditMode: boolean;
   isActive: boolean;
+  isJoined: boolean;
   onAddChild?: () => void;
   onDelete?: () => void;
   onUpdateName?: (id: string, newTitle: string) => void;
+  onSectionOpend?: (status: boolean) => void;
 }
 
 const Node: React.FC<NodeProps> = ({
@@ -31,16 +33,18 @@ const Node: React.FC<NodeProps> = ({
   children,
   isEditMode,
   isActive,
+  isJoined,
   onAddChild,
   onDelete,
   onUpdateName,
+  onSectionOpend,
 }) => {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const [newTitle, setNewTitle] = useState(name);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const borderColor = isActive && !isEditMode ? 'border-red-500' : 'border-Primary/Dark';
+  const borderColor = isActive && !isEditMode ? 'border-Accent/Target' : 'border-[var(--border)] ';
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewTitle(e.target.value);
@@ -72,26 +76,29 @@ const Node: React.FC<NodeProps> = ({
 
   const handleClick = () => {
     if (!isEditMode) {
-      navigate(`/project/${projectId}/sections/${id}`);
+      navigate(`/project/${projectId}/sections/${id}/posts`);
+      if (onSectionOpend) {
+        onSectionOpend(isJoined);
+      }
     }
   };
 
   return (
     <div
-      className={`hover:border-Primary/Light border-2 ${borderColor} bg-Background/Middle shadow-md rounded-lg p-6 text-center relative cursor-pointer`}
+      className={`border-2 ${borderColor} bg-[var(--background-side)] text-[var(--text)]  shadow-md rounded-lg p-6 text-center relative cursor-pointer`}
       onClick={(e) => {
         e.stopPropagation(); // Prevent event bubbling
         handleClick();
       }}
     >
-      {isEditMode ? (
+      {isEditMode && id != 'root' ? (
         <input
           type='text'
           value={newTitle}
           onChange={handleTitleChange}
           onBlur={handleTitleSubmit}
           onKeyDown={handleKeyDown}
-          className='border rounded px-2 py-1 w-min text-center text-lg bg-Background/Middle'
+          className='border rounded px-2 py-1 w-min text-center text-lg bg-[var(--background-side)] text-[var(--text)] border-[var(--border)] '
         />
       ) : (
         <h3 className='font-semibold text-lg w-full text-center'>{name}</h3>
@@ -132,7 +139,7 @@ const Node: React.FC<NodeProps> = ({
       )}
 
       {showConfirm && isEditMode && (
-        <div className='absolute inset-0 bg-Background/Middle bg-opacity-90 flex flex-col justify-center items-center p-6 rounded-lg'>
+        <div className='absolute inset-0 bg-[var(--background-side)] text-[var(--text)] border-[var(--border)]  bg-opacity-90 flex flex-col justify-center items-center p-6 rounded-lg'>
           <p className='text-center'>
             Are you sure you want to delete this section and all of its subsections?
           </p>
@@ -160,12 +167,24 @@ interface sectionsProps {
   sections: NodeStructure[];
   projectId: string;
   activeSectionId: string;
+  isAdmin: boolean;
+  showSubsections: boolean;
+  onSectionOpend: (belonged: boolean) => void;
 }
-const ProjectBoard: React.FC<sectionsProps> = ({ sections, projectId, activeSectionId }) => {
+const ProjectBoard: React.FC<sectionsProps> = ({
+  sections,
+  projectId,
+  activeSectionId,
+  isAdmin,
+  showSubsections,
+  onSectionOpend,
+}) => {
   const [nodes, setNodes] = useState<NodeStructure>({
     _id: 'root',
     name: 'Project',
     children: sections,
+    isJoined: false,
+    description: '',
   });
 
   const [editMode, setEditMode] = useState(false);
@@ -186,6 +205,8 @@ const ProjectBoard: React.FC<sectionsProps> = ({ sections, projectId, activeSect
                 isActive: false,
                 name: sectionName,
                 children: [],
+                isJoined: true,
+                description: '',
               },
             ],
           };
@@ -257,9 +278,11 @@ const ProjectBoard: React.FC<sectionsProps> = ({ sections, projectId, activeSect
       name={node.name}
       isEditMode={editMode}
       isActive={node.isActive || false}
+      isJoined={node.isJoined || false}
       onAddChild={editMode ? () => addNodeAsChild(node._id, projectId) : undefined} // Add Child functionality
       onDelete={editMode && node._id !== 'root' ? () => deleteNode(node._id) : undefined} // Root node can't be deleted
       onUpdateName={editMode ? updateNodeName : undefined}
+      onSectionOpend={onSectionOpend}
     >
       <div className='flex space-x-4'>{node.children.map(renderNode)}</div>
     </Node>
@@ -355,7 +378,7 @@ const ProjectBoard: React.FC<sectionsProps> = ({ sections, projectId, activeSect
       setTouchDist(newDist);
     }
   };
-
+  const { theme } = useTheme();
   useEffect(() => {
     focusCanvas();
   }, [editMode]);
@@ -387,27 +410,33 @@ const ProjectBoard: React.FC<sectionsProps> = ({ sections, projectId, activeSect
   useEffect(() => {
     console.log('before');
     console.log(nodes);
-    activateNodes([nodes], activeSectionId);
+    activateNodes([nodes], activeSectionId, showSubsections);
     console.log('after');
     console.log(nodes);
     focusCanvas();
-  }, [editMode, activeSectionId]);
+  }, [editMode, activeSectionId, showSubsections]);
   return (
     <div
       onMouseEnter={() => setIsInside(true)}
       onMouseLeave={() => setIsInside(false)}
-      className="relative p-1 bg-Background/Bottom bg-[url('assets/particle.svg')] bg-no-repeat bg-center bg-cover  text-white w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-5 border-Primary/Dark border-2 rounded-3xl"
+      className={`${
+        theme === 'original'
+          ? 'bg-Background/Bottom text-white border-2'
+          : 'bg-[var(--surface)] text-[var(--text)]'
+      } relative p-1 bg-[url('assets/particle.svg')] bg-no-repeat bg-center bg-cover w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-5 border-Primary/Dark rounded-3xl`}
     >
       <div className='flex flex-col'>
         {/* Edit Button (Top-Right) */}
-        <button
-          className={`z-10 absolute top-4 right-4 p-2 text-sm ${
-            editMode ? 'bg-gray-500' : 'bg-Accent/Target'
-          } text-white rounded hover:${editMode ? 'bg-gray-600' : ''} shadow-md`}
-          onClick={() => setEditMode(!editMode)}
-        >
-          {editMode ? 'Quit' : <BiSolidEdit className='text-lg' />}
-        </button>
+        {isAdmin && (
+          <button
+            className={`z-10 absolute top-4 right-4 p-2 text-sm ${
+              editMode ? 'bg-gray-500' : 'bg-Accent/Target'
+            } text-white rounded hover:${editMode ? 'bg-gray-600' : ''} shadow-md`}
+            onClick={() => setEditMode(!editMode)}
+          >
+            {editMode ? 'Quit' : <BiSolidEdit className='text-lg' />}
+          </button>
+        )}
 
         {/* Canvas */}
         <div
@@ -438,19 +467,23 @@ const ProjectBoard: React.FC<sectionsProps> = ({ sections, projectId, activeSect
       {/* Buttons (Bottom-Left) */}
       <div className='absolute bottom-4 left-4 flex flex-col space-y-2'>
         <button
-          className='bg-gray-800 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-700'
+          className={`${
+            theme === 'original' ? 'text-Primary/Dark' : ''
+          }  bg-[var(--button)]  px-4 py-2 rounded-lg shadow-lg hover:[var(--button-hovered)]`}
           onClick={zoomIn}
         >
           <MdOutlineZoomInMap />
         </button>
         <button
-          className='bg-gray-800 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-700'
+          className={`${
+            theme === 'original' ? 'text-Primary/Dark' : ''
+          }  bg-[var(--button)]  px-4 py-2 rounded-lg shadow-lg hover:[var(--button-hovered)]`}
           onClick={zoomOut}
         >
           <MdOutlineZoomOutMap />
         </button>
         <button
-          className='bg-Accent/Target text-white px-4 py-2 rounded-lg shadow-md'
+          className='bg-Accent/Target text-white  px-4 py-2 rounded-lg shadow-lg'
           onClick={focusCanvas}
         >
           <MdCenterFocusWeak />

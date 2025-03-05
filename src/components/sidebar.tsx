@@ -3,14 +3,12 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuthUser } from '../context/AuthUserContext';
 import Logo from '../assets/logo.svg';
 import { useNotifications } from '../context/NotificationContext';
-import { FaBell, FaRegStar, FaStar } from 'react-icons/fa';
-import { BiBookBookmark, BiSolidBookBookmark } from 'react-icons/bi';
+import { FaBell, FaPaintRoller, FaRegStar, FaStar } from 'react-icons/fa';
+import { BiBookBookmark, BiSolidNotification, BiSolidBookBookmark } from 'react-icons/bi';
 import { RiGlobalLine, RiGlobalFill } from 'react-icons/ri';
 import { AiOutlineHome, AiFillHome, AiOutlineSetting } from 'react-icons/ai';
-import { IoMdArrowDropdown } from 'react-icons/io';
 import { TbLogout2 } from 'react-icons/tb';
 import { useTheme } from '../context/ThemeContext';
-
 function Sidebar({
   isOpen,
   state,
@@ -31,6 +29,7 @@ function Sidebar({
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const modalNotificationRef = useRef<HTMLDivElement>(null); // Ref for the modal content
   const { totalNotifications } = useNotifications();
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
@@ -88,8 +87,8 @@ function Sidebar({
           ? 'text-Accent/Target bg-Background/Middle'
           : 'hover:text-Accent/Light hover:bg-Background/Middle'
         : active
-          ? 'text-[var(--text-selected)] bg-[var(--background-hovered)]'
-          : 'hover:text-[var(--text-hovered)] hover:bg-[var(--background-hovered)]'
+          ? 'bg-[var(--button-active)] text-[var(--text-selected)] border-[1px] border-[var(--border)]'
+          : 'hover:bg-[var(--button-hovered)] hover:text-[var(--text-hovered)]'
     }`}
       onClick={() => handleNavigation(path)}
     >
@@ -101,11 +100,11 @@ function Sidebar({
   return (
     <div>
       <div
-        className={`bg-[var(--background-side)] text-[var(--text)] border-[var(--border)] top-24 left-0 lg:border-y-0 text-center w-[266px] lg:w-[23vw] xl:w-[20vw]
+        className={`bg-[var(--background-side)] text-[var(--text)] border-[var(--border)] top-24 left-0 text-center w-[266px] lg:w-[23vw] xl:w-[20vw]
            h-4/5 p-1 fixed flex flex-col border-solid box-border z-40 rounded-r-3xl
         transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 sm:static  sm:max-xl:p-1 xl:p-2 sm:fixed sm:max-lg:top-24 lg:top-0 sm:max-lg:rounded-r-3xl sm:max-lg:h-4/5 lg:h-full sm:max-lg:border-y-2 sm:max-lg:border-r-2 lg:border-r-2 lg:rounded-none lg: border-y-0`}
+        lg:translate-x-0 sm:static  sm:max-xl:p-1 xl:p-2 sm:fixed sm:max-lg:top-24 lg:top-0 sm:max-lg:rounded-r-3xl sm:max-lg:h-4/5 lg:h-full border-y-2 border-r-2 lg:rounded-none lg:border-y-0`}
       >
         <div className='mt-2 flex justify-center invisible sm:max-lg:invisible lg:visible'>
           <img src={Logo} alt='CoDash Logo' className='w-10 h-auto' />
@@ -125,7 +124,23 @@ function Sidebar({
           </Link>
 
           <button
-            className={`m-2 ${state == 'notifications' ? ' bg-[var(--text-selected)]' : 'bg-white text-Primary/Dark'} flex items-center space-x-4 rounded-full text-lg  px-4 py-1 relative `}
+            className={`m-2 ${
+              theme === 'original'
+                ? state === 'notifications'
+                  ? totalNotifications > 0
+                    ? 'bg-Accent/Target'
+                    : 'bg-Primary/Dark'
+                  : totalNotifications > 0
+                    ? 'text-Accent/Target bg-white'
+                    : 'text-Primary/Dark bg-white'
+                : state === 'notifications'
+                  ? totalNotifications > 0
+                    ? 'bg-[var(--button-active)] text-[var(--text-selected)]'
+                    : 'bg-[var(--background-hovered)]'
+                  : totalNotifications > 0
+                    ? 'text-[var(--text-selected)]'
+                    : ''
+            }  border border-[var(--border)] flex items-center space-x-4 rounded-full text-lg px-4 py-1 relative`}
             onClick={() => handleNavigation('/notifications')}
           >
             <FaBell className='text-2xl' />
@@ -138,9 +153,9 @@ function Sidebar({
           <SidebarButton
             icon={
               state === 'feed' ? (
-                <FaStar className='text-4xl' />
+                <FaStar className='text-4xl flex-shrink-0' />
               ) : (
-                <FaRegStar className='text-4xl' />
+                <FaRegStar className='text-4xl flex-shrink-0' />
               )
             }
             label='Feed'
@@ -150,9 +165,9 @@ function Sidebar({
           <SidebarButton
             icon={
               state === 'community' ? (
-                <RiGlobalFill className='text-4xl' />
+                <RiGlobalFill className='text-4xl flex-shrink-0' />
               ) : (
-                <RiGlobalLine className='text-4xl' />
+                <RiGlobalLine className='text-4xl flex-shrink-0' />
               )
             }
             label='Codemunity'
@@ -162,21 +177,21 @@ function Sidebar({
           <SidebarButton
             icon={
               state === 'home' ? (
-                <AiFillHome className='text-4xl' />
+                <AiFillHome className='text-4xl flex-shrink-0' />
               ) : (
-                <AiOutlineHome className='text-4xl' />
+                <AiOutlineHome className='text-4xl flex-shrink-0' />
               )
             }
             label='Home'
-            path={`/user/${user?._id}`}
+            path={`/user/${user?._id}/posts`}
             active={state === 'home'}
           />
           <SidebarButton
             icon={
               state === 'stored' ? (
-                <BiSolidBookBookmark className='text-4xl' />
+                <BiSolidBookBookmark className='text-4xl flex-shrink-0' />
               ) : (
-                <BiBookBookmark className='text-4xl' />
+                <BiBookBookmark className='text-4xl flex-shrink-0' />
               )
             }
             label='Saves'
@@ -199,7 +214,7 @@ function Sidebar({
             <AiOutlineSetting className='text-2xl' />
           </button>
           <button
-            className='m-2 flex items-center space-x-2 hover:text-red-200 hover:bg-Background/Middle rounded-lg p-2'
+            className='m-2 flex items-center space-x-2 hover:text-[var(--red-highlight)] hover:bg-[var(--background-hovered)] rounded-lg p-2'
             onClick={() => setShowLogoutModal(true)}
           >
             <span>Log out</span>
@@ -211,32 +226,52 @@ function Sidebar({
       {showSettingsModal && (
         <div className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'>
           <div
-            className='bg-Background/Bottom p-6 rounded-3xl max-w-sm w-full border-2 border-Primary/Dark'
+            className={`          
+      ${
+        theme === 'original'
+          ? 'bg-Background/Bottom text-white lg:border-2'
+          : 'bg-[var(--surface)] text-[var(--text)]'
+      } w-full h-full lg:max-w-min lg:max-h-min px-5 py-10 lg:rounded-3xl lg:border-Primary/Dark relative`}
             ref={settingsModalRef}
           >
+            <button
+              onClick={() => setShowSettingsModal(false)}
+              className='absolute top-3 right-4 text-3xl hover:text-[var(--text-title)] z-40'
+            >
+              ×
+            </button>
             <h3 className='text-xl text-center font-semibold'>Settings</h3>
-            <h4 className='text-md text-gray-300 text-center mt-2'>Choose a theme:</h4>
 
-            <div className='flex justify-around mt-4'>
-              {['original', 'light', 'dark'].map((t) => (
-                <button
-                  key={t}
-                  className={`px-4 py-2 rounded-md ${
-                    theme === t ? 'bg-green-400' : 'bg-gray-700 text-gray-300 hover:bg-gray-500'
-                  }`}
-                  onClick={() => setTheme(t as 'original' | 'light' | 'dark')}
-                >
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
-                </button>
-              ))}
-            </div>
+            {/* Theme Selection */}
+            <h4 className='text-base text-[var(--text-hovered)] flex items-center text-left mt-2 gap-2'>
+              <FaPaintRoller />
+              Themes:
+            </h4>
 
-            <div className='mt-4 text-center'>
+            <div className='flex flex-col lg:flex-row lg:justify-between items-center mt-4 gap-4 '>
               <button
-                className='px-4 py-2 bg-gray-500 rounded-md '
-                onClick={() => setShowSettingsModal(false)}
+                className={`w-28 px-4 py-2 bg-Background/Bottom border-2 border-Primary/Dark text-Accent/Light shadow-lg rounded-md ${
+                  theme === 'original' ? 'ring-2 ring-Accent/Target' : ''
+                }`}
+                onClick={() => setTheme('original')}
               >
-                Close
+                Original
+              </button>
+              <button
+                className={`w-28 px-4 py-2 bg-[#f0f4f8] border-2 border-[#d1d9e6] text-[#1f2937] rounded-md ${
+                  theme === 'light' ? 'ring-2 ring-Accent/Target' : ''
+                }`}
+                onClick={() => setTheme('light')}
+              >
+                Light
+              </button>
+              <button
+                className={`w-28 px-4 py-2 bg-[#0e1113] border-2 border-[#20292f] text-[#ffffff] rounded-md ${
+                  theme === 'dark' ? 'ring-2 ring-Accent/Target' : ''
+                }`}
+                onClick={() => setTheme('dark')}
+              >
+                Dark
               </button>
             </div>
           </div>
@@ -247,19 +282,28 @@ function Sidebar({
       {showLogoutModal && (
         <div className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'>
           <div
-            className='bg-Background/Bottom p-8 rounded-3xl max-w-sm w-full border-2 border-Primary/Dark justify-center flex-col items-center'
+            className={`
+              ${
+                theme === 'original'
+                  ? 'bg-Background/Bottom text-white border-2'
+                  : 'bg-[var(--surface)] text-[var(--text)]'
+              } border-Primary/Dark p-8 rounded-3xl max-w-sm w-full justify-center flex-col items-center`}
             ref={modalRef}
           >
             <div className='flex justify-center items-center mb-4 -translate-x-2'>
               <TbLogout2 className='text-6xl  text-red-300' />
             </div>
             <h3 className='text-xl mb-2 text-center font-semibold'>Log out?</h3>
-            <h3 className='text-md mb-4 text-gray-300 text-center'>
+            <h3 className='text-base mb-4 text-gray-400 text-center'>
               Are you sure you want to log out from this account?
             </h3>
-            <div className='flex justify-between text-md'>
+            <div className='flex justify-between text-base'>
               <button
-                className='ml-7  px-4 py-1 bg-white text-Primary/Dark rounded-lg hover:bg-gray-300'
+                className={`${
+                  theme === 'original'
+                    ? 'bg-white text-Primary/Dark'
+                    : 'bg-[var(--button)] text-[var(--text)]  '
+                }  ml-7 border-[var(--border)] px-4 py-1 rounded-lg hover:bg-[var(--button-hovered)]`}
                 onClick={closeModal}
               >
                 Cancel

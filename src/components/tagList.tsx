@@ -388,7 +388,7 @@ function TagList({
                 {buttonsUsers.map(({ label, criteriaKey, svg }) => (
                   <button
                     key={criteriaKey}
-                    className={`w-[140px] p-1 rounded-lg ml-14 mb-4 flex items-center space-x-2 ${
+                    className={`w-[160px] p-1 rounded-lg ml-14 mb-4 flex items-center space-x-2 ${
                       criteriaUsers === criteriaKey
                         ? 'text-[var(--text-title)] bg-[var(--background-hovered)] '
                         : ''
@@ -407,7 +407,7 @@ function TagList({
                 {buttonsGroupProject.map(({ label, criteriaKey, svg }) => (
                   <button
                     key={criteriaKey}
-                    className={`w-[140px] p-1 rounded-lg ml-14 mb-4 flex items-center space-x-2 ${
+                    className={`w-[160px] p-1 rounded-lg ml-14 mb-4 flex items-center space-x-2 ${
                       criteriaGroupProject === criteriaKey
                         ? 'text-[var(--text-title)] bg-[var(--background-hovered)] '
                         : ''
@@ -433,7 +433,7 @@ function TagList({
 
             {/*tags*/}
 
-            <div className=' flex-1 overflow-y-auto scrollbar scrollbar-thin scrollbar-thumb-Primary/Dark scrollbar-track-Background/Middle'>
+            <div className=' flex-1 overflow-y-auto scrollbar'>
               {tags.map((tag) => (
                 <button key={tag} className='w-24 my-2 mr-6' onClick={() => handleButtonClick(tag)}>
                   <div className='flex flex-col'>

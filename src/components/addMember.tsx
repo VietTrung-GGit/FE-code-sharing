@@ -1,5 +1,5 @@
 import Search from '../assets/search.svg';
-import { MdRemoveCircle } from 'react-icons/md';
+import { MdOutlineSearch, MdRemoveCircle } from 'react-icons/md';
 import { IoPersonAdd } from 'react-icons/io5';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -21,6 +21,7 @@ interface AddMemberProps {
   desId: string;
   isOpen: boolean;
   closeModal: () => void;
+  refetchUsers?: () => void;
 }
 
 const UserSuggestion: React.FC<{
@@ -29,28 +30,31 @@ const UserSuggestion: React.FC<{
   isAdded: boolean;
 }> = ({ user, toggleUser, isAdded }) => {
   return (
-    <div key={user._id} className='flex flex-row w-full items-center justify-between'>
-      <div className='flex items-center space-x-4'>
+    <div
+      key={user._id}
+      className='flex flex-row w-full items-center justify-between gap-4 flex-nowrap'
+    >
+      <div className='flex items-center space-x-4 min-w-0'>
         <img src={user.avatar} alt='Profile Icon' className='w-12 h-12 rounded-full object-cover' />
-        <div className='flex flex-col items-start'>
-          <p className=' font-semibold text-lg'>{user.displayname}</p>
-          <p className='text-Primary/Light text-xs'>@{user.username}</p>
+        <div className='flex flex-col items-start min-w-0'>
+          <p className='font-semibold text-lg truncate w-full'>{user.displayname}</p>
+          <p className='text-[var(--text-title)] text-xs truncate w-full text-left'>
+            @{user.username}
+          </p>
         </div>
       </div>
 
-      <button onClick={() => toggleUser(user)}>
+      <button onClick={() => toggleUser(user)} className='flex-shrink-0'>
         {isAdded ? (
           <svg
             width='22'
             height='22'
             viewBox='0 0 23 23'
-            fill='none'
+            fill='currentColor'
+            className='text-[var(--button-hovered)]'
             xmlns='http://www.w3.org/2000/svg'
           >
-            <path
-              d='M22.5107 11.5C22.5107 17.5751 17.5858 22.5 11.5107 22.5C5.43555 22.5 0.510686 17.5751 0.510686 11.5C0.510686 5.42487 5.43555 0.5 11.5107 0.5C17.5858 0.5 22.5107 5.42487 22.5107 11.5Z'
-              fill='white'
-            />
+            <path d='M22.5107 11.5C22.5107 17.5751 17.5858 22.5 11.5107 22.5C5.43555 22.5 0.510686 17.5751 0.510686 11.5C0.510686 5.42487 5.43555 0.5 11.5107 0.5C17.5858 0.5 22.5107 5.42487 22.5107 11.5Z' />
             <circle cx='11.5' cy='12' r='7.5' fill='#00F587' />
           </svg>
         ) : (
@@ -58,10 +62,11 @@ const UserSuggestion: React.FC<{
             width='22'
             height='22'
             viewBox='0 0 22 22'
-            fill='none'
+            fill='currentColor'
+            className='text-[var(--button-hovered)]'
             xmlns='http://www.w3.org/2000/svg'
           >
-            <circle cx='11' cy='11' r='11' fill='white' />
+            <circle cx='11' cy='11' r='11' />
           </svg>
         )}
       </button>
@@ -86,7 +91,7 @@ const UserAvatar: React.FC<{ user: UserBriefData; toggleUser: (user: UserBriefDa
   );
 };
 
-const AddMember: React.FC<AddMemberProps> = ({ type, desId, closeModal, isOpen }) => {
+const AddMember: React.FC<AddMemberProps> = ({ type, desId, isOpen, closeModal, refetchUsers }) => {
   const { theme } = useTheme();
   const [users, setUsers] = useState<UserBriefData[]>([]);
   const [suggestedUsers, setSuggestedUsers] = useState<UserBriefData[]>([]);
@@ -114,6 +119,9 @@ const AddMember: React.FC<AddMemberProps> = ({ type, desId, closeModal, isOpen }
         await inviteProjectMembers(desId, userIds);
       } else {
         await addSectionParticipants(desId, userIds);
+        if (refetchUsers) {
+          refetchUsers();
+        }
       }
 
       setUsers([]); // Clear selected users after inviting
@@ -154,26 +162,40 @@ const AddMember: React.FC<AddMemberProps> = ({ type, desId, closeModal, isOpen }
 
   return (
     <div
-      className={`${
-        theme === 'original'
-          ? 'bg-Background/Bottom text-white lg:border-2'
-          : 'bg-[var(--surface)] text-[var(--text)]'
-      } w-full h-full bg-center bg-cover border-2 border-Primary/Dark p-5 flex flex-col items-center rounded-3xl sm:max-lg:rounded-3xl lg:mt-4 lg:rounded-3xl border-solid box-border text-center absolute
-    min-h-[200px] overflow-x-hidden lg:max-h-[500px] lg:w-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent`}
+      className={`
+    ${
+      theme === 'original'
+        ? 'bg-Background/Bottom text-white md:border-2 border-t-2'
+        : 'bg-[var(--button)] text-[var(--text)]'
+    } 
+    z-30 py-5 px-8 bg-center shadow-md bg-cover border-Primary/Dark 
+    flex flex-col items-center text-center overflow-x-hidden 
+    overflow-y-auto scrollbar
+
+    /* Mobile Full-Screen Modal (Bottom Half) */
+    fixed bottom-0 left-0 w-full h-[70vh] rounded-t-3xl 
+  
+    /* Large Screen Modal (Positioned Below Invite Button) */
+    md:absolute md:top-10 md:right-0 md:w-[400px] md:min-h-[200px] md:max-h-[400px] md:rounded-3xl
+  `}
     >
       <button
         onClick={closeModal}
-        className='absolute top-1 right-3  text-3xl hover:text-Primary/Light'
+        className='absolute top-1 right-3  text-3xl hover:text-[var(--text-title)]'
       >
         ×
       </button>
       <div className='flex flex-row w-full items-center space-x-2 mx-2 pl-2 pr-4'>
-        <div className='flex-shrink-0 w-9 h-9 flex items-center justify-center'>
-          <img src={Search} alt='Search Icon' className='w-7 h-7 rounded-full object-cover' />
+        <div className='flex-shrink-0 w-9 h-9 flex items-center text-2xl justify-center'>
+          <MdOutlineSearch />
         </div>
 
         <input
-          className='bg-Background/Middle flex-grow py-1 px-3 rounded-3xl h-8 w-full text-Primary/Light text-sm'
+          className={`${
+            theme === 'original'
+              ? 'bg-Background/Middle text-[var(--text-title)] '
+              : 'bg-[var(--input)] text-[var(--text)]'
+          } flex-grow py-1 px-3 rounded-3xl h-8 w-full text-sm`}
           placeholder='Search for users...'
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -195,12 +217,18 @@ const AddMember: React.FC<AddMemberProps> = ({ type, desId, closeModal, isOpen }
       )}
 
       <div className='mt-5 space-y-4 w-full'>
-        <p className='text-md  font-semibold flex flex-start'>Suggested:</p>
+        <p className='text-base  font-semibold flex flex-start'>Suggested:</p>
 
         {loading ? (
           <LoadingSpinner /> // Add your custom spinner here
         ) : suggestedUsers.length === 0 ? (
-          <p className='text-gray-600 text-center'>Go follow someone</p>
+          <p className='text-gray-600 text-center'>
+            {type == 'section'
+              ? 'You could invite members in the project to participate in this section'
+              : type == 'project'
+                ? 'You could invite members in the group to join this project'
+                : 'Go follow someone'}
+          </p>
         ) : (
           <div className='flex gap-4 flex-col'>
             {suggestedUsers.map((user) => (

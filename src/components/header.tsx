@@ -16,12 +16,12 @@ function Header() {
         {isLandingPage && (
           <>
             <Link to='/signin'>
-              <button className='w-20 h-7 rounded-xl bg-white text-l text-Primary/Dark m-2 hover:bg-Primary/Dark hover:text-white'>
+              <button className='w-20 transition-colors duration-200 ease-in-out h-7 rounded-xl bg-white text-l text-Primary/Dark m-2 hover:bg-Primary/Dark hover:text-white'>
                 Sign in
               </button>
             </Link>
             <Link to='/signup'>
-              <button className='w-20 h-7 rounded-xl bg-Accent/Target text-l text-white m-2 hover:bg-white hover:text-Accent/Target'>
+              <button className='w-20 transition-colors duration-200 ease-in-out h-7 rounded-xl bg-Accent/Target text-l text-white m-2 hover:bg-white hover:text-Accent/Target'>
                 Sign up
               </button>
             </Link>
@@ -33,3 +33,4 @@ function Header() {
 }
 
 export default Header;
+

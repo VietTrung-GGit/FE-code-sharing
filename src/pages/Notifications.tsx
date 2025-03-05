@@ -2,11 +2,11 @@ import Sidebar from '../components/sidebar';
 import CollapseMenu from '../components/collapseMenu';
 import QuickNav from '../components/quickNav';
 import { useParams, useNavigate } from 'react-router-dom';
-import { IoIosMore } from 'react-icons/io';
+import { IoIosMore, IoMdCheckmark } from 'react-icons/io';
 import { FaCircle } from 'react-icons/fa';
 import { AiFillHeart, AiOutlineHeart } from 'react-icons/ai';
 import { BsFillGearFill, BsGear } from 'react-icons/bs';
-import { BiCategory, BiSolidCategory } from 'react-icons/bi';
+import { BiCategory, BiSolidCategory, BiTrashAlt } from 'react-icons/bi';
 import { HiUsers, HiOutlineUsers } from 'react-icons/hi';
 import LoadingSpinner from '../components/loadingAnimate';
 import { toast } from 'react-toastify';
@@ -23,8 +23,9 @@ import {
   confirmProjectInvite,
 } from '../services/notificationService';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
-import { formatDate } from '../utils/helpers';
+import { formatDate, formatNumber } from '../utils/helpers';
 import { useTheme } from '../context/ThemeContext';
+import { IoCheckmarkDone } from 'react-icons/io5';
 type PostType = 'stored' | 'me' | undefined;
 
 interface Params extends Record<string, string | undefined> {
@@ -54,9 +55,11 @@ function Notifications() {
     filter: string = 'all',
     page: number = 1,
     limit: number = 5,
+    category: string = 'all',
   ) => {
     try {
-      const response = await getUserNotifications(filter, page, limit);
+      setLoading(true);
+      const response = await getUserNotifications(filter, page, limit, category);
       const newNotifications = response.data.notifications;
 
       setNotifications((prev) => {
@@ -67,6 +70,8 @@ function Notifications() {
       setHasMore(response.data.hasMore); // Check if more notifications are available
     } catch (error) {
       console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,6 +81,7 @@ function Notifications() {
       setNotifications((prev) =>
         prev.map((notif) => (notif._id === notificationId ? { ...notif, isRead: true } : notif)),
       );
+      setTotalNotifications((prev) => prev - 1);
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -85,6 +91,7 @@ function Notifications() {
     try {
       await markAllNotificationsAsRead();
       setNotifications((prev) => prev.map((notif) => ({ ...notif, isRead: true })));
+      setTotalNotifications(0);
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
@@ -102,9 +109,24 @@ function Notifications() {
     }
   };
 
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    setLoading(true);
+
+    // Reset relevant state based on active tab
+    setNotifications([]);
+  }, [buttonRead, buttonFilter]);
+
+  useEffect(() => {
+    if (hasMore == true) {
+      if (notifications.length === 0) fetchNotifications(buttonRead, page, limit, buttonFilter);
+    }
+  }, [notifications]);
+
   // Initial fetch
   useEffect(() => {
-    fetchNotifications('all', page, limit);
+    fetchNotifications(buttonRead, page, limit, buttonFilter);
   }, [page]);
 
   // Infinite scroll handler
@@ -150,224 +172,298 @@ function Notifications() {
     };
   }, []);
 
+  const NotificationItem = ({ notification }: { notification: Notification }) => {
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    return (
+      <div
+        key={notification._id}
+        className={`${
+          theme === 'original'
+            ? 'bg-Background/Bottom text-white border-2 border-Primary/Dark'
+            : 'bg-[var(--surface)] text-[var(--text)]'
+        } ${
+          !notification.isRead ? 'border-[var(--text-title)]' : 'border-Primary/Dark'
+        }  relative w-[94vw] sm:w-[94vw] lg:w-[48vw] xl:min-w-[700px] my-2  rounded-3xl px-2 xsm:px-10 py-4 lg:mx-4 flex justify-center`}
+      >
+        <div className='absolute right-3 top-2' ref={dropdownRef}>
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className='hover:text-[var(--text-hovered)] text-3xl'
+          >
+            <IoIosMore />
+          </button>
+          {isDropdownOpen && (
+            <div
+              className={`${
+                theme === 'original'
+                  ? 'bg-Background/Bottom text-white border-2'
+                  : 'bg-[var(--surface)] text-[var(--text)]'
+              } border-Primary/Dark absolute -right-2 xsm:-right-10 sm:-right-[50px] lg:-right-40 w-40 md:w-52 rounded-xl shadow-lg z-10`}
+            >
+              <ul className='py-2 text-sm'>
+                {!notification.isRead && (
+                  <li>
+                    <button
+                      onClick={() => markAsRead(notification._id)}
+                      className='block px-4 py-2 w-full text-left flex flex-row gap-4 hover:bg-[var(--background-hovered)] transition'
+                    >
+                      <IoMdCheckmark className='text-xl' />
+                      Mark as read
+                    </button>
+                  </li>
+                )}
+                <li>
+                  <button
+                    onClick={() => handleDeleteNotification(notification._id)}
+                    className='block px-4 py-2 w-full text-left flex flex-row gap-4 text-red-500 hover:bg-[var(--background-hovered)] transition'
+                  >
+                    <BiTrashAlt className='text-xl' />
+                    Delete
+                  </button>
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
+        <div className='flex xsm:-ml-6 xsm:gap-4 gap-2 items-center justify-between w-full'>
+          <div className='flex items-center min-w-[15px] min-h-[15px]'>
+            {!notification.isRead && <FaCircle className='text-base text-Accent/Target' />}
+          </div>
+          <div className='flex justify-center'>
+            <img
+              src={notification.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+              alt='Avatar'
+              className='w-16 h-16 rounded-full object-cover flex-shrink-0'
+            />
+          </div>
+          <div className='flex flex-col justify-center flex-grow'>
+            <div className='flex'>
+              <p className=' text-sm xsm:text-base sm:text-lg'>
+                <Link
+                  to={`/user/${notification.senderId}/posts`}
+                  className='text-[var(--text-title)] hover:underline'
+                >
+                  {notification.senderName}
+                </Link>{' '}
+                {notification.message}{' '}
+                <Link
+                  to={
+                    notification.entityType === 'Group'
+                      ? `/group/${notification.relatedEntityId}/posts`
+                      : notification.entityType === 'User'
+                        ? `/user/${notification.relatedEntityId}/posts`
+                        : notification.entityType === 'Project' ||
+                            notification.entityType == 'Section'
+                          ? `/project/${notification.relatedEntityId}/posts`
+                          : '#'
+                  }
+                  className='text-[var(--text-title)] hover:underline'
+                >
+                  {notification.extraData}
+                </Link>
+              </p>
+            </div>
+            <div className='flex'>
+              <p className='text-[var(--green-highlight)] text-sm sm:text-base'>
+                {formatDate(notification.createdAt)}
+              </p>
+            </div>
+          </div>
+          {notification.type.includes('group_invite') && (
+            <button
+              onClick={async () => {
+                await markAsRead(notification._id);
+                if (notification.type === 'invite') {
+                  await confirmGroupInvite(notification.senderId);
+                } else {
+                  await confirmProjectInvite(notification.senderId);
+                }
+              }}
+              className='ml-auto px-4 py-2 bg-Accent/Target rounded-lg'
+            >
+              Confirm
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className='bg-[var(--background)] text-[var(--text)] relative min-h-screen flex flex-col'>
-      <div className='flex flex-row justify-center -mt-10 sm:max-lg:mt-16 lg:mt-0 mx-6 sm:max-lg:mx-0 lg:mx-8'>
-        <div className='flex flex-col '>
-          <div className=' mt-10 ml-6 space-x-2 inline-block flex lg:w-full '>
-            <span className='text-3xl font-semibold'>Notifications</span>
-            <div className='flex justify-center flex-end'>
+      <div className='flex flex-row justify-center -mt-10 sm:max-lg:mt-16 lg:mt-0'>
+        <div className='flex flex-col justify-center w-[94vw] sm:w-[94vw] lg:w-[50vw] xl:min-w-[730px]'>
+          <div className=' mt-32 sm:mt-10 mx-6 inline-block flex justify-between'>
+            <span className='lg:text-3xl xxsm:text-2xl text-xl font-semibold'>Notifications</span>
+
+            <div className='flex'>
               <button
                 onClick={markAllAsRead}
-                className='text-Primary/Light text-lg hover:text-Primary/Target ml-80'
+                className='flex items-center text-[var(--text-title)] lg:text-lg text-base hover:text-[var(--text-hovered)]'
               >
-                Mark all as read
+                <IoCheckmarkDone className='lg:text-2xl xsm:text-lg text-base mr-1' /> Mark all as
+                read
               </button>
             </div>
           </div>
+
           <div className='mb-6'>
             <div className='flex flex-col'>
-              <div className='flex gap-24 ml-6 mt-6 '>
+              <div className='flex gap-16 xxsm:gap-20 sm:gap-24 ml-6 my-6 '>
                 <button
-                  className={`${buttonRead === 'all' ? ' ' : 'text-gray-500'} text-xl font-semibold`}
+                  className={`${buttonRead === 'all' ? ' ' : 'text-gray-500'} text-lg xxsm:text-xl font-semibold`}
                   onClick={() => setButtonRead('all')}
                 >
                   All
                 </button>
 
                 <button
-                  className={`${buttonRead === 'unread' ? '' : 'text-gray-500'} text-xl font-semibold`}
+                  className={`${buttonRead === 'unread' ? '' : 'text-gray-500'} text-lg xxsm:text-xl font-semibold`}
                   onClick={() => setButtonRead('unread')}
                 >
-                  Unread (1)
+                  Unread ({formatNumber(totalNotifications)})
                 </button>
               </div>
-              <div className='flex justify-center mt-4'>
-                <p className='font-semibold text-lg '>Recent</p>
-              </div>
+              <div
+                className={`bg-[var(--background-side)] text-[var(--text)] border-[var(--border)] border-2 flex flex-col w-full border-solid box-border rounded-3xl h-[150px] sm:h-[80px] justify-center lg:hidden mb-8`}
+              >
+                <div className=' flex flex-row justify-center space-x-4 xsm:space-x-10 sm:space-x-4 px-4 sm:px-8'>
+                  <div className='flex flex-col sm:flex-row sm:space-x-4'>
+                    <button
+                      className={`${buttonFilter === 'all' ? 'text-[var(--text-title)]' : ''} hover:text-[var(--text-title)] hover:bg-[var(--input)] rounded-md px-2 py-2 text-lg flex flex-row gap-3 sm:gap-4`}
+                      onClick={() => setButtonFilter('all')}
+                    >
+                      {buttonFilter === 'all' ? (
+                        <BiSolidCategory className='text-2xl sm:text-3xl flex-shrink-0' />
+                      ) : (
+                        <BiCategory className='text-2xl sm:text-3xl flex-shrink-0' />
+                      )}
+                      All
+                    </button>
 
+                    <button
+                      className={`${buttonFilter === 'system' ? 'text-[var(--text-title)]' : ''} hover:text-[var(--text-title)] hover:bg-[var(--input)] rounded-md px-2 py-2 text-lg flex flex-row gap-3 sm:gap-4`}
+                      onClick={() => setButtonFilter('system')}
+                    >
+                      {buttonFilter === 'system' ? (
+                        <BsFillGearFill className='text-2xl sm:text-3xl flex-shrink-0' />
+                      ) : (
+                        <BsGear className='text-2xl sm:text-3xl flex-shrink-0' />
+                      )}
+                      System
+                    </button>
+                  </div>
+                  <div className='flex flex-col sm:flex-row sm:space-x-4'>
+                    <button
+                      className={`${buttonFilter === 'following' ? 'text-[var(--text-title)]' : ''} hover:text-[var(--text-title)] hover:bg-[var(--input)] rounded-md px-2 py-2 text-lg flex flex-row gap-3 sm:gap-4`}
+                      onClick={() => setButtonFilter('following')}
+                    >
+                      {buttonFilter === 'following' ? (
+                        <AiFillHeart className='text-2xl sm:text-3xl flex-shrink-0' />
+                      ) : (
+                        <AiOutlineHeart className='text-2xl sm:text-3xl flex-shrink-0' />
+                      )}
+                      Following
+                    </button>
+                    <button
+                      className={`${buttonFilter === 'groups' ? 'text-[var(--text-title)]' : ''} hover:text-[var(--text-title)] hover:bg-[var(--input)] rounded-md px-2 py-2 text-lg flex flex-row gap-3 sm:gap-4`}
+                      onClick={() => setButtonFilter('groups')}
+                    >
+                      {buttonFilter === 'groups' ? (
+                        <HiUsers className='text-2xl sm:text-3xl flex-shrink-0' />
+                      ) : (
+                        <HiOutlineUsers className='text-2xl sm:text-3xl flex-shrink-0' />
+                      )}
+                      Groups
+                    </button>
+                  </div>
+                </div>
+              </div>
               {notifications.length > 0 ? (
                 notifications.map((notification) => (
-                  <button
-                    key={notification._id}
-                    className={`lg:mt-4 mx-6 sm:max-lg:mx-14 lg:mx-4 flex bg-Background/Bottom text-center mt-28 p-12 w-full h-28 ${
-                      !notification.isRead ? 'border-Primary/Light' : 'border-Primary/Dark'
-                    } border-solid box-border border-2 rounded-3xl mb-
-sm:max-lg:p-14 lg:max-xl:p-10 xl:p-12 lg:w-full sm:max-lg:mt-28`}
-                  >
-                    <div className='ml-[530px] -mt-10 absolute'>
-                      <Menu as='div' className='absolute'>
-                        <MenuButton className='px-4 py-2  text-3xl rounded hover:text-gray-300'>
-                          <IoIosMore />
-                        </MenuButton>
-
-                        {/* Dropdown menu */}
-                        <MenuItems
-                          className={`absolute z-20 -right-44 top-8 w-48 bg-Background/Bottom border rounded-3xl border-2 ${
-                            !notification.isRead ? 'border-Primary/Light' : 'border-Primary/Dark'
-                          } shadow-lg z-10`}
-                        >
-                          <ul className='py-1 my-3 ml-2'>
-                            {!notification.isRead && (
-                              <MenuItem>
-                                {({ active }: { active: boolean }) => (
-                                  <button
-                                    onClick={() => markAsRead(notification._id)}
-                                    className={`block px-4 py-2 w-full text-left flex flex-row gap-4  ${
-                                      active ? 'bg-Background/Middle' : ''
-                                    }`}
-                                  >
-                                    Mark as read
-                                  </button>
-                                )}
-                              </MenuItem>
-                            )}
-
-                            <MenuItem>
-                              {({ active }: { active: boolean }) => (
-                                <button
-                                  onClick={() => handleDeleteNotification(notification._id)}
-                                  className={`block px-4 py-2 w-full text-left flex flex-row gap-4 text-red-500 ${
-                                    active ? 'bg-Background/Middle' : ''
-                                  }`}
-                                >
-                                  Delete
-                                </button>
-                              )}
-                            </MenuItem>
-                          </ul>
-                        </MenuItems>
-                      </Menu>
-                    </div>
-
-                    <div className='flex flex-row gap-4 -ml-6 -mt-6 items-center justify-between w-full'>
-                      {/* Notification Indicator */}
-                      <div className='flex items-center min-w-[15px] min-h-[15px]'>
-                        {!notification.isRead && (
-                          <FaCircle className='text-md text-Primary/Light' />
-                        )}
-                      </div>
-
-                      {/* Avatar */}
-                      <div className='flex justify-center'>
-                        <img
-                          src={notification.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
-                          alt='Avatar'
-                          className='w-16 h-16 rounded-full object-cover'
-                        />
-                      </div>
-
-                      {/* Message Content */}
-                      <div className='flex flex-col justify-center flex-grow'>
-                        <div className='flex'>
-                          <p className=' text-lg'>
-                            <span className='text-Primary/Light'>{notification.senderName}</span>{' '}
-                            {notification.message}
-                          </p>
-                        </div>
-                        <div className='flex'>
-                          <p className='text-Accent/Light'>{formatDate(notification.createdAt)}</p>
-                        </div>
-                      </div>
-
-                      {/* Confirm Button (Aligned Right) */}
-                      {notification.type === 'invite' && (
-                        <button
-                          onClick={async () => {
-                            await markAsRead(notification._id); // Mark notification as read
-
-                            if (notification.type === 'invitegroup') {
-                              await confirmGroupInvite(notification.senderId);
-                            } else {
-                              await confirmProjectInvite(notification.senderId);
-                            }
-                          }}
-                          className='ml-auto px-4 py-2 bg-Accent/Target  rounded-lg'
-                        >
-                          Confirm
-                        </button>
-                      )}
-                    </div>
-                  </button>
+                  <NotificationItem notification={notification} />
                 ))
-              ) : (
+              ) : !loading ? (
                 <div
                   className={`${
                     theme === 'original'
                       ? 'bg-Background/Bottom text-white border-2'
                       : 'bg-[var(--surface)] text-[var(--text)]'
-                  } h-32  border-Primary/Dark px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl
-              border-solid box-border text-center mt-3`}
+                  } h-32 border-Primary/Dark px-6 py-4 w-[94vw] sm:w-[94vw] lg:w-[48vw] xl:min-w-[700px] flex items-center justify-center rounded-3xl
+    border-solid box-border mt-3 lg:mt-0 lg:mx-4`}
                 >
-                  <div className='mt-1 sm:max-lg:mt-3 lg:max-xl:mt-2 xl:-mt-2'>
-                    <p className='text-left  text-l'>
+                  <div>
+                    <p className='text-left text-l'>
                       No notifications for now... Go explore{' '}
                       <Link to='/feed' className='text-Accent/Target cursor-pointer inline'>
                         Codemunity
                       </Link>{' '}
                       or{' '}
-                      <Link to='/feed/me' className='text-Primary/Light cursor-pointer inline'>
+                      <Link
+                        to='/feed/me'
+                        className='text-[var(--text-title)] cursor-pointer inline'
+                      >
                         share your own code
                       </Link>{' '}
                       !
                     </p>
                   </div>
                 </div>
+              ) : (
+                <LoadingSpinner />
               )}
             </div>
           </div>
         </div>
       </div>
       <div
-        className={`${
-          theme === 'original'
-            ? 'bg-Background/Bottom text-white lg:border-2'
-            : 'bg-[var(--surface)] text-[var(--text)]'
-        } fixed top-48 right-24 flex flex-col w-[280px] border-Primary/Dark border-solid box-border border-2 rounded-3xl h-[236px]`}
+        className={`bg-[var(--background-side)] text-[var(--text)] border-[var(--border)] border-2 fixed top-60 right-4 xl:right-6 flex flex-col lg:w-[21vw] xl:w-[18vw] border-solid box-border rounded-3xl h-[280px] justify-center items-center max-lg:invisible`}
       >
-        <div className=' flex flex-col gap-3 py-2 px-14 '>
+        <div className=' flex flex-col gap-3 justify-center'>
           <button
-            className={`${buttonFilter === 'all' ? 'text-Primary/Light' : ''} hover:text-Primary/Light hover:bg-Background/Middle rounded-md px-4 py-2 text-lg flex flex-row gap-4`}
+            className={`${buttonFilter === 'all' ? 'text-[var(--text-title)]' : ''} hover:text-[var(--text-title)] hover:bg-[var(--input)] rounded-md px-2 py-2 text-lg flex flex-row gap-4`}
             onClick={() => setButtonFilter('all')}
           >
             {buttonFilter === 'all' ? (
-              <BiSolidCategory className='text-3xl' />
+              <BiSolidCategory className='text-3xl flex-shrink-0' />
             ) : (
-              <BiCategory className='text-3xl' />
+              <BiCategory className='text-3xl flex-shrink-0' />
             )}
             All
           </button>
 
           <button
-            className={`${buttonFilter === 'system' ? 'text-Primary/Light' : ''} hover:text-Primary/Light hover:bg-Background/Middle rounded-md px-4 py-2 text-lg flex flex-row gap-4`}
+            className={`${buttonFilter === 'system' ? 'text-[var(--text-title)]' : ''} hover:text-[var(--text-title)] hover:bg-[var(--input)] rounded-md px-2 py-2 text-lg flex flex-row gap-4`}
             onClick={() => setButtonFilter('system')}
           >
             {buttonFilter === 'system' ? (
-              <BsFillGearFill className='text-3xl' />
+              <BsFillGearFill className='text-3xl flex-shrink-0' />
             ) : (
-              <BsGear className='text-3xl' />
+              <BsGear className='text-3xl flex-shrink-0' />
             )}
             System
           </button>
           <button
-            className={`${buttonFilter === 'following' ? 'text-Primary/Light' : ''} hover:text-Primary/Light hover:bg-Background/Middle rounded-md px-4 py-2 text-lg flex flex-row gap-4`}
+            className={`${buttonFilter === 'following' ? 'text-[var(--text-title)]' : ''} hover:text-[var(--text-title)] hover:bg-[var(--input)] rounded-md px-2 py-2 text-lg flex flex-row gap-4`}
             onClick={() => setButtonFilter('following')}
           >
             {buttonFilter === 'following' ? (
-              <AiFillHeart className='text-3xl' />
+              <AiFillHeart className='text-3xl flex-shrink-0' />
             ) : (
-              <AiOutlineHeart className='text-3xl' />
+              <AiOutlineHeart className='text-3xl flex-shrink-0' />
             )}
             Following
           </button>
           <button
-            className={`${buttonFilter === 'groups' ? 'text-Primary/Light' : ''} hover:text-Primary/Light hover:bg-Background/Middle rounded-md px-4 py-2 text-lg flex flex-row gap-4`}
+            className={`${buttonFilter === 'groups' ? 'text-[var(--text-title)]' : ''} hover:text-[var(--text-title)] hover:bg-[var(--input)] rounded-md px-2 py-2 text-lg flex flex-row gap-4`}
             onClick={() => setButtonFilter('groups')}
           >
             {buttonFilter === 'groups' ? (
-              <HiUsers className='text-3xl' />
+              <HiUsers className='text-3xl flex-shrink-0' />
             ) : (
-              <HiOutlineUsers className='text-3xl' />
+              <HiOutlineUsers className='text-3xl flex-shrink-0' />
             )}
             Groups
           </button>

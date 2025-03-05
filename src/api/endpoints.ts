@@ -21,10 +21,12 @@ export const API_ENDPOINTS = {
   //group_related
   GROUP_DATA: (groupId: string) => `/group/${groupId}/data`,
   FETCH_GROUP_DETAIL: (groupId: string) => `/group/${groupId}/fullInfo`,
+  GROUP_PUBLIC_DATA: (groupId: string) => `/group/publicData/${groupId}`,
 
   //project_related
   PROJECT_DATA: (projectId: string) => `/project/${projectId}/data`,
   FETCH_PROJECT_DETAIL: (projectId: string) => `/project/${projectId}/fullInfo`,
+  PROJECT_PUBLIC_DATA: (projectId: string) => `/project/publicData/${projectId}`,
   //Post_related
   POST_DETAILS: (postId: string) => `/post/${postId}`,
   POST_VISIBILITY: (postId: string, state: 'public' | 'private') =>
@@ -37,7 +39,6 @@ export const API_ENDPOINTS = {
     order: 'ascending' | 'descending' = 'ascending',
     criteria: string,
     type: 'feed' | 'me' | 'stored' | undefined = undefined,
-    userId?: string, // Added userId argument for feed type
   ) => {
     const queryParams = new URLSearchParams();
     queryParams.append('page', String(page));
@@ -47,8 +48,8 @@ export const API_ENDPOINTS = {
     if (search) queryParams.append('search', search);
     if (tags.length > 0) queryParams.append('tags', tags.join(','));
 
-    if (type === 'feed' && userId) {
-      return `/posts/feed/${userId}/filter?${queryParams.toString()}`;
+    if (type === 'feed') {
+      return `/feed?${queryParams.toString()}`;
     }
     if (type === 'me') {
       return `/me?${queryParams.toString()}`;
@@ -414,8 +415,10 @@ export const API_ENDPOINTS = {
   GROUP_ASSIGN_CREATOR: (groupId: string, assignCreatorUserId: string) =>
     `/group/assignCreator/${groupId}/${assignCreatorUserId}`,
 
-  GROUP_CONFIRM_INVITE: (groupId: string) => `/group/confirmInvite/${groupId}`,
-  PROJECT_CONFIRM_INVITE: (projectId: string) => `/project/confirmInvite/${projectId}`,
+  GROUP_CONFIRM_INVITE: (groupId: string, accept: string = 'true') =>
+    `/group/confirmInvite/${groupId}?accept=${accept}`,
+  PROJECT_CONFIRM_INVITE: (projectId: string, accept: string = 'true') =>
+    `/project/confirmInvite/${projectId}?accept=${accept}`,
 
   // Project-related
   PROJECT_CREATE: (groupId: string) => `/project/create/${groupId}`,
@@ -449,7 +452,11 @@ export const API_ENDPOINTS = {
   },
 
   SECTION_REMOVE_PARTICIPANT: (sectionId: string, userId: string) => {
-    return `/project/section/${sectionId}/removeParticipant/${userId}`;
+    return `/project/section/${sectionId}/removeUsersInOneSection/${userId}`;
+  },
+
+  SECTION_REMOVE_PARTICIPANT_FROM_ALL: (sectionId: string, userId: string) => {
+    return `/project/section/${sectionId}/removeUsersInAllSection/${userId}`;
   },
 
   POST_MODERATE_GROUP: (groupId: string, action: 'approve' | 'reject') => {
@@ -469,6 +476,8 @@ export const API_ENDPOINTS = {
   CREATE_SECTION: () => `/project/sectionCreate`,
   UPDATE_SECTION: (sectionId: string) => `/project/sectionUpdate/${sectionId}`,
   DELETE_SECTION: (sectionId: string) => `/project/sectionDelete/${sectionId}`,
+  SECTION_DESCRIPTION: (sectionId: string) => `/project/section/getDescription/${sectionId}`,
+
   SECTION_USERS: (
     sectionId: string,
     page: number,

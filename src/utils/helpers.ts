@@ -5,6 +5,8 @@ export const formatNumber = (num?: number): string => {
     return '0'; // Default value if num is undefined or not a number
   }
 
+  num = Math.max(0, num); // Ensure num is not negative
+
   if (num >= 1e9) {
     return (num / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
   }

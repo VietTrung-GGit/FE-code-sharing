@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { TbEye, TbLock } from 'react-icons/tb';
 import { useDropzone, Accept } from 'react-dropzone';
@@ -13,6 +13,8 @@ import '../index.css';
 import { Post, createPost, PostFile, PostUpload, updatePost } from '../services/postService';
 import { tags, tagColors } from '../utils/helpers';
 import { useTheme } from '../context/ThemeContext';
+import EmojiPickerComponent from './emojiPicker';
+import { EmojiClickData } from 'emoji-picker-react';
 
 interface PostCreateProps {
   postData?: Post; // Optional prop to enable edit mode
@@ -46,6 +48,9 @@ const PostCreate: React.FC<PostCreateProps> = ({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { user } = useAuthUser();
   const { theme } = useTheme();
+  const [showPicker, setShowPicker] = useState(false);
+  const emojis = ['😀', '😆', '😎', '🔥', '💯', '🚀', '🎉', '🥳'];
+  const getRandomEmoji = () => emojis[Math.floor(Math.random() * emojis.length)];
   useEffect(() => {
     // Disable body scroll
     document.body.style.overflow = 'hidden';
@@ -200,6 +205,18 @@ const PostCreate: React.FC<PostCreateProps> = ({
       }
     } else toast.warning('Empty post!');
   };
+  const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const adjustHeight = () => {
+    if (textAreaRef.current) {
+      textAreaRef.current.style.height = 'auto'; // Reset height
+      textAreaRef.current.style.height = `${Math.min(textAreaRef.current.scrollHeight, 2000)}px`; // Adjust height with max limit
+    }
+  };
+
+  useEffect(() => {
+    adjustHeight(); // Adjust height once on mount
+  }, [content]);
 
   return (
     <div
@@ -249,34 +266,50 @@ const PostCreate: React.FC<PostCreateProps> = ({
             }
           }}
           placeholder='Title'
-          className='font-semibold w-full px-2 text-[var(--text-title)] bg-[var(--input)] text-lg focus:outline-none focus:border-transparent'
+          className='font-semibold w-full px-2 py-1 rounded-md text-[var(--text-title)] bg-[var(--input)] text-lg focus:outline-none focus:border-transparent'
         />
         {postRefId && <PostRef postId={postRefId} />}
+        <div className='relative'>
+          {' '}
+          {/* Text Input */}
+          <textarea
+            ref={textAreaRef}
+            value={content}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              const newValue = target.value;
 
-        {/* Text Input */}
-        <textarea
-          value={content}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            const newValue = target.value;
+              // Handle character limit
+              if (newValue.length > 2000) {
+                target.value = newValue.slice(0, 2000);
+                toast.warning('Length of content must not exceed 2000 characters.');
+              }
 
-            // Handle character limit
-            if (newValue.length > 2000) {
-              target.value = newValue.slice(0, 2000);
-              toast.warning('Length of content must not exceed 2000 characters.');
+              // Update state with new value
+              setContent(target.value.slice(0, 2000));
+            }}
+            placeholder={
+              postRefId ? 'Share your thoughts about this post...' : 'Share your code...'
             }
-
-            // Update state with new value
-            setContent(target.value.slice(0, 2000));
-
-            // Adjust height dynamically
-            target.style.height = 'auto'; // Reset height to auto before recalculating
-            target.style.height = `${Math.min(target.scrollHeight, 2000)}px`; // Adjust height to content, with max height of 2000px
-          }}
-          placeholder={postRefId ? 'Share your thoughts about this post...' : 'Share your code...'}
-          className='my-2 w-full py-2 px-4 bg-[var(--input)] overflow-hidden resize-none rounded-md focus:outline-none focus:border-transparent'
-          rows={1}
-        />
+            rows={6}
+            className='mt-2 w-full p-2 bg-[var(--input)] overflow-hidden resize-none rounded-md focus:outline-none focus:border-transparent'
+          />
+          <button
+            onClick={() => setShowPicker(!showPicker)}
+            className='absolute top-2 right-2 z-40 text-lg hidden lg:block'
+          >
+            {getRandomEmoji()}
+          </button>
+          {showPicker && (
+            <div className='absolute top-10 right-0 mb-2 z-30 bg-gray-800 rounded-lg shadow-lg'>
+              <EmojiPickerComponent
+                theme={theme}
+                onSelect={(emoji: EmojiClickData) => setContent((prev) => prev + emoji.emoji)}
+                onClose={() => setShowPicker(false)}
+              />
+            </div>
+          )}
+        </div>
 
         {/* Dropzone */}
         <div className='flex gap-3 mb-3'>
@@ -374,7 +407,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
             language={getEditorLanguage(files[activeTab]?.fileName)}
             value={files[activeTab]?.fileUrl}
             onChange={(value) => updateFileContent(value || '')}
-            theme='vs-dark'
+            theme={`${theme == 'light' ? 'light' : 'vs-dark'}`}
             options={{
               minimap: { enabled: false },
               fontSize: 14,
@@ -401,13 +434,13 @@ const PostCreate: React.FC<PostCreateProps> = ({
               <button key={tag} className='w-24 my-2 mr-2' onClick={() => handleTagSelect(tag)}>
                 <div className='flex flex-col'>
                   <div
-                    className={`${
+                    className={`${theme === 'original' ? 'text-Primary/Dark' : ''} ${
                       selectedTags.includes(tag)
-                        ? `${tagColors[tag]}`
-                        : ' bg-white hover:bg-gray-300'
+                        ? `${tagColors[tag]} text-Primary/Dark`
+                        : 'bg-[var(--button)] hover:bg-[var(--button-hovered)]'
                     } rounded-3xl p-1`}
                   >
-                    <p className='text-Primary/Dark'>{tag}</p>
+                    <p>{tag}</p>
                   </div>
                 </div>
               </button>
@@ -464,7 +497,11 @@ const PostCreate: React.FC<PostCreateProps> = ({
 
           <button
             onClick={handleSubmit}
-            className='w-24 py-2 mt-4 bg-Accent/Target text-white font-bold rounded-xl'
+            className={`${
+              theme === 'original'
+                ? 'bg-Accent/Target  hover:text-Accent/Target hover:bg-white'
+                : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border border-[var(--border)] text-Accent/Target'
+            } transition-colors duration-300 ease-in-out w-24 py-2 mt-4 font-bold rounded-xl`}
           >
             Submit
           </button>

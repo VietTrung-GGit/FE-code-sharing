@@ -150,27 +150,32 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
     setPage(1);
     setHasMore(true);
     setLoading(true);
-    if (active === 'Posts') setPosts([]);
-    if (active === 'Users') setUsers([]);
-    if (active === 'Groups') setGroups([]);
-    if (active === 'Projects') setProjects([]);
+
+    // Reset relevant state based on active tab
+    setPosts([]);
+    setUsers([]);
+    setGroups([]);
+    setProjects([]);
   }, [active, debouncedSearchTerm, searchParams]);
 
   useEffect(() => {
-    if (posts.length === 0 && active == 'Posts') fetchAndUpdatePosts();
-  }, [posts]);
-
-  useEffect(() => {
-    if (users.length === 0 && active == 'Users') fetchAndUpdateUsers();
-  }, [users]);
-
-  useEffect(() => {
-    if (groups.length === 0 && active == 'Groups') fetchAndUpdateGroups();
-  }, [groups]);
-
-  useEffect(() => {
-    if (projects.length === 0 && active == 'Projects') fetchAndUpdateProjects();
-  }, [projects]);
+    if (hasMore == true) {
+      switch (active) {
+        case 'Posts':
+          if (posts.length === 0) fetchAndUpdatePosts();
+          break;
+        case 'Users':
+          if (users.length === 0) fetchAndUpdateUsers();
+          break;
+        case 'Groups':
+          if (groups.length === 0) fetchAndUpdateGroups();
+          break;
+        case 'Projects':
+          if (projects.length === 0) fetchAndUpdateProjects();
+          break;
+      }
+    }
+  }, [posts, users, groups, projects]);
 
   useEffect(() => {
     if (hasMore) {
@@ -338,7 +343,7 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
             theme === 'original'
               ? 'bg-Background/Bottom border-2  border-Primary/Dark'
               : 'bg-[var(--surface)]'
-          } h-18  px-6 py-4 w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl  sm:max-lg:rounded-3xl lg:mt-0 lg:border-t-0 lg:rounded-none lg:rounded-b-3xl
+          } h-18  px-6 py-4 w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] flex items-center justify-between rounded-3xl  sm:max-lg:rounded-3xl lg:mt-0 lg:border-t-0 lg:rounded-none lg:rounded-b-3xl
         border-solid box-border mb-3 text-center mt-28 `}
         >
           <div className='flex flex-row w-full items-center space-x-4 mx-4 mt-0'>
@@ -366,10 +371,8 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
             </button>
 
             {showTaglistModal && (
-              <div
-                className={`fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50`}
-              >
-                <div ref={tagListRef}>
+              <div>
+                <div className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'>
                   <div ref={modalRef}>
                     <TagList
                       onFilterChange={handleFilterChange}
@@ -391,28 +394,28 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
       </div>
       <>
         <>
-          <div className='flex justify-center mt-8 sm:max-lg:mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-2'>
-            <div className='flex flex-row justify-center gap-8 xsm:gap-14 sm:gap-24 lg:gap-16 xl:gap-28 2xl:gap-36 w-1/2'>
+          <div className='flex justify-center mt-3 xxsm:mt-8 sm:max-lg:mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-2'>
+            <div className='flex flex-row justify-center gap-8 xsm:gap-14 sm:gap-24 lg:gap-16 xl:gap-28 2xl:gap-36w-[94vw] lg:w-1/2 xl:min-w-[650px]'>
               <button
-                className={`${active === 'Posts' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl `}
+                className={`${active === 'Posts' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-lg xxsm:text-xl `}
                 onClick={() => navigate(`/community/posts`)}
               >
                 Posts
               </button>
               <button
-                className={`${active === 'Users' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl `}
+                className={`${active === 'Users' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-lg xxsm:text-xl `}
                 onClick={() => navigate(`/community/users`)}
               >
                 Users
               </button>
               <button
-                className={`${active === 'Groups' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl `}
+                className={`${active === 'Groups' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-lg xxsm:text-xl `}
                 onClick={() => navigate(`/community/groups`)}
               >
                 Groups
               </button>
               <button
-                className={`${active === 'Projects' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl `}
+                className={`${active === 'Projects' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-lg xxsm:text-xl `}
                 onClick={() => navigate(`/community/projects`)}
               >
                 Projects
@@ -435,7 +438,11 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
                   onClick={() => {
                     setShowGroupCreate(true);
                   }}
-                  className='transition-colors duration-300 ease-in-out w-28 rounded-2xl bg-Accent/Target text-lg text-white hover:bg-white hover:text-Accent/Target  flex flex-row gap-2 px-6 py-[2px] items-center'
+                  className={`${
+                    theme === 'original'
+                      ? 'bg-Accent/Target  hover:text-Accent/Target hover:bg-white'
+                      : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border border-[var(--border)] text-Accent/Target'
+                  } transition-colors duration-300 ease-in-out w-28 rounded-2xl text-lg flex flex-row gap-2 px-6 py-[2px] items-center`}
                 >
                   <p>New</p>
                   <AiFillPlusCircle className=' text-3xl' />
@@ -446,7 +453,7 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
 
           {/*}  <div className='flex justify-center items-center relative mx-6 sm:max-lg:mx-14 lg:mx-10'>
             <div
-              className='flex flex-row justify-end items-center w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] '
+              className='flex flex-row justify-end items-center w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] '
               ref={dropdownFilterRef}
             >
               
@@ -472,7 +479,7 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
               theme === 'original'
                 ? 'bg-Background/Bottom border-2 border-Primary/Dark'
                 : 'bg-[var(--surface)] text-[var(--text)]'
-            } w-[88vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 rounded-3xl p-5 md:p-7 lg:p-8`}
+            } w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px] my-3 rounded-3xl p-5 md:p-7 lg:p-8`}
           >
             <div className='flex flex-row w-full items-center space-x-4'>
               <div className='inline-block flex-shrink-0'>
@@ -531,21 +538,21 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
         </div>
       )}
       {/* Display groups if available */}
-      {active == 'Groups' && groups.length > 0 && (
+      {active == 'Groups' && groups.length > 0 && user && (
         <div id='posts-container' className={'mx-6 sm:max-lg:mx-14 lg:mx-10 '}>
           {groups.map((group) => (
             <div key={group._id}>
-              <GroupBrief groupData={group} />
+              <GroupBrief userId={user._id} groupData={group} />
             </div>
           ))}
         </div>
       )}
       {/* Display projects if available */}
-      {active == 'Projects' && projects.length > 0 && (
+      {active == 'Projects' && projects.length > 0 && user && (
         <div id='posts-container' className={'mx-6 sm:max-lg:mx-14 lg:mx-10 '}>
           {projects.map((project) => (
             <div key={project._id}>
-              <ProjectBrief projectData={project} detail={true} />
+              <ProjectBrief userId={user._id} projectData={project} detail={true} />
             </div>
           ))}
         </div>
