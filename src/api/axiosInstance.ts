@@ -1,8 +1,7 @@
 import axios from 'axios';
-
 // Create an Axios instance
 export const axiosInstance = axios.create({
-  baseURL: 'https://njdjq5-4000.csb.app',
+  baseURL: `https://${import.meta.env.VITE_BE_URL}`,
   headers: {
     'Content-Type': 'application/json',
   },

@@ -43,6 +43,7 @@ export interface ProjectDataBrief {
   visibleMembers: (string | undefined)[];
   role: string;
   creator: string;
+  groupName: string;
 }
 
 export interface ProjectData {
@@ -58,6 +59,8 @@ export interface ProjectData {
   sections: NodeStructure[];
   role: string;
   joined: boolean;
+  numberOfPosts: number;
+  numberOfMembers: number;
 }
 
 export interface ProjectDataCreate {

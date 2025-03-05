@@ -24,7 +24,6 @@ import {
   fetchGroupPendingPosts,
 } from '../services/postService';
 import {
-  GroupDataBrief,
   GroupData,
   getGroupFullData,
   joinGroup,
@@ -103,7 +102,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
   const [privacy, setPrivacy] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownConfigOpen, setIsDropdownConfigOpen] = useState(false);
   const dropdownConfigRef = useRef<HTMLDivElement>(null);
@@ -114,6 +113,8 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
   const isAdmin = group && (group.role == 'admin' || group.role == 'creator');
   const debouncedSearchTerm = useDebounce(searchTerm, 600);
   const [refId, setRefId] = useState<string>('');
+  const [waiting, setWaiting] = useState(false);
+
   const handleCreate = () => {
     setRefId('');
     setShowPostCreate(true);
@@ -290,7 +291,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
         setPrivacy(!data.canJoin);
         setHasJoined(data.joined);
         setModeration(data.moderation);
-
+        setLoading(false);
         // Handle avatar file if needed
       } catch (error) {
         console.error('Error fetching group data:', error);
@@ -304,7 +305,9 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
     if (group && group.canJoin && groupId) {
       try {
         setHasJoined(true);
+        setWaiting(true);
         await joinGroup(groupId);
+        setWaiting(false);
         toast.success(`Joined group: ${group.name}`);
         setGroup((prev) => {
           if (!prev) return prev;
@@ -324,7 +327,9 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
     if (group && groupId) {
       try {
         setHasJoined(false);
+        setWaiting(true);
         await leaveGroup(groupId);
+        setWaiting(false);
         toast.info(`Left group: ${group.name}`);
       } catch (error) {
         setHasJoined(true);
@@ -609,6 +614,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                       onClick={hasJoined ? handleLeave : handleJoin}
                       onMouseEnter={() => setIsHovered(true)}
                       onMouseLeave={() => setIsHovered(false)}
+                      disabled={loading || waiting}
                     >
                       {hasJoined ? (isHovered ? 'Leave' : 'Joined') : 'Join'}
                     </button>
@@ -637,7 +643,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                   </div>
                 )}
               </div>
-              <div className='flex items-center lg:mt-10 xl:mt-4 space-x-2 hidden lg:block'>
+              <div className='flex items-center lg:mt-8 xl:mt-0 space-x-2 hidden lg:block'>
                 <div className='flex flex-row '>
                   {/* Avatar Members */}
 
@@ -648,7 +654,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                           key={user || index} // Prefer `user` as a unique key if available
                           src={avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                           alt={`Member: ${user || `Unknown ${index + 1}`}`}
-                          className='w-8 h-8 rounded-full object-cover'
+                          className='w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover'
                         />
                       ))}
                     </div>
@@ -660,7 +666,9 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
             <div className='flex flex-col space-y-4 mb-6 sm:mb-6 lg:mb-10 ml-4 xsm:ml-20 sm:ml-0'>
               <div className='flex flex-row sm:-mt-4 lg:mt-0'>
                 <div className='flex flex-col'>
-                  <div className='flex flex-col'>
+                  <div
+                    className={`flex flex-col ${group && group.role == 'creator' ? 'xxsm:max-xsm:mt-4' : ''}`}
+                  >
                     <p className=' font-semibold mt-6 text-2xl sm:text-3xl lg:text-2xl xl:text-3xl break-words'>
                       {group?.name || 'Group Name'}
                     </p>
@@ -682,7 +690,8 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                   <div className='flex flex-row xxsm:flex-col xxsm:mt-0 mt-1 gap-x-2 xxsm:gap-x-0'>
                     {(hasJoined || !privacy) && group && group.role != 'creator' && (
                       <button
-                        className={`transition-colors font-semibold sm:hidden duration-300 ease-in-out w-20 h-5 xsm:h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base text-Accent/Target my-1 xsm:my-2 mt-2 xsm:mt-4
+                        disabled={loading || waiting}
+                        className={`transition-colors font-semibold sm:hidden duration-300 ease-in-out w-16 xxsm:w-20 h-5 xsm:h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base text-Accent/Target my-1 xsm:my-2 mt-2 xsm:mt-4
                       ${
                         theme === 'original'
                           ? hasJoined
@@ -703,7 +712,8 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                     {hasJoined && (
                       <div className='relative sm:hidden'>
                         <button
-                          className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target transition-colors font-semibold duration-300 ease-in-out w-20 h-5 xsm:h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base my-1 xsm:my-2 mt-2 xxsm:mt-0
+                          disabled={loading || waiting}
+                          className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target transition-colors font-semibold duration-300 ease-in-out w-16 xxsm:w-20 h-5 xsm:h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base my-1 xsm:my-2 mt-2 xxsm:mt-0
                        `}
                           onClick={() => setShowInvite((prev) => !prev)}
                         >
@@ -794,7 +804,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
 
       {hasJoined || !privacy ? (
         <>
-          <div className='flex justify-center my-5 mx-16 xsm:mx-16 sm:mx-36 lg:mx-24 xl:mx-8'>
+          <div className='flex justify-center  mt-8 lg:mt-6 mx-16 xsm:mx-16 sm:mx-36 lg:mx-24 xl:mx-8'>
             <div className='flex flex-row xl:justify-center gap-20 xsm:gap-20 sm:gap-24 lg:gap-20 xl:gap-20 2xl:gap-24 xsm:w-full lg:w-1/2 justify-start max-xl:overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
               <button
                 className={`${active === 'Posts' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl whitespace-nowrap`}
@@ -835,8 +845,8 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
               )}
             </div>
           </div>
-          <div className='flex lg:justify-center mt-2 xsm:mt-2 sm:max-lg:mt-4 lg:mt-6 mx-6 sm:max-lg:mx-20 lg:mx-20'>
-            <div className='flex justify-between w-[94vw] lg:w-1/2 xl:min-w-[650px] xl:min-w-[650px] mb-10 lg:mb-0 ml-8 sm:ml-0'>
+          <div className='flex lg:justify-center mt-4 xsm:mt-4 sm:max-lg:mt-4 lg:mt-6 mx-6 sm:max-lg:mx-20 lg:mx-20'>
+            <div className='flex justify-between w-[94vw] lg:w-1/2 xl:min-w-[650px] xl:min-w-[650px] mb-0 ml-8 sm:ml-0'>
               <p className='text-2xl font-semibold '>{active}</p>
 
               {active === 'Projects' && isAdmin && (
@@ -1009,13 +1019,13 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
           )}
           {loading && <LoadingSpinner />}
         </>
-      ) : (
+      ) : !loading ? (
         <div className='flex justify-center items-center h-[50vh]'>
           <p className='text-lg xxsm:text-xl text-gray-500 text-center'>
             You need to join this group to see its content.
           </p>
         </div>
-      )}
+      ) : null}
 
       {/* Show LoadingSpinner during additional data fetching */}
 
@@ -1046,6 +1056,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                   onClick={hasJoined ? handleLeave : handleJoin}
                   onMouseEnter={() => setIsHovered(true)}
                   onMouseLeave={() => setIsHovered(false)}
+                  disabled={loading || waiting}
                 >
                   {hasJoined ? (isHovered ? 'Leave' : 'Joined') : 'Join'}
                 </button>
@@ -1056,7 +1067,8 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                 {hasJoined && (
                   <div className='relative'>
                     <button
-                      className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target transition-colors font-semibold duration-300 ease-in-out w-12 md:w-20 lg:w-24 h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base my-4
+                      disabled={loading || waiting}
+                      className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target transition-colors font-semibold duration-300 ease-in-out w-12 md:w-20 h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base my-4
      `}
                       onClick={() => setShowInvite((prev) => !prev)}
                     >

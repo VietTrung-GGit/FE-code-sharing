@@ -48,6 +48,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { user } = useAuthUser();
   const { theme } = useTheme();
+  const [waiting, setWaiting] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const emojis = ['😀', '😆', '😎', '🔥', '💯', '🚀', '🎉', '🥳'];
   const getRandomEmoji = () => emojis[Math.floor(Math.random() * emojis.length)];
@@ -179,7 +180,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
 
           ...(role ? { role } : {}),
         };
-
+        setWaiting(true);
         if (postData) {
           await updatePost(postData._id, postUploadData); // If postData has _id, call updatePost
           refresh({
@@ -238,7 +239,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
         {/* Avatar, Name, and Date */}
         <div className='flex items-center gap-4 mb-4'>
           <img
-            src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'} // Placeolder if no avatar
+            src={user?.avatar || import.meta.env.VITE_DEFAULT_AVATAR} // Placeolder if no avatar
             alt='Avatar'
             className='w-12 h-12 rounded-full object-cover'
           />
@@ -249,7 +250,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
                 {formatDate(postData.createdAt)}. Updating:&nbsp;
               </span>
             )}
-            <span className='text-sm text-[var(--green-highlight)]'>Now</span>
+            <span className='text-sm text-[var(--text-hovered)]'>Now</span>
           </div>
         </div>
 
@@ -451,7 +452,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
 
       {/* Submit Button */}
       <div className='mt-auto'>
-        <div className='flex justify-between space-x-2'>
+        <div className={`${mode ? 'justify-end' : 'justify-between'} flex space-x-2`}>
           {!mode && (
             <Menu as='div' className='relative inline-block text-left mt-4'>
               <div>
@@ -495,16 +496,32 @@ const PostCreate: React.FC<PostCreateProps> = ({
             </Menu>
           )}
 
-          <button
-            onClick={handleSubmit}
-            className={`${
-              theme === 'original'
-                ? 'bg-Accent/Target  hover:text-Accent/Target hover:bg-white'
-                : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border border-[var(--border)] text-Accent/Target'
-            } transition-colors duration-300 ease-in-out w-24 py-2 mt-4 font-bold rounded-xl`}
-          >
-            Submit
-          </button>
+          {!waiting ? (
+            <button
+              onClick={handleSubmit}
+              className={`group ${
+                theme === 'original'
+                  ? 'bg-Accent/Target hover:text-Accent/Target hover:bg-white'
+                  : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border border-[var(--border)] text-Accent/Target'
+              } transition-colors duration-300 ease-in-out w-24 py-1 mt-4 font-bold rounded-xl flex justify-center items-center`}
+            >
+              Submit
+            </button>
+          ) : (
+            <div
+              className={`group ${
+                theme === 'original'
+                  ? 'bg-Accent/Target'
+                  : 'bg-[var(--button)] border border-[var(--border)] text-Accent/Target'
+              } transition-colors duration-300 ease-in-out w-24 py-1 mt-4 font-bold rounded-xl flex justify-center items-center`}
+            >
+              <div
+                className={`${
+                  theme === 'original' ? 'border-white' : 'border-Accent/Target'
+                } w-6 h-6 border-4 border-t-transparent border-solid rounded-full animate-spin`}
+              ></div>
+            </div>
+          )}
         </div>
       </div>
     </div>

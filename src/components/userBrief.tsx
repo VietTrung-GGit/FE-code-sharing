@@ -201,7 +201,7 @@ const UserBrief: React.FC<UserBriefProps> = ({
                                 }
                               }}
                             >
-                              <GrUserAdmin className='text-2xl' />
+                              <GrUserAdmin className='text-lg lg:text-xl' />
                               Assign as an admin
                             </button>
                           </li>
@@ -226,7 +226,7 @@ const UserBrief: React.FC<UserBriefProps> = ({
                               }
                             }}
                           >
-                            <GrUserAdmin className='text-2xl' />
+                            <GrUserAdmin className='text-lg lg:text-xl' />
                             Remove admin permission
                           </button>
                         </li>
@@ -241,7 +241,7 @@ const UserBrief: React.FC<UserBriefProps> = ({
                                 className='block px-4 py-2 text-red-500 hover:bg-[var(--background-hovered)]  w-full text-left flex flex-row gap-4'
                                 onClick={handleRemoveUser}
                               >
-                                <AiOutlineUserDelete className='text-2xl' />
+                                <AiOutlineUserDelete className='text-lg lg:text-xl' />
                                 {group
                                   ? 'Remove from group'
                                   : project
@@ -255,7 +255,7 @@ const UserBrief: React.FC<UserBriefProps> = ({
                                   className=' block px-4 py-2 text-red-500 hover:bg-[var(--background-hovered)]  w-full text-left flex flex-row gap-4'
                                   onClick={handleRemoveUserFromAll}
                                 >
-                                  <AiOutlineUserDelete className='text-2xl' />
+                                  <AiOutlineUserDelete className='shrink-0 text-lg lg:text-xl' />
                                   Remove from this section and all of its subsections
                                 </button>
                               </li>

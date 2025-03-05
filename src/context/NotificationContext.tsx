@@ -2,21 +2,14 @@ import React, { createContext, useContext, useEffect, useRef, useState, ReactNod
 import { useAuthUser } from '../context/AuthUserContext';
 import { toast } from 'react-toastify';
 import { io, Socket } from 'socket.io-client';
-import {
-  getUserNotifications,
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
-  deleteNotification, // Import the new function
-  Notification,
-} from '../services/notificationService';
+import { getUserNotifications, Notification } from '../services/notificationService';
 
 // Context Type
 type NotificationsContextType = {
   notifications: Notification[];
   fetchNotifications: (filter?: string, page?: number, limit?: number) => Promise<void>;
-  markAsRead: (notificationId: string) => Promise<void>;
-  markAllAsRead: () => Promise<void>;
-  deleteNotification: (notificationId: string) => Promise<void>; // Add to context type
+  decreateNotifCountByOne: () => void;
+  decreateNotifCountByAll: () => void;
   isConnected: boolean;
   hasMore: boolean;
   totalNotifications: number;
@@ -53,42 +46,18 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
     }
   };
 
-  const markAsRead = async (notificationId: string) => {
-    try {
-      await markNotificationAsRead(notificationId);
-      setNotifications((prev) =>
-        prev.map((notif) => (notif._id === notificationId ? { ...notif, isRead: true } : notif)),
-      );
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
+  const decreateNotifCountByOne = () => {
+    setTotalNotifications((prev) => prev - 1);
   };
 
-  const markAllAsRead = async () => {
-    try {
-      await markAllNotificationsAsRead();
-      setNotifications((prev) => prev.map((notif) => ({ ...notif, isRead: true })));
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-    }
-  };
-
-  const handleDeleteNotification = async (notificationId: string) => {
-    try {
-      await deleteNotification(notificationId);
-      setNotifications((prev) => prev.filter((notif) => notif._id !== notificationId));
-      setTotalNotifications(totalNotifications - 1);
-      toast.success('Notification deleted successfully');
-    } catch (error) {
-      console.error('Error deleting notification:', error);
-      toast.error('Failed to delete notification');
-    }
+  const decreateNotifCountByAll = () => {
+    setTotalNotifications(0);
   };
 
   useEffect(() => {
     if (isAuthenticated == true) {
       fetchNotifications();
-      socket.current = io('wss://njdjq5-4000.csb.app', {
+      socket.current = io(`wss://${import.meta.env.VITE_BE_URL}`, {
         withCredentials: true,
         transports: ['websocket'],
         query: {
@@ -127,10 +96,9 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
       value={{
         notifications,
         fetchNotifications,
-        markAsRead,
-        markAllAsRead,
+        decreateNotifCountByOne,
+        decreateNotifCountByAll,
         totalNotifications,
-        deleteNotification: handleDeleteNotification, // Provide the function in context
         isConnected,
         hasMore,
       }}

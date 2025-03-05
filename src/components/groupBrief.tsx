@@ -26,11 +26,11 @@ const mockGroup: GroupDataBrief = {
   totalPosts: 0,
   totalMembers: 0,
   creator: '1',
-  avatar: 'https://i.postimg.cc/02Xx40Yq/default.png',
+  avatar: import.meta.env.VITE_DEFAULT_AVATAR,
   visibleMembers: [
-    'https://i.postimg.cc/02Xx40Yq/default.png',
-    'https://i.postimg.cc/02Xx40Yq/default.png',
-    'https://i.postimg.cc/02Xx40Yq/default.png',
+    import.meta.env.VITE_DEFAULT_AVATAR,
+    import.meta.env.VITE_DEFAULT_AVATAR,
+    import.meta.env.VITE_DEFAULT_AVATAR,
   ],
 };
 
@@ -175,7 +175,7 @@ const GroupBrief: React.FC<GroupBriefProps> = ({ userId, groupData }) => {
           {/* Group Avatar */}
           <Link to={`/group/${groupData?._id ?? '#'}/posts`} className='flex-shrink-0 relative'>
             <img
-              src={group.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+              src={group.avatar || import.meta.env.VITE_DEFAULT_AVATAR}
               alt='Group Icon'
               className='w-12 h-12 sm:w-20 sm:h-20 lg:w-28 lg:h-28 rounded-lg sm:rounded-xl lg:rounded-3xl object-cover'
             />

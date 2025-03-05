@@ -135,9 +135,7 @@ const GroupCreate: React.FC<PostCreateProps> = ({
             {/* Image */}
             <img
               src={
-                avatarFile
-                  ? URL.createObjectURL(avatarFile)
-                  : 'https://i.postimg.cc/02Xx40Yq/default.png'
+                avatarFile ? URL.createObjectURL(avatarFile) : import.meta.env.VITE_DEFAULT_AVATAR
               }
               alt='Profile Icon'
               className='w-40 h-40 rounded-3xl object-cover transition duration-300 group-hover:brightness-60'
@@ -341,7 +339,7 @@ const GroupCreate: React.FC<PostCreateProps> = ({
         ) : (
           <>
             {' '}
-            <p>{groupData ?'Submit':'Create'}</p>
+            <p>{groupData ? 'Submit' : 'Create'}</p>
             <AiFillPlusCircle className=' text-2xl mt-1' />
           </>
         )}

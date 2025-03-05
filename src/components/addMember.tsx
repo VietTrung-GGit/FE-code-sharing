@@ -97,6 +97,7 @@ const AddMember: React.FC<AddMemberProps> = ({ type, desId, isOpen, closeModal, 
   const [suggestedUsers, setSuggestedUsers] = useState<UserBriefData[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
+  const [waiting, setWaiting] = useState(false);
 
   const toggleUser = (user: UserBriefData) => {
     setUsers((prevUsers) => {
@@ -113,6 +114,7 @@ const AddMember: React.FC<AddMemberProps> = ({ type, desId, isOpen, closeModal, 
     const userIds = users.map((user) => user._id);
 
     try {
+      setWaiting(true);
       if (type === 'group') {
         await inviteGroupMembers(desId, userIds);
       } else if (type === 'project') {
@@ -123,7 +125,7 @@ const AddMember: React.FC<AddMemberProps> = ({ type, desId, isOpen, closeModal, 
           refetchUsers();
         }
       }
-
+      setWaiting(false);
       setUsers([]); // Clear selected users after inviting
       closeModal();
       toast.success('Sending invitations successfully!');
@@ -210,7 +212,11 @@ const AddMember: React.FC<AddMemberProps> = ({ type, desId, isOpen, closeModal, 
             ))}
           </div>
 
-          <button onClick={handleInvite} className='text-Accent/Target text-2xl flex-shrink-0'>
+          <button
+            onClick={handleInvite}
+            className='text-Accent/Target text-2xl flex-shrink-0'
+            disabled={waiting || loading}
+          >
             <IoPersonAdd />
           </button>
         </div>

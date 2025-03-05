@@ -4,7 +4,7 @@ import { useAuthUser } from '../context/AuthUserContext';
 import Logo from '../assets/logo.svg';
 import { useNotifications } from '../context/NotificationContext';
 import { FaBell, FaPaintRoller, FaRegStar, FaStar } from 'react-icons/fa';
-import { BiBookBookmark, BiSolidNotification, BiSolidBookBookmark } from 'react-icons/bi';
+import { BiBookBookmark, BiSolidBookBookmark } from 'react-icons/bi';
 import { RiGlobalLine, RiGlobalFill } from 'react-icons/ri';
 import { AiOutlineHome, AiFillHome, AiOutlineSetting } from 'react-icons/ai';
 import { TbLogout2 } from 'react-icons/tb';
@@ -114,7 +114,7 @@ function Sidebar({
           <Link to={`/user/${user?._id ?? '#'}`} className='flex flex-col items-center'>
             {' '}
             <img
-              src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+              src={user?.avatar || import.meta.env.VITE_DEFAULT_AVATAR}
               alt='Profile Icon'
               className='h-20 w-20 xl:h-24 xl:w-24 rounded-full object-cover'
             />

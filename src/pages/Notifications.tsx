@@ -1,7 +1,6 @@
 import Sidebar from '../components/sidebar';
 import CollapseMenu from '../components/collapseMenu';
 import QuickNav from '../components/quickNav';
-import { useParams, useNavigate } from 'react-router-dom';
 import { IoIosMore, IoMdCheckmark } from 'react-icons/io';
 import { FaCircle } from 'react-icons/fa';
 import { AiFillHeart, AiOutlineHeart } from 'react-icons/ai';
@@ -26,6 +25,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { formatDate, formatNumber } from '../utils/helpers';
 import { useTheme } from '../context/ThemeContext';
 import { IoCheckmarkDone } from 'react-icons/io5';
+import { useNotifications } from '../context/NotificationContext';
 type PostType = 'stored' | 'me' | undefined;
 
 interface Params extends Record<string, string | undefined> {
@@ -43,13 +43,12 @@ function Notifications() {
   const quickNavButtonRef = useRef<HTMLButtonElement>(null);
   const { theme } = useTheme();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
   const [totalNotifications, setTotalNotifications] = useState(0);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const socket = useRef<any>(null);
   const limit = 10;
+  const { decreateNotifCountByOne, decreateNotifCountByAll } = useNotifications();
 
   const fetchNotifications = async (
     filter: string = 'all',
@@ -81,6 +80,7 @@ function Notifications() {
       setNotifications((prev) =>
         prev.map((notif) => (notif._id === notificationId ? { ...notif, isRead: true } : notif)),
       );
+      decreateNotifCountByOne();
       setTotalNotifications((prev) => prev - 1);
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -92,16 +92,20 @@ function Notifications() {
       await markAllNotificationsAsRead();
       setNotifications((prev) => prev.map((notif) => ({ ...notif, isRead: true })));
       setTotalNotifications(0);
+      decreateNotifCountByAll();
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
   };
 
-  const handleDeleteNotification = async (notificationId: string) => {
+  const handleDeleteNotification = async (notification: Notification) => {
     try {
-      await deleteNotification(notificationId);
-      setNotifications((prev) => prev.filter((notif) => notif._id !== notificationId));
-      setTotalNotifications(totalNotifications - 1);
+      await deleteNotification(notification._id);
+      setNotifications((prev) => prev.filter((notif) => notif._id !== notification._id));
+      if (!notification.isRead) {
+        setTotalNotifications(totalNotifications - 1);
+        decreateNotifCountByOne();
+      }
       toast.success('Notification deleted successfully');
     } catch (error) {
       console.error('Error deleting notification:', error);
@@ -216,7 +220,7 @@ function Notifications() {
                 )}
                 <li>
                   <button
-                    onClick={() => handleDeleteNotification(notification._id)}
+                    onClick={() => handleDeleteNotification(notification)}
                     className='block px-4 py-2 w-full text-left flex flex-row gap-4 text-red-500 hover:bg-[var(--background-hovered)] transition'
                   >
                     <BiTrashAlt className='text-xl' />
@@ -233,7 +237,7 @@ function Notifications() {
           </div>
           <div className='flex justify-center'>
             <img
-              src={notification.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+              src={notification.avatar || import.meta.env.VITE_DEFAULT_AVATAR}
               alt='Avatar'
               className='w-16 h-16 rounded-full object-cover flex-shrink-0'
             />
@@ -256,7 +260,7 @@ function Notifications() {
                         ? `/user/${notification.relatedEntityId}/posts`
                         : notification.entityType === 'Project' ||
                             notification.entityType == 'Section'
-                          ? `/project/${notification.relatedEntityId}/posts`
+                          ? `/project/${notification.relatedEntityId}/sections/root/posts`
                           : '#'
                   }
                   className='text-[var(--text-title)] hover:underline'
@@ -400,14 +404,7 @@ function Notifications() {
                       <Link to='/feed' className='text-Accent/Target cursor-pointer inline'>
                         Codemunity
                       </Link>{' '}
-                      or{' '}
-                      <Link
-                        to='/feed/me'
-                        className='text-[var(--text-title)] cursor-pointer inline'
-                      >
-                        share your own code
-                      </Link>{' '}
-                      !
+                      for more interesting content!
                     </p>
                   </div>
                 </div>

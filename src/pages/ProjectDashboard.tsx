@@ -40,6 +40,7 @@ import { useTheme } from '../context/ThemeContext';
 import NothingPost from '../components/nothingPost';
 import { MdCheckBox, MdCheckBoxOutlineBlank, MdOutlineSearch } from 'react-icons/md';
 import { FaFilter } from 'react-icons/fa';
+import { formatNumber } from '../utils/helpers';
 
 interface ProjectDashboardProps {
   viewMember: boolean;
@@ -68,7 +69,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
   const [showProjectEdit, setShowProjectEdit] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [privacy, setPrivacy] = useState(true);
   const [firstLoad, setFirstLoad] = useState(true); // To track the initial load
@@ -89,6 +90,8 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
   const [activeSection, setActiveSection] = useState('root');
   const alreadyPinned = projectId ? isPinned('project', projectId) : false;
   const [pinned, setPinned] = useState(alreadyPinned);
+  const [waiting, setWaiting] = useState(false);
+
   const handlePinToggle = () => {
     if (projectId) {
       if (pinned) {
@@ -135,21 +138,6 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
     }
   }, [sectionId]);
 
-  // useEffect(() => {
-  //   setPage(1);
-  //   setHasMore(true);
-  //   setLoading(true);
-
-  //   // Reset relevant state based on active tab
-  //   setPosts([]);
-  // }, [viewSubsections]);
-
-  // useEffect(() => {
-  //   if (hasMore == true && posts.length === 0) {
-  //     fetchAndUpdatePosts();
-  //   }
-  // }, [posts]);
-
   useEffect(() => {
     setNote('Loading...');
     if (activeSection) {
@@ -173,12 +161,13 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
   const handleSave = async () => {
     setLoading(true);
     try {
+      setWaiting(true);
       if (activeSection != 'root') {
         await updateSection(activeSection, undefined, note);
       } else if (projectId) {
         await updateProjectNote(projectId, note);
       }
-
+      setWaiting(false);
       setIsEditing(false);
     } catch (error) {
       toast.error('Failed to update note:', error as string);
@@ -356,6 +345,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
 
         setHasJoined(data.joined);
         setPrivacy(!data.canJoin);
+        setLoading(false);
         // Handle avatar file if needed
       } catch (error) {
         console.error('Error fetching project data:', error);
@@ -436,8 +426,10 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
   const handleJoin = async () => {
     if (project && project.canJoin && projectId) {
       try {
+        setWaiting(true);
         setHasJoined(true);
         await joinProject(projectId);
+        setWaiting(false);
         toast.success(`Joined project: ${project.name}`);
       } catch (error) {
         setHasJoined(false);
@@ -450,7 +442,9 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
     if (project && projectId) {
       try {
         setHasJoined(false);
+        setWaiting(true);
         await leaveProject(projectId);
+        setWaiting(false);
         toast.info(`Left project: ${project.name}`);
       } catch (error) {
         setHasJoined(true);
@@ -503,7 +497,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
             theme === 'original'
               ? 'bg-Background/Bottom text-white border-2'
               : 'bg-[var(--surface)] text-[var(--text)]'
-          }  justify-center w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px]  xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] border-Primary/Dark rounded-3xl lg:p-5 relative flex items-center`}
+          }  justify-center w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[725px]  xl:h-[400px] lg:h-[400px] sm:h-[420px] xxsm:h-[560px] h-[530px] border-Primary/Dark rounded-3xl lg:p-5 relative flex items-center`}
         >
           {project && (project.role == 'leader' || project.role == 'admin') && (
             <div className=' absolute right-3 top-2' ref={dropdownConfigRef}>
@@ -561,7 +555,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                           onClick={async () => {
                             try {
                               await deleteProject(projectId);
-                              navigate(`/group/${project.group}`);
+                              navigate(`/group/${project.group}/posts`);
                               toast.success('Project deleted successfully');
                               // Optionally, you can navigate away or update state after deletion
                             } catch (error) {
@@ -596,16 +590,16 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
           <div className='flex flex-row justify-center space-x-4 xsm:space-x-10 sm:space-x-6 xl:space-x-2 mt-10 xsm:mt-8 sm:mt-0 lg:-mt-1 mb-44 xsm:mb-48 sm:mb-0 lg:-ml-2 xl:-ml-4'>
             <div className='sm:-mt-10 lg:-mt-6 flex flex-col h-[380px] items-center'>
               <img
-                src={project?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+                src={project?.avatar || import.meta.env.VITE_DEFAULT_AVATAR}
                 alt='Profile Icon'
-                className='w-16 h-16 xxsm:w-28 xxsm:h-28 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-52 xl:w-52 rounded-3xl object-cover mt-8 mx-0 sm:mx-0 sm:mt-14 lg:mx-2 xl:mx-4 mb-5 flex-shrink-0'
+                className='w-20 h-20 xxsm:w-28 xxsm:h-28 xsm:w-36 xsm:h-36 sm:w-52 sm:h-52 lg:w-48 lg:h-48 xl:h-52 xl:w-52 rounded-3xl object-cover mt-8 mx-0 sm:mx-0 sm:mt-14 lg:mx-2 xl:mx-4 mb-5 flex-shrink-0'
               />
               <div
                 className={`sm:flex max-lg:gap-y-3 items-center gap-x-1 xl:gap-x-2 hidden mt-4 xl:-mt-3`}
               >
                 {(!privacy || hasJoined) && project && project.role != 'leader' && (
                   <button
-                    className={`transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-24 lg:w-24 xl:w-24 h-7 px-[2px] rounded-xl text-xs md:text-base lg:text-base text-Accent/Target
+                    className={`transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-24 lg:w-24 xl:w-24 h-7 px-[2px] rounded-xl text-xs md:text-base lg:text-base text-Accent/Target lg:hidden
       ${
         theme === 'original'
           ? hasJoined
@@ -618,6 +612,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                     onClick={hasJoined ? handleLeave : handleJoin}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
+                    disabled={loading || waiting}
                   >
                     {hasJoined ? (isHovered ? 'Leave' : 'Joined') : 'Join'}
                   </button>
@@ -626,6 +621,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                 {hasJoined && (
                   <div className='relative'>
                     <button
+                      disabled={loading || waiting}
                       className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-24
                        lg:w-24 xl:w-24 h-7 px-[2px] rounded-xl text-xs md:text-base lg:text-base`}
                       onClick={() => setShowInvite((prev) => !prev)}
@@ -647,7 +643,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                 )}
               </div>
 
-              <div className='flex items-center mt-2 space-x-2 hidden lg:block'>
+              <div className='flex items-center mt-2 lg:mt-2 xl:mt-6 space-x-2 hidden lg:block'>
                 <div className='flex flex-row '>
                   {/* Avatar Members */}
 
@@ -657,7 +653,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                         <img
                           key={user || index} // Prefer `user` as a unique key if available
                           className='w-8 h-8 rounded-full object-cover'
-                          src={avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+                          src={avatar || import.meta.env.VITE_DEFAULT_AVATAR}
                           alt={`Member: ${user || `Unknown ${index + 1}`}`}
                         />
                       ))}
@@ -680,18 +676,19 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                           {project.members.map(({ avatar, user }, index) => (
                             <img
                               key={user || index} // Prefer `user` as a unique key if available
-                              src={avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+                              src={avatar || import.meta.env.VITE_DEFAULT_AVATAR}
                               alt={`Member: ${user || `Unknown ${index + 1}`}`}
-                              className='w-8 h-8 rounded-full object-cover'
+                              className='w-6 h-6 xxsm:w-8 xxsm:h-8 rounded-full object-cover'
                             />
                           ))}
                         </div>
                       )}
                     </div>
                   </div>
-                  {(!privacy || hasJoined) && project && project.role != 'leader' && (
-                    <button
-                      className={`transition-colors font-semibold sm:hidden duration-300 ease-in-out w-20 h-5 xsm:h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base text-Accent/Target my-1 xsm:my-2 mt-2 xsm:mt-4
+                  <div className='flex flex-row gap-x-2'>
+                    {(!privacy || hasJoined) && project && project.role != 'leader' && (
+                      <button
+                        className={`transition-colors font-semibold sm:hidden duration-300 ease-in-out w-16 xxsm:w-20 h-5 xsm:h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base text-Accent/Target my-1 xsm:my-2 mt-2 xsm:mt-4
                       ${
                         theme === 'original'
                           ? hasJoined
@@ -701,40 +698,43 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                             ? 'bg-[var(--button-active)] text-[var(--text-selected)] border-[1px] border-[var(--border)]'
                             : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'
                       }`}
-                      onClick={hasJoined ? handleLeave : handleJoin}
-                      onMouseEnter={() => setIsHovered(true)}
-                      onMouseLeave={() => setIsHovered(false)}
-                    >
-                      {hasJoined ? (isHovered ? 'Leave' : 'Joined') : 'Join'}
-                    </button>
-                  )}
-
-                  {hasJoined && (
-                    <div className='relative sm:hidden'>
-                      <button
-                        className={`${theme == 'original' ? 'bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'}  text-Accent/Target  transition-colors font-semibold duration-300 ease-in-out w-20 h-5 xsm:h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base my-1 xsm:my-2
-                       `}
-                        onClick={() => setShowInvite((prev) => !prev)}
+                        onClick={hasJoined ? handleLeave : handleJoin}
+                        onMouseEnter={() => setIsHovered(true)}
+                        onMouseLeave={() => setIsHovered(false)}
+                        disabled={loading || waiting}
                       >
-                        Invite
+                        {hasJoined ? (isHovered ? 'Leave' : 'Joined') : 'Join'}
                       </button>
-                      {showInvite && projectId && (
-                        <div className='absolute top-12 right-[300px]'>
-                          {' '}
-                          <AddMember
-                            type='project'
-                            desId={projectId}
-                            isOpen={showInvite}
-                            closeModal={() => setShowInvite(false)}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
+                    )}
+
+                    {hasJoined && (
+                      <div className='relative sm:hidden'>
+                        <button
+                          disabled={loading || waiting}
+                          className={`${theme == 'original' ? 'bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'}  text-Accent/Target  transition-colors font-semibold duration-300 ease-in-out w-16 xxsm:w-20 h-5 xsm:h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base my-2 xsm:my-2
+                       `}
+                          onClick={() => setShowInvite((prev) => !prev)}
+                        >
+                          Invite
+                        </button>
+                        {showInvite && projectId && (
+                          <div className='absolute top-12 right-[300px]'>
+                            {' '}
+                            <AddMember
+                              type='project'
+                              desId={projectId}
+                              isOpen={showInvite}
+                              closeModal={() => setShowInvite(false)}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] xsm:h-1/2 sm:h-[190px] lg:h-[230px] rounded-3xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static'>
+              <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] xsm:h-1/2 sm:h-[190px] lg:h-[230px] rounded-3xl absolute xsm:top-52 xsm:inset-x-8 xxsm:top-48 top-40 inset-x-4 sm:static'>
                 <p className='p-4'>{project?.bio || 'Group Description'}</p>
               </div>
             </div>
@@ -744,21 +744,21 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
 
       <div className='flex justify-center mx-8 xsm:mx-8 sm:max-lg:mx-14 lg:mx-8 lg:hidden'>
         <div
-          className={` bg-center bg-cover h-56 bg-[var(--background-side)]  border-2 border-[var(--border)] px-2 xxsm:px-6 py-4 w-full flex items-center justify-center rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl  lg:mt-4 lg:rounded-3xl
+          className={` bg-center bg-cover h-40 bg-[var(--background-side)]  border-2 border-[var(--border)] px-2 xxsm:px-6 py-4 w-full flex items-center justify-center rounded-3xl lg:w-1/2 sm:max-lg:rounded-3xl  lg:mt-4 lg:rounded-3xl
         border-solid box-border text-center mt-6 `}
         >
-          <div className='flex flex-col items-center gap-y-4 xxsm:gap-y-0'>
+          <div className='flex flex-col items-center gap-y-0'>
             <div className='flex flex-row gap-4 xsm:gap-8 sm:gap-20 '>
               <div className='flex flex-col'>
-                <p className=' text-xl flex justify-center'>{group?.numberOfPostsApproved || 0}</p>
-                <p className='text-[var(--text-title)] text-lg xxsm:text-xl flex justify-center'>
+                <p className=' text-xl flex justify-center'>{project?.numberOfPosts || 0}</p>
+                <p className='text-[var(--text-title)] text-base xxsm:text-lg sm:text-xl flex justify-center'>
                   Posts
                 </p>
               </div>
 
               <div className='flex flex-col'>
-                <p className=' text-xl flex justify-center'>{group?.numberOfMembers || 0}</p>
-                <p className='text-[var(--text-title)] text-lg xxsm:text-xl flex justify-center'>
+                <p className=' text-xl flex justify-center'>{project?.numberOfMembers || 0}</p>
+                <p className='text-[var(--text-title)] text-base xxsm:text-lg sm:text-xl flex justify-center'>
                   Members
                 </p>
               </div>
@@ -783,17 +783,19 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
 
       {hasJoined || !privacy ? (
         <>
-          <div className='flex justify-center mt-8 sm:max-lg:mt-6 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
-            <div className='flex flex-row justify-center gap-32 w-1/2'>
+          <div className='flex justify-center mt-8 sm:max-lg:mt-8 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
+            <div className='flex flex-row justify-center gap-24 xxsm:gap-28 xsm:gap-32 w-1/2'>
               <button
                 className={`${!viewMember ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl whitespace-nowrap`}
-                onClick={() => navigate(`/project/${projectId}/sections/root`)}
+                onClick={() => navigate(`/project/${projectId}/sections/root/posts`)}
+                disabled={loading || waiting}
               >
                 Overview
               </button>
               <button
                 className={`${viewMember ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl whitespace-nowrap`}
                 onClick={() => navigate(`/project/${projectId}/members`)}
+                disabled={loading || waiting}
               >
                 Members
               </button>
@@ -853,16 +855,18 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                 </div>
               </div>
 
-              <div className='mb-4 flex justify-center px-8 xsm:px-8 sm:px-14 lg:px-8'>
+              <div className='mt-4 lg:mt-0 mb-4 flex justify-center px-8 xsm:px-8 sm:px-14 lg:px-8'>
                 <div className='flex flex-row justify-center gap-24 xl:gap-32 w-1/2'>
                   <button
                     className={`block px-4 py-2 text-lg font-semibold ${!viewParticipant ? 'text-[var(--text-title)]' : 'text-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
                     onClick={() => navigate(`/project/${projectId}/sections/${sectionId}/posts`)}
+                    disabled={loading || waiting}
                   >
                     Posts
                   </button>
                   {activeSection != 'root' && (
                     <button
+                      disabled={loading || waiting}
                       className={`block px-4 py-2 text-lg font-semibold ${viewParticipant ? 'text-[var(--text-title)]' : 'text-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
                       onClick={() => {
                         navigate(`/project/${projectId}/sections/${sectionId}/participants`);
@@ -911,6 +915,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                         <button
                           className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target  transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-32 lg:w-28 h-7 px-[2px] rounded-xl text-xs md:text-base lg:text-base sm:my-2`}
                           onClick={() => setShowAddParticipant((prev) => !prev)}
+                          disabled={loading || waiting}
                         >
                           Invite
                         </button>
@@ -1022,7 +1027,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                       <div className='flex flex-row w-full items-center space-x-4'>
                         <div className='inline-block flex-shrink-0'>
                           <img
-                            src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+                            src={user?.avatar || import.meta.env.VITE_DEFAULT_AVATAR}
                             alt='Profile Icon'
                             className='w-[52px] h-[52px] rounded-full object-cover'
                           />
@@ -1086,25 +1091,25 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
           {/* Show LoadingSpinner during additional data fetching */}
           {loading && <LoadingSpinner />}
         </>
-      ) : (
+      ) : !loading ? (
         <div className='flex justify-center items-center h-[50vh]'>
           <p className='text-xl text-gray-500'>You need to join this project to see its content.</p>
         </div>
-      )}
+      ) : null}
       {/*
       {/* Sentinel for infinite scroll */}
       <div ref={sentinelRef} style={{ height: '50px' }} />
 
-      <div className=' fixed flex flex-col top-12 lg:right-2 xl:right-4 sm:max-lg:invisible invisible lg:visible'>
+      <div className=' absolute flex flex-col top-12 lg:right-2 xl:right-4 sm:max-lg:invisible invisible lg:visible'>
         <div className=' bg-cover rounded-3xl bg-[var(--background-side)]  border-2 border-[var(--border)] lg:w-[22vw] xl:w-[19vw] h-[400px] mt-4 ml-[3rem] lg:py-8 xl:py-8 '>
           <div className='flex flex-col lg:mt-6 xl:mt-4'>
             <div className='flex justify-center mx-2'>
               <p className=' text-xl font-semibold text-center break-words'>
-                {group?.name || 'Group name'}
+                {project?.name || 'Project name'}
               </p>
             </div>
             <div className='flex justify-center gap-2'>
-              {(hasJoined || !privacy) && group && group.role != 'creator' && (
+              {(hasJoined || !privacy) && project && project.role != 'leader' && (
                 <button
                   className={`transition-colors font-semibold duration-300 ease-in-out w-12 md:w-20  h-6 lg:h-8 px-[5px] rounded-xl text-xs md:text-base lg:text-base text-Accent/Target my-4
                 ${
@@ -1119,6 +1124,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                   onClick={hasJoined ? handleLeave : handleJoin}
                   onMouseEnter={() => setIsHovered(true)}
                   onMouseLeave={() => setIsHovered(false)}
+                  disabled={loading || waiting}
                 >
                   {hasJoined ? (isHovered ? 'Leave' : 'Joined') : 'Join'}
                 </button>
@@ -1129,18 +1135,19 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                 {hasJoined && (
                   <div className='relative'>
                     <button
+                      disabled={loading || waiting}
                       className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target transition-colors font-semibold duration-300 ease-in-out w-12 md:w-20 lg:w-24 h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base my-4
      `}
                       onClick={() => setShowInvite((prev) => !prev)}
                     >
                       Invite
                     </button>
-                    {showInvite && groupId && (
+                    {showInvite && projectId && (
                       <div className='lg:absolute top-10 right-[400px]'>
                         {' '}
                         <AddMember
-                          type='group'
-                          desId={groupId}
+                          type='project'
+                          desId={projectId}
                           isOpen={showInvite}
                           closeModal={() => setShowInvite(false)}
                         />
@@ -1150,18 +1157,18 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                 )}
               </div>
             </div>
-            {group && (
-              <div className='flex flex-row justify-center lg:gap-2 xl:gap-4 2xl:gap-8 mb-5'>
+            {project && (
+              <div className='flex flex-row justify-center lg:gap-8 xl:gap-10 2xl:gap-16 mb-5'>
                 <div className='flex flex-col'>
                   <p className=' text-xl flex justify-center'>
-                    {formatNumber(group.numberOfPostsApproved)}
+                    {formatNumber(project.numberOfPosts)}
                   </p>
                   <p className='text-[var(--text-title)] text-base flex justify-center'>Posts</p>
                 </div>
 
                 <div className='flex flex-col'>
                   <p className=' text-xl flex justify-center'>
-                    {formatNumber(Math.max(1, group.numberOfMembers))}
+                    {formatNumber(Math.max(1, project.numberOfMembers))}
                   </p>
                   <p className='text-[var(--text-title)] text-base flex justify-center'>Members</p>
                 </div>
@@ -1178,7 +1185,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                 <p className='text-sm xl:text-base  text-left'>
                   {privacy
                     ? 'Content only visible to members.'
-                    : 'This group is visible to everyone.'}
+                    : 'This project is visible to everyone in its group.'}
                 </p>
               </div>
             </div>

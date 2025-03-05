@@ -17,7 +17,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
     displayname: user?.displayname || 'Displayname', // Fallback to empty string if null
     email: user?.email || 'Email', // Fallback to empty string if null
     story: user?.story || '',
-    avatar: user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png', // Placeholder image URL
+    avatar: user?.avatar || import.meta.env.VITE_DEFAULT_AVATAR, // Placeholder image URL
   });
 
   const [passwords, setPasswords] = useState({

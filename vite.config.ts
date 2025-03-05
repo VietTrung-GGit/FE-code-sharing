@@ -6,7 +6,7 @@ import svgr from 'vite-plugin-svgr';
 export default defineConfig({
   plugins: [react(), svgr()],
   server: {
-    allowedHosts: ['zpfrkg-5173.csb.app'],
+    allowedHosts: ['v92msw-5173.csb.app'],
   },
 });
 

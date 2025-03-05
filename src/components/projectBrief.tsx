@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { BiTrashAlt } from 'react-icons/bi';
 import { ProjectDataBrief, joinProject, leaveProject } from '../services/projectService';
-import { IoIosMore, IoIosMail, IoMdArrowDropdown } from 'react-icons/io';
+import { IoIosMore } from 'react-icons/io';
 import { Link } from 'react-router-dom';
 import { usePinned } from '../context/PinnedContext';
 import { Tooltip } from 'react-tooltip';
@@ -82,11 +82,12 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ userId, projectData, detail
     window.addEventListener('resize', checkOverflow);
     return () => window.removeEventListener('resize', checkOverflow);
   }, [project.name]);
+
   useEffect(() => {
     checkOverflow();
     window.addEventListener('resize', checkOverflow);
     return () => window.removeEventListener('resize', checkOverflow);
-  }, [project.groupData[0].name]);
+  }, [project.groupName]);
 
   const dropdownConfigRef = useRef<HTMLDivElement>(null);
   const handleOptionSelect = () => {
@@ -182,8 +183,8 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ userId, projectData, detail
                 ref={textGroupDataRef}
               >
                 {isGroupDataOverflowing
-                  ? `${project.groupData[0].name.slice(0, 10)}...`
-                  : project.groupData[0].name}
+                  ? `${project.groupName.slice(0, 10)}...`
+                  : project.groupName}
                 <Tooltip id='groupdata' classNameArrow='noArrow' />
               </div>
             )}

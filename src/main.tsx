@@ -79,20 +79,14 @@ if (root) {
                   <Route path='/project/:projectId'>
                     <Route path='' element={<ProjectDashboard viewMember={false} />} />
                     <Route path='members' element={<ProjectDashboard viewMember={true} />} />
-                    <Route path='sections/:sectionId'>
-                      <Route
-                        path=''
-                        element={<ProjectDashboard viewMember={false} viewParticipant={false} />}
-                      />
-                      <Route
-                        path='posts'
-                        element={<ProjectDashboard viewMember={false} viewParticipant={false} />}
-                      />
-                      <Route
-                        path='participants'
-                        element={<ProjectDashboard viewMember={false} viewParticipant={true} />}
-                      />
-                    </Route>
+                    <Route
+                      path='sections/:sectionId/posts'
+                      element={<ProjectDashboard viewMember={false} viewParticipant={false} />}
+                    />
+                    <Route
+                      path='sections/:sectionId/participants'
+                      element={<ProjectDashboard viewMember={false} viewParticipant={true} />}
+                    />
                   </Route>
                 </Route>
 

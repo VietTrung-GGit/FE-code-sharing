@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import Logo from '../assets/logo.svg';
 
 // Modal Component with Styled Close Button
@@ -80,6 +79,16 @@ function Modal({ mode, onClose }: { mode: 'about' | 'privacy' | 'terms'; onClose
               </a>
               .
             </p>
+            <div className='flex flex-row mt-4'>
+              {' '}
+              <img src={Logo} alt='CoDash Logo' className='logo w-8 h-auto mr-6' />
+              <img
+                src='https://scontent.fsgn8-3.fna.fbcdn.net/v/t39.30808-6/481072014_601444316058991_2455330828972664211_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeEwDyNM0xzeRUoeM-BzHwE3m4P2G87RHUObg_YbztEdQ5SdMrCZcywXsXuj1mXDcrz6m7cq7uDbZsGPzyzM7CCE&_nc_ohc=V-P35xotBzEQ7kNvgGpT5dS&_nc_oc=Adj8EPKRO9NjML7pxeupe8e94o8NG4n8hJ87rnz7U_4MTRbEUUzbiHUX2vJiTLteXh4&_nc_zt=23&_nc_ht=scontent.fsgn8-3.fna&_nc_gid=Am9RKDfRNtPFCV_JtHd4_4P&oh=00_AYCIafEj_bLf6Q9RGisVfLQwW1GOkQjzGBvVX-cJVOSY5w&oe=67CE471E'
+                alt='GDSC Logo'
+                className='logo w-10 h-auto rounded-lg mr-2'
+              />
+              <img src='https://i.imgur.com/1XAGqT5.png' alt='HCMUT Logo' className='h-10' />
+            </div>
           </>
         )}
         {mode === 'privacy' && (

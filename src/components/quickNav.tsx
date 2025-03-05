@@ -5,7 +5,6 @@ import { PinnedItem } from '../services/pinService';
 import { TbChartBarPopular, TbClockHour4, TbPinned } from 'react-icons/tb';
 import { FaUserGroup } from 'react-icons/fa6';
 import { AiFillHeart } from 'react-icons/ai';
-import { useTheme } from '../context/ThemeContext';
 const GroupButton: React.FC<PinnedItem & { onUnpin?: () => void; onClose: () => void }> = ({
   avatar,
   name,
@@ -82,7 +81,10 @@ type QuickNavProps = {
 
 const QuickNav: React.FC<QuickNavProps> = ({ isOpen, onClose }) => {
   const { pinnedItems, popularItems, recentItems, unPin } = usePinned();
-  const { theme } = useTheme();
+
+  if (!pinnedItems?.length && !popularItems?.length && !recentItems?.length) {
+    return null;
+  }
 
   return (
     <div

@@ -126,7 +126,7 @@ const PostBrief: React.FC<PostBriefProps> = ({
   const [isTruncated, setIsTruncated] = useState(false);
   const [hovered, setHovered] = useState(false);
   const textRef = useRef<HTMLParagraphElement>(null);
-  const isAdmin = role == 'admin' || role == 'creator';
+  const isAdmin = role == 'admin' || role == 'creator' || role == 'leader';
   const [source, setSource] = useState<BriefData>({ name: '', avatar: '' });
 
   useEffect(() => {
@@ -384,7 +384,7 @@ const PostBrief: React.FC<PostBriefProps> = ({
             <div className='flex items-center gap-4'>
               <Link to={`/user/${post.author}/posts`} className='flex items-center gap-4'>
                 <img
-                  src={post.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+                  src={post.avatar || import.meta.env.VITE_DEFAULT_AVATAR}
                   alt='Avatar'
                   className='w-[52px] h-[52px] rounded-full object-cover'
                 />
@@ -397,12 +397,12 @@ const PostBrief: React.FC<PostBriefProps> = ({
                   </Link>
                   {(post.project || post.group) && detail && (
                     <Link
-                      to={`/${post.project ? 'project' : 'group'}/${post.project ? post.project : post.group}/${post.project ? 'sections/root' : ''}/posts`}
+                      to={`/${post.project ? 'project' : 'group'}/${post.project ? post.project : post.group}/${post.project ? 'sections/root/' : ''}posts`}
                       className='flex flex-row items-center text-xs space-x-1  text-[var(--text-title)]'
                     >
                       <p>in</p>
                       <img
-                        src={source.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+                        src={source.avatar || import.meta.env.VITE_DEFAULT_AVATAR}
                         alt='Source Avatar'
                         className='w-5 h-5 rounded-md object-cover'
                       />
@@ -411,7 +411,7 @@ const PostBrief: React.FC<PostBriefProps> = ({
                   )}
                 </div>
 
-                <p className='text-xs text-[var(--green-highlight)]'>
+                <p className='text-xs text-[var(--text-hovered)]'>
                   {post ? formatDate(post.createdAt) : 'Loading...'}&nbsp;
                   {post &&
                     post.editedAt &&

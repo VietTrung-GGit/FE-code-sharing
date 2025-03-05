@@ -44,6 +44,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
   const [commentCount, setCommentCount] = useState(comment.totalComments);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [waiting, setWaiting] = useState(false);
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [showReplies, setShowReplies] = useState(false);
   const [replyText, setReplyText] = useState('');
@@ -93,12 +94,12 @@ const CommentItem: React.FC<CommentItemProps> = ({
           prevReplies ? [...prevReplies, displayedComment] : [displayedComment],
         );
         setShowReplyInput(false);
-
+        setWaiting(true);
         const responseComments = await createComment(comment._id, {
           text: replyText,
           code: replyCode,
         });
-
+        setWaiting(false);
         setReplies((prevReplies) =>
           prevReplies.map((reply) =>
             reply._id === '-1' ? { ...reply, _id: responseComments } : reply,
@@ -167,12 +168,14 @@ const CommentItem: React.FC<CommentItemProps> = ({
     // Optimistic UI update (based on previous successful state)
     setHasLiked(newHasLiked);
     comment.totalLikes = newHasLiked ? comment.totalLikes + 1 : comment.totalLikes - 1;
+    setWaiting(true);
     try {
       if (newHasLiked) {
         likeComment(comment._id);
       } else {
         unlikeComment(comment._id);
       }
+      setWaiting(false);
     } catch (error) {
       toast.error('Error liking comment!');
       console.error('Error while liking the comment:', error);
@@ -183,7 +186,9 @@ const CommentItem: React.FC<CommentItemProps> = ({
   };
   const handleSaveComment = async () => {
     try {
+      setWaiting(true);
       await updateComment(comment._id, { text: editedText, code: editedCode });
+      setWaiting(false);
       comment.text = editedText;
       comment.code = editedCode;
       comment.editedAt = 'Recently';
@@ -203,8 +208,9 @@ const CommentItem: React.FC<CommentItemProps> = ({
   const handleDelete = async () => {
     try {
       onDelete(index);
-
+      setWaiting(true);
       await deleteComment(comment._id);
+      setWaiting(false);
     } catch (error) {
       toast.error('Failed to delete comment!');
       console.error('Error deleting comment:', error);
@@ -231,7 +237,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
         <div className='relative'>
           {/* Avatar */}
           <img
-            src={comment.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+            src={comment.avatar || import.meta.env.VITE_DEFAULT_AVATAR}
             alt='Avatar'
             className='w-8 h-8 rounded-full object-cover'
           />
@@ -282,7 +288,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
             <div className='flex justify-between items-center mb-2'>
               <div>
                 <span className='font-semibold text-base'>{comment.authorname}</span>&nbsp;&nbsp;
-                <span className='text-xs text-[var(--green-highlight)]'>
+                <span className='text-xs text-[var(--text-hovered)]'>
                   {comment ? formatDate(comment.createdAt) : 'Loading...'}&nbsp;
                 </span>
                 {comment?.editedAt &&
@@ -394,12 +400,14 @@ const CommentItem: React.FC<CommentItemProps> = ({
                         <button
                           className='text-lg hover:text-[var(--green-highlight)]'
                           onClick={() => setEditing(true)}
+                          disabled={waiting || loading}
                         >
                           <BiSolidEdit />
                         </button>
                         <button
                           className='text-lg hover:text-[var(--red-highlight)]'
                           onClick={() => handleDelete()}
+                          disabled={waiting || loading}
                         >
                           <BiTrashAlt />
                         </button>
@@ -409,6 +417,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                 )}
                 <button
                   onClick={() => handleLike(false)}
+                  disabled={waiting || loading}
                   className={`text-sm transition-colors duration-200 ease-in-out min-w-12 xsm:min-w-14 h-5 xsm:h-7 inline-flex items-center justify-center py-1 xsm:px-3 rounded-lg ${
                     hasLiked
                       ? 'bg-Accent/Target text-white'
@@ -432,7 +441,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                 <div className='bg-Background/Light pt-3 px-2'>
                   <div className='flex justify-center gap-4'>
                     <img
-                      src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+                      src={user?.avatar || import.meta.env.VITE_DEFAULT_AVATAR}
                       alt='Avatar'
                       className='w-8 h-8 rounded-full object-cover'
                     />
@@ -487,6 +496,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                         </button>
                         <button
                           onClick={handleAddReply}
+                          disabled={waiting || loading}
                           className='text-sm min-w-16 xsm:min-w-18 h-5 xsm:h-7  bg-Primary/Dark flex items-center justify-center text-white py-2 px-4 rounded-lg hover:text-[var(--background)]'
                         >
                           {/* Like Icon */}

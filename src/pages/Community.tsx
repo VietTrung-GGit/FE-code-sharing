@@ -6,8 +6,6 @@ import GroupCreate from '../components/groupCreate';
 import GroupBrief from '../components/groupBrief';
 import UserBrief from '../components/userBrief';
 import ProjectBrief from '../components/projectBrief';
-import Search from '../assets/search.svg';
-import Filter from '../assets/filter.svg';
 import Sidebar from '../components/sidebar';
 import TagList from '../components/tagList';
 import PostBrief from '../components/postBrief';

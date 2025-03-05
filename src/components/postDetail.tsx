@@ -233,7 +233,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
           code: newCommentCode,
           text: newCommentText,
           authorname: user?.displayname || 'Display Name',
-          avatar: user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png',
+          avatar: user?.avatar || import.meta.env.VITE_DEFAULT_AVATAR,
           postId: post._id,
         };
         console.log('Comment posted successfully:');
@@ -363,7 +363,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
           <div className='flex items-center gap-4'>
             <Link to={`/user/${post.author}`} className='flex items-center gap-4'>
               <img
-                src={post.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+                src={post.avatar || import.meta.env.VITE_DEFAULT_AVATAR}
                 className='w-[52px] h-[52px] rounded-full object-cover' //i.postimg.cc/02Xx40Yq/default.png
               />
             </Link>
@@ -371,7 +371,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
               <Link to={`/user/${post.author}`} className='font-bold text-md'>
                 {post ? post.authorname : ''}
               </Link>
-              <p className='text-sm text-[var(--green-highlight)]'>
+              <p className='text-sm text-[var(--text-hovered)]'>
                 {post ? formatDate(post.createdAt) : 'Loading...'}&nbsp;
                 {post &&
                   post.editedAt &&
@@ -609,7 +609,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
         <div className='bg-Background/Light pt-3 px-2'>
           <div className='flex justify-center gap-4'>
             <img
-              src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
+              src={user?.avatar || import.meta.env.VITE_DEFAULT_AVATAR}
               className='w-8 h-8 rounded-full object-cover'
               alt='Avatar'
             />
