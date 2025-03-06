@@ -117,7 +117,7 @@ const GroupCreate: React.FC<PostCreateProps> = ({
         theme === 'original'
           ? 'bg-Background/Bottom text-white lg:border-2'
           : 'bg-[var(--surface)] text-[var(--text)]'
-      } overflow-y-auto scrollbarw-full h-full lg:h-[80vh] lg:w-[50vw] bg-center bg-cover px-14 py-10  flex flex-col border-Primary/Dark border-solid box-border lg:rounded-3xl sm:max-lg:rounded-3xl  lg:mt-4  relative`}
+      } overflow-y-auto scrollbarw-full h-full lg:h-[80vh] lg:w-[50vw] bg-center bg-cover px-14 py-10  flex flex-col border-Primary/Dark border-solid box-border lg:rounded-3xl sm:max-lg:rounded-3xl  lg:mt-4  relative scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent`}
     >
       <button
         onClick={propcloseModal}

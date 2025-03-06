@@ -111,6 +111,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
   const debouncedSearchTerm = useDebounce(searchTerm, 600);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
+  const [postCount, setPostCount] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [showGroupCreate, setShowGroupCreate] = useState<boolean>(false); // New state for modal visibility
   const fetchAndUpdatePosts = async () => {
@@ -124,6 +125,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
           6, // Limit: 6 posts per page
           (searchParams.get('order') as 'ascending' | 'descending') || 'descending',
           (searchParams.get('criteria') as string) || 'date',
+          own,
           debouncedSearchTerm,
           searchParams.get('tags')?.split(',') || [],
         );
@@ -276,6 +278,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
     };
 
     fetchData();
+    setPostCount(postCount);
   }, [userId]);
 
   const [refId, setRefId] = useState<string>('');
@@ -331,11 +334,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
     setActiveComponent((prev) => (prev === 'sidebar' ? null : 'sidebar'));
   };
 
-  {
-    /*} const toggleTagList = () => {
-    setActiveComponent((prev) => (prev === 'taglist' ? null : 'taglist'));
-  };*/
-  }
   const toggleQuickNav = () => {
     setActiveComponent((prev) => (prev === 'quicknav' ? null : 'quicknav'));
   };
@@ -718,7 +716,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                 <div className='flex flex-row gap-6 xsm:gap-8 sm:gap-20 '>
                   <div className='flex flex-col'>
                     <p className=' xsm:text-xl xxsm:text-lg text-base flex justify-center'>
-                      {formatNumber(host?.totalPosts) || 0}
+                      {formatNumber(postCount) || 0}
                     </p>
 
                     <p className='text-[var(--text-title)] text-sm xxsm:text-base flex justify-center'>
@@ -901,7 +899,10 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
               <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
                 <PostCreate
                   closeModal={handleCloseModal}
-                  onPostCreated={refetchPosts}
+                  onPostCreated={() => {
+                    refetchPosts();
+                    setPostCount((prev) => prev + 1);
+                  }}
                   {...(refId ? { postRefId: refId } : {})}
                 />
               </div>
@@ -927,7 +928,11 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
             <div id='posts-container' className={'mx-6 sm:max-lg:mx-14 lg:mx-10 '}>
               {posts.map((post) => (
                 <div key={post._id} className='post'>
-                  <PostBrief postData={post} shareAction={handleShare} />
+                  <PostBrief
+                    postData={post}
+                    shareAction={handleShare}
+                    onPostDeleted={() => setPostCount((prev) => prev - 1)}
+                  />
                 </div>
               ))}
             </div>
@@ -995,29 +1000,24 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                 Joined in {formatDateSimple(host.createdAt)}
               </p>
               <br />
-              <div className='grid grid-cols-2 gap-10 mb-5'>
-                <div className='flex flex-col items-start '>
-                  <div className='ml-auto w-16'>
-                    {' '}
-                    <p className=' text-xl'>{formatNumber(host?.totalPosts) || 0}</p>
-                    <p className='text-[var(--text-title)] text-md'>Posts</p>{' '}
-                  </div>
+              <div className='grid grid-cols-2 gap-5 mb-5 mx-8'>
+                <div className='flex flex-col items-center'>
+                  <p className='text-xl'>{formatNumber(postCount) || 0}</p>
+                  <p className='text-[var(--text-title)] text-md'>Posts</p>
                 </div>
 
-                <div className='flex flex-col items-start'>
-                  <p className=' text-xl'>{formatNumber(host?.totalLikes) || 0}</p>
+                <div className='flex flex-col items-center'>
+                  <p className='text-xl'>{formatNumber(host?.totalLikes) || 0}</p>
                   <p className='text-[var(--text-title)] text-md'>Likes</p>
                 </div>
 
-                <div className='flex flex-col items-start'>
-                  <div className='ml-auto w-16'>
-                    <p className=' text-xl'>{formatNumber(followersCount) || 0}</p>
-                    <p className='text-[var(--text-title)] text-md'>Followers</p>
-                  </div>
+                <div className='flex flex-col items-center'>
+                  <p className='text-xl'>{formatNumber(followersCount) || 0}</p>
+                  <p className='text-[var(--text-title)] text-md'>Followers</p>
                 </div>
 
-                <div className='flex flex-col items-start'>
-                  <p className=' text-xl'>{formatNumber(host?.totalFollowing) || 0}</p>
+                <div className='flex flex-col items-center'>
+                  <p className='text-xl'>{formatNumber(host?.totalFollowing) || 0}</p>
                   <p className='text-[var(--text-title)] text-md'>Following</p>
                 </div>
               </div>

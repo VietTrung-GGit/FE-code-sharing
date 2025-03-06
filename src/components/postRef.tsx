@@ -59,7 +59,7 @@ const PostRef: React.FC<PostRefProps> = ({ postId }) => {
           theme === 'original'
             ? 'bg-Background/Middle text-white'
             : 'bg-[var(--button)] text-[var(--text)]'
-        } w-full my-3 rounded-3xl p-3 md:p-5 lg:p-6`}
+        } w-full mb-3 mt-1 rounded-3xl p-3 md:p-5 lg:p-6`}
       >
         {/* Avatar and Tags */}
         <div className='flex flex-col sm:flex-row sm:items-center justify-between mb-4'>
@@ -109,7 +109,7 @@ const PostRef: React.FC<PostRefProps> = ({ postId }) => {
               {post.content}
             </p>
             {isTruncated && (
-              <p className='text-[var(--green-highlight)] text-sm cursor-pointer'> View detail </p>
+              <p className='text-[var(--text-hovered)] text-sm cursor-pointer'> View detail </p>
             )}
           </div>
         </div>

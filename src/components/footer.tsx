@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import Logo from '../assets/logo.svg';
+import { Link } from 'react-router';
 
 // Modal Component with Styled Close Button
 function Modal({ mode, onClose }: { mode: 'about' | 'privacy' | 'terms'; onClose: () => void }) {
@@ -165,11 +166,11 @@ function Footer() {
       <div className='flex justify-between items-center mb-5'>
         {/* Logo and Name */}
         <div className='flex flex-col'>
-          <div className='font-mono flex items-center py-4 text-3xl'>
+          <Link to='/' className='font-mono flex items-center py-4 text-3xl'>
             <img src={Logo} alt='CoDash Logo' className='logo w-10 h-auto pr-2' />
             Co
             <span className='text-[var(--green-highlight)]'>Dash</span>
-          </div>
+          </Link>
           <p className='text-l'>Contact with us:</p>
           <a href='mailto:devteam3gdsc@gmail.com' className='text-Primary/Light'>
             devteam3gdsc@gmail.com

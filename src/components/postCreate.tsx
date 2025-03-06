@@ -290,7 +290,9 @@ const PostCreate: React.FC<PostCreateProps> = ({
               setContent(target.value.slice(0, 2000));
             }}
             placeholder={
-              postRefId ? 'Share your thoughts about this post...' : 'Share your code...'
+              postRefId
+                ? 'Share your thoughts about this post...'
+                : 'Share something about your code...'
             }
             rows={6}
             className='mt-2 w-full p-2 bg-[var(--input)] overflow-hidden resize-none rounded-md focus:outline-none focus:border-transparent'
@@ -329,7 +331,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
               <p className='flex-1 text-left text-white'>Drop your files here...</p>
             ) : (
               <p className='flex-1 text-left text-white'>
-                Drag & drop files here, or click to select
+                Drag & drop code files here, or click to select
               </p>
             )}
 

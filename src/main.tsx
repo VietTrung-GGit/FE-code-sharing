@@ -40,8 +40,8 @@ if (root) {
                 <Route path='/' element={<Landing />} />
                 <Route path='/signin' element={<Signin />} />
                 <Route path='/signup' element={<Signup />} />
-                <Route path='/test' element={<Signin />} />
-                <Route path='/test1' element={<UserDashboard active='Posts' />} />
+                {/* <Route path='/test' element={<Test />} />
+                <Route path='/test1' element={<UserDashboard active='Posts' />} /> */}
                 <Route path='/pass-reset' element={<PassReset />} />
                 <Route path='/pass-new/:token' element={<PassNew />} />
 

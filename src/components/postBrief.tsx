@@ -31,6 +31,8 @@ import { getProjectPublicData } from '../services/projectService';
 interface PostBriefProps {
   postData: Post;
   deletable?: boolean;
+  onPostDeleted?: () => void;
+  onPostApproved?: () => void;
   shareAction?: (postRefId: string) => void;
   detail?: boolean;
   role?: string;
@@ -65,13 +67,13 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) 
     <div className='absolute text-sm top-0 right-0 flex gap-2 p-2'>
       {/* Show status with bold color once moderated */}
       {currentStatus === 'pending' && !isAdmin && (
-        <div className='flex items-center justify-center gap-2 w-28 py-1 px-1 rounded-full bg-[#e8c64d] text-white font-semibold'>
+        <div className='flex items-center justify-center gap-2 w-28 py-1 px-[2px] rounded-full bg-[#e8c64d] text-white font-semibold'>
           <TbFlag className='text-xl' />
           Pending
         </div>
       )}
       {currentStatus === 'rejected' && (
-        <div className='flex items-center justify-center gap-2 w-28 py-1 px-1 rounded-full bg-red-400 text-white font-semibold'>
+        <div className='flex items-center justify-center gap-2 w-28 py-1 px-[2px] rounded-full bg-red-400 text-white font-semibold'>
           <TbFlagCancel className='text-xl' />
           Rejected
         </div>
@@ -81,13 +83,13 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) 
       {currentStatus === 'pending' && isAdmin && (
         <div className='flex gap-1'>
           <button
-            onClick={() => handleModeration('approve')}
+            onClick={() => {handleModeration('approve'); onPostApproved()}}
             disabled={loading}
             className={`   ${
               theme === 'original'
                 ? 'bg-white hover:bg-green-400 hover:text-white  text-green-500'
                 : 'bg-[var(--button)] hover:bg-[var(--button-hovered)]'
-            } flex items-center justify-center gap-2 w-24 py-1 rounded-l-full border-r-4 border-green-400  transition disabled:opacity-50`}
+            } flex items-center justify-center gap-2 w-20 md:w-24 py-1 rounded-l-full border-r-4 border-green-400  transition disabled:opacity-50`}
           >
             <TbFlagCheck className='text-xl' />
             Approve
@@ -99,7 +101,7 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) 
               theme === 'original'
                 ? ' bg-white text-red-400 hover:bg-red-300 hover:text-white '
                 : 'bg-[var(--button)] hover:bg-[var(--button-hovered)]'
-            } flex items-center justify-center gap-2 w-24 py-1 rounded-r-full border-l-4 border-red-400 transition disabled:opacity-50`}
+            } flex items-center justify-center gap-2 w-20 md:w-24 py-1 rounded-r-full border-l-4 border-red-400 transition disabled:opacity-50`}
           >
             <TbFlagCancel className='text-xl' />
             Reject
@@ -113,6 +115,8 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) 
 const PostBrief: React.FC<PostBriefProps> = ({
   postData,
   deletable = false,
+  onPostDeleted = () => {},
+  onPostApproved = () => {},
   shareAction = () => {},
   detail = true,
   role,
@@ -284,6 +288,7 @@ const PostBrief: React.FC<PostBriefProps> = ({
     setVisible(false);
     try {
       deletePost(post._id);
+      onPostDeleted;
     } catch (error) {
       setVisible(true);
       toast.error('Error deleting post!');

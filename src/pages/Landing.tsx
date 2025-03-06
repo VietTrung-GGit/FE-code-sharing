@@ -26,7 +26,7 @@ function Landing() {
           <div className="min-h-4/5 bg-Background/Bottom bg-[url('backgroundeffect.png')] bg-no-repeat bg-center bg-cover text-center w-full mt-0 p-2 relative border-Primary/Dark border-solid box-border border-2 rounded-b-3xl">
             <div className="mt-20 lg:mt-0 grid md:grid-cols-2 place-items-center p-0 bg-[url('assets/particle.svg')] bg-no-repeat bg-center bg-cover">
               <div className='flex flex-col text-white md:pb-20'>
-                <div className='font-mono flex items-center justify-center py-2 text-8xl lg:text-9xl'>
+                <div className='font-mono flex items-center justify-center py-2 text-6xl md:text-8xl lg:text-9xl'>
                   Co
                   <span className='text-Accent/Light'>Dash</span>
                 </div>

@@ -88,7 +88,7 @@ const GroupBrief: React.FC<GroupBriefProps> = ({ userId, groupData }) => {
       toast.error('Failed to leave group');
     }
   };
-  const textGroupRef = useRef<HTMLDivElement>(null);
+  const textGroupRef = useRef<HTMLParagraphElement>(null);
 
   const [isGroupnameOverflowing, setIsGroupnameOverflowing] = useState(false);
   const checkOverflow = () => {
@@ -120,6 +120,7 @@ const GroupBrief: React.FC<GroupBriefProps> = ({ userId, groupData }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
   return (
     <div className='flex justify-center items-center relative'>
       <div
@@ -188,11 +189,12 @@ const GroupBrief: React.FC<GroupBriefProps> = ({ userId, groupData }) => {
           <div className='flex flex-col w-full'>
             {' '}
             <Link to={`/group/${groupData?._id ?? '#'}/posts`}>
-              <div className='max-w-full' ref={textGroupRef}>
-                <p className=' flex items-center font-semibold text-lg md:text-2xl break-words gap-2'>
-                  {isGroupnameOverflowing ? `${group.name.slice(0, 20)}...` : group.name}
-                </p>
-              </div>
+              <p
+                className='w-[20vw] xsm:w-[25vw] sm:w-[35vw] lg:w-[15vw] xl:w-full font-semibold text-lg md:text-2xl gap-2 truncate'
+                ref={textGroupRef}
+              >
+                {isGroupnameOverflowing ? `${group.name.slice(0, 10)}...` : group.name}
+              </p>
             </Link>
             <div className='flex gap-4 text-[var(--blue-highlight)] text-xs lg:text-sm mt-1'>
               <p className='flex items-center gap-1'>

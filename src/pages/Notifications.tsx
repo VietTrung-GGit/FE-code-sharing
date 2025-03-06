@@ -271,12 +271,14 @@ function Notifications() {
                   to={
                     notification.entityType === 'Group'
                       ? `/group/${notification.relatedEntityId}/posts`
-                      : notification.entityType === 'User'
-                        ? `/user/${notification.relatedEntityId}/posts`
-                        : notification.entityType === 'Project' ||
-                            notification.entityType == 'Section'
-                          ? `/project/${notification.relatedEntityId}/sections/root/posts`
-                          : '#'
+                      : notification.entityType === 'Post'
+                        ? `/post/${notification.relatedEntityId}`
+                        : notification.entityType === 'User'
+                          ? `/user/${notification.relatedEntityId}/posts`
+                          : notification.entityType === 'Project' ||
+                              notification.entityType == 'Section'
+                            ? `/project/${notification.relatedEntityId}/sections/root/posts`
+                            : '#'
                   }
                   className='text-[var(--text-title)] hover:underline'
                 >
@@ -290,20 +292,44 @@ function Notifications() {
               </p>
             </div>
           </div>
-          {notification.type.includes('group_invite') && (
-            <button
-              onClick={async () => {
-                await markAsRead(notification._id);
-                if (notification.type === 'invite') {
-                  await confirmGroupInvite(notification.senderId);
-                } else {
-                  await confirmProjectInvite(notification.senderId);
-                }
-              }}
-              className='ml-auto px-4 py-2 bg-Accent/Target rounded-lg'
-            >
-              Confirm
-            </button>
+          {notification.type.includes('invite') && !notification.isRead && (
+            <div className='flex flex-col items-end gap-2'>
+              <button
+                onClick={async () => {
+                  await markAsRead(notification._id);
+                  if (notification.type === 'group_invite') {
+                    await confirmGroupInvite(notification.relatedEntityId, true);
+                  } else {
+                    await confirmProjectInvite(notification.relatedEntityId, true);
+                  }
+                }}
+                className={`${
+                  theme === 'original'
+                    ? 'bg-Accent/Target text-white hover:text-Accent/Target hover:bg-white'
+                    : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border border-[var(--border)] text-Accent/Target'
+                } px-4 py-1 rounded-lg w-20 md:w-24`}
+              >
+                Accept
+              </button>
+
+              <button
+                onClick={async () => {
+                  await markAsRead(notification._id);
+                  if (notification.type === 'group_invite') {
+                    await confirmGroupInvite(notification.relatedEntityId, false);
+                  } else {
+                    await confirmProjectInvite(notification.relatedEntityId, false);
+                  }
+                }}
+                className={`${
+                  theme === 'original'
+                    ? 'bg-gray-500 text-white hover:text-gray-500 hover:bg-white'
+                    : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border border-[var(--border)]'
+                } px-4 py-1 rounded-lg w-20 md:w-24`}
+              >
+                Reject
+              </button>
+            </div>
           )}
         </div>
       </div>

@@ -51,6 +51,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
   const { projectId } = useParams<{ projectId: string }>();
   const { sectionId } = useParams<{ sectionId: string }>();
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
+  const [activeLabel, setActiveLabel] = useState<'Posts' | 'Participants'>('Posts');
   const sidebarRef = useRef<HTMLDivElement>(null);
   const tagListRef = useRef<HTMLDivElement>(null);
   const sidebarButtonRef = useRef<HTMLButtonElement>(null);
@@ -91,6 +92,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
   const alreadyPinned = projectId ? isPinned('project', projectId) : false;
   const [pinned, setPinned] = useState(alreadyPinned);
   const [waiting, setWaiting] = useState(false);
+  const [postCount, setPostCount] = useState(0);
 
   const handlePinToggle = () => {
     if (projectId) {
@@ -336,7 +338,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
         if (activeSection === 'root') {
           setNote(data.note);
         }
-
+        setPostCount(data.numberOfPosts);
         setHasJoined(data.joined);
         setPrivacy(!data.canJoin);
         setLoading(false);
@@ -483,8 +485,22 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
     setShowPostCreate(false);
   };
   const { theme } = useTheme();
+
+  const textProjectDashboardRef = useRef<HTMLDivElement>(null);
+  const [isProjectnameOverflowing, setIsProjectnameOverflowing] = useState(false);
+  const checkOverflow = () => {
+    if (textProjectDashboardRef.current) {
+      setIsProjectnameOverflowing(
+        textProjectDashboardRef.current.scrollWidth > textProjectDashboardRef.current.clientWidth,
+      );
+    }
+  };
+
+  useEffect(() => {
+    checkOverflow();
+  }, [project?.name]);
   return (
-    <div className='bg-[var(--background)] text-[var(--text)]  relative min-h-screen flex flex-col w-full'>
+    <div className='bg-[var(--background)] text-[var(--text)]  relative min-h-screen flex flex-col w-full pb-12'>
       <div className='mx-8 xsm:mx-8 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
         <div
           className={`${
@@ -593,7 +609,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
               >
                 {(!privacy || hasJoined) && project && project.role != 'leader' && (
                   <button
-                    className={`transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-24 lg:w-24 xl:w-24 h-7 px-[2px] rounded-xl text-xs md:text-base lg:text-base text-Accent/Target lg:hidden
+                    className={`lg:hidden transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-24 lg:w-24 xl:w-24 h-7 px-[2px] rounded-xl text-xs md:text-base lg:text-base text-Accent/Target
       ${
         theme === 'original'
           ? hasJoined
@@ -619,7 +635,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                       <button
                         disabled={loading || waiting}
                         className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-24
-                       lg:w-24 xl:w-24 h-7 px-[2px] rounded-xl text-xs md:text-base lg:text-base lg:hidden`}
+                       lg:w-24 xl:w-24 h-7 px-[2px] rounded-xl text-xs md:text-base lg:text-base`}
                         onClick={() => setShowInvite((prev) => !prev)}
                       >
                         Invite
@@ -666,7 +682,9 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                     className={`flex flex-col ${project && project.role == 'leader' ? 'xxsm:mt-4 xsm:max-sm:mt-6' : ''}`}
                   >
                     <p className=' font-semibold mt-6 text-2xl sm:text-3xl lg:text-2xl xl:text-3xl break-words'>
-                      {project?.name || 'project Name'}
+                      {project?.name.length > 12
+                        ? `${project?.name.slice(0, 9)}...` || 'Project Name'
+                        : project?.name || 'Project Name'}
                     </p>
                     <div className='flex flex-row block xsm:mt-2 lg:hidden lg:static'>
                       {project && project?.members?.length > 0 && (
@@ -750,14 +768,16 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
           <div className='flex flex-col items-center gap-y-0'>
             <div className='flex flex-row gap-4 xsm:gap-8 sm:gap-20 '>
               <div className='flex flex-col'>
-                <p className=' text-xl flex justify-center'>{project?.numberOfPosts || 0}</p>
+                <p className=' text-xl flex justify-center'>{formatNumber(postCount)}</p>
                 <p className='text-[var(--text-title)] text-base sm:text-xl flex justify-center'>
                   Posts
                 </p>
               </div>
 
               <div className='flex flex-col'>
-                <p className=' text-xl flex justify-center'>{project?.numberOfMembers || 0}</p>
+                <p className=' text-xl flex justify-center'>
+                  {formatNumber(project?.numberOfMembers) || 0}
+                </p>
                 <p className='text-[var(--text-title)] text-base sm:text-xl flex justify-center'>
                   Members
                 </p>
@@ -820,9 +840,9 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                 />
               </div>
 
-              <div className='mx-7 xsm:mx-8 sm:mx-14 lg:mx-0 mt-4 sm:mt-4 lg:mt-0 lg:absolute top-[610px] right-4'>
+              <div className='mx-7 xsm:mx-8 sm:mx-14 lg:mx-0 mt-4 sm:mt-4 lg:mt-0 lg:absolute top-[610px] right-2 xl:right-4'>
                 <div
-                  className={`bg-[var(--background-side)] border-2 border-[var(--border)] bg-center bg-cover h-56 lg:h-[360px] px-6 py-6 w-full flex flex-col rounded-3xl lg:w-[19vw] sm:max-lg:rounded-3xl lg:mt-2 lg:rounded-3xl border-solid box-border`}
+                  className={`bg-[var(--background-side)] border-2 border-[var(--border)] bg-center bg-cover h-56 lg:h-[360px] px-6 py-6 w-full lg:w-[22vw] flex flex-col rounded-3xl xl:w-[19vw] sm:max-lg:rounded-3xl lg:mt-2 lg:rounded-3xl border-solid box-border`}
                 >
                   <div className='flex flex-row gap-6 items-end justify-between mb-1'>
                     <p className='text-xl font-semibold text-left '>Notes</p>
@@ -856,43 +876,38 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
               </div>
 
               <div className='mt-4 lg:mt-0 mb-4 flex justify-center px-8 xsm:px-8 sm:px-14 lg:px-8'>
-                <div className='flex flex-row justify-center gap-24 xl:gap-32 w-1/2'>
+                <div className='flex flex-row justify-center gap-24 xl:gap-28 w-1/2'>
                   <button
                     className={`block px-4 py-2 text-base sm:text-lg font-semibold ${!viewParticipant ? 'text-[var(--text-title)]' : 'text-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
-                    onClick={() => navigate(`/project/${projectId}/sections/${sectionId}/posts`)}
+                    onClick={() => {
+                      navigate(`/project/${projectId}/sections/${sectionId}/posts`);
+                      setActiveLabel('Posts');
+                    }}
                     disabled={loading || waiting}
                   >
                     Posts
                   </button>
-                  {activeSection != 'root' && (
-                    <button
-                      disabled={loading || waiting}
-                      className={`block px-4 py-2 text-lg font-semibold ${viewParticipant ? 'text-[var(--text-title)]' : 'text-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
-                      onClick={() => {
-                        navigate(`/project/${projectId}/sections/${sectionId}/participants`);
-                      }}
-                    >
-                      Participants
-                    </button>
-                  )}
 
-                  {/* {!viewMember && !viewParticipant && (
-                    <div className='text-base font-semibold py-1 flex items-center justify-center gap-2 invisible'>
-                      View Subsections Content
-                      <button onClick={toggleSubsections}>
-                        {' '}
-                        {viewSubsections ? (
-                          <MdCheckBox className='text-green-500 text-2xl' />
-                        ) : (
-                          <MdCheckBoxOutlineBlank className='text-2xl' />
-                        )}
-                      </button>
-                    </div>
-                  )} */}
-                  {/* Subsections Button */}
-                  {!viewMember && (
+                  <button
+                    disabled={loading || waiting}
+                    className={`block px-4 py-2 text-lg font-semibold ${viewParticipant ? 'text-[var(--text-title)]' : 'text-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
+                    onClick={() => {
+                      navigate(`/project/${projectId}/sections/${sectionId}/participants`);
+                      setActiveLabel('Participants');
+                    }}
+                  >
+                    Participants
+                  </button>
+                </div>
+              </div>
+
+              <div className='flex lg:justify-center mt-4 xsm:mt-4 sm:max-lg:mt-4 lg:mt-4 mx-6 sm:max-lg:mx-20 lg:mx-20'>
+                <div className='flex justify-between w-[94vw] lg:w-1/2 xl:min-w-[650px] xl:min-w-[650px] mb-0 ml-8 sm:ml-0'>
+                  <p className='text-2xl font-semibold '>{activeLabel}</p>
+
+                  {!viewMember && !viewParticipant && (
                     <div
-                      className={`w-full text-sm sm:text-base font-semibold py-1 flex items-center justify-center gap-2 ${viewParticipant ? 'invisible' : ''}`}
+                      className={`w-full text-sm sm:text-base font-semibold py-1 flex items-center justify-end gap-2 ${viewParticipant ? 'invisible' : ''}`}
                     >
                       View Subsections Content
                       <button onClick={toggleSubsections}>
@@ -905,19 +920,19 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                       </button>
                     </div>
                   )}
-
-                  {/* Invite Button (Only for Admins/Leaders in a section) */}
-                  {((project && project.role === 'admin') || project.role === 'leader') &&
+                  {!viewMember &&
+                    viewParticipant &&
+                    ((project && project.role === 'admin') || project.role === 'leader') &&
                     activeSection !== 'root' &&
                     !viewMember &&
                     viewParticipant && (
                       <div className='lg:relative'>
                         <button
-                          className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target  transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-32 lg:w-28 h-7 px-[2px] rounded-xl text-xs md:text-base lg:text-base sm:my-2`}
+                          className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target  transition-colors font-semibold duration-300 ease-in-out w-10 xxsm:w-12 sm:w-32 lg:w-28 h-7 px-[2px] rounded-xl text-xs md:text-base lg:text-base`}
                           onClick={() => setShowAddParticipant((prev) => !prev)}
                           disabled={loading || waiting}
                         >
-                          Invite
+                          Assign
                         </button>
 
                         {showAddParticipant && (
@@ -998,12 +1013,15 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
             </div>
 
             {showPostCreate && (
-              <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
+              <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 z-50'>
                 <PostCreate
                   closeModal={handleCloseModal}
-                  onPostCreated={refetchPosts}
-                  mode={activeSection == 'root' ? 2 : 3}
-                  desId={activeSection == 'root' ? projectId : activeSection}
+                  onPostCreated={() => {
+                    refetchPosts();
+                    setPostCount((prev) => prev + 1);
+                  }}
+                  mode={activeSection === 'root' ? 2 : 3}
+                  desId={activeSection === 'root' ? projectId : activeSection}
                   parentId={activeSection !== 'root' ? projectId : undefined}
                   role={project?.role} // Cleaner way to pass `role` if `group` exists
                   postRefId={refId || undefined} // Ensures it's only passed when defined
@@ -1056,6 +1074,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                       <PostBrief
                         postData={post}
                         deletable={project.role == 'admin' || project.role == 'leader'}
+                        onPostDeleted={() => setPostCount((prev) => prev - 1)}
                         shareAction={handleShare}
                         detail={false}
                         role={project.role}
@@ -1104,9 +1123,11 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
       <div className=' absolute flex flex-col top-12 lg:right-2 xl:right-4 sm:max-lg:invisible invisible lg:visible'>
         <div className=' bg-cover rounded-3xl bg-[var(--background-side)]  border-2 border-[var(--border)] lg:w-[22vw] xl:w-[19vw] h-[400px] mt-4 ml-[3rem] lg:py-8 xl:py-8 '>
           <div className='flex flex-col lg:mt-6 xl:mt-4'>
-            <div className='flex justify-center mx-2'>
+            <div className='flex justify-center mx-2' ref={textProjectDashboardRef}>
               <p className=' text-xl font-semibold text-center break-words'>
-                {project?.name || 'Project name'}
+                {isProjectnameOverflowing
+                  ? `${project?.name.slice(0, 12)}...` || 'Project Name'
+                  : project?.name || 'Project Name'}
               </p>
             </div>
             <div className='flex justify-center gap-2'>
@@ -1136,14 +1157,14 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                 {hasJoined &&
                   (!privacy ||
                     (project && (project.role === 'admin' || project.role === 'leader'))) && (
-                    <div className='relative'>
+                    <div className='relative hidden sm:block'>
                       <button
                         disabled={loading || waiting}
                         className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target transition-colors font-semibold duration-300 ease-in-out w-12 md:w-20 lg:w-24 h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base my-4
      `}
                         onClick={() => setShowInvite((prev) => !prev)}
                       >
-                        Invite
+                        Assign
                       </button>
                       {showInvite && projectId && (
                         <div className='lg:absolute top-10 right-[400px]'>

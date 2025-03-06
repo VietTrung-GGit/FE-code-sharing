@@ -415,9 +415,9 @@ export const API_ENDPOINTS = {
   GROUP_ASSIGN_CREATOR: (groupId: string, assignCreatorUserId: string) =>
     `/group/assignCreator/${groupId}/${assignCreatorUserId}`,
 
-  GROUP_CONFIRM_INVITE: (groupId: string, accept: string = 'true') =>
+  GROUP_CONFIRM_INVITE: (groupId: string, accept: boolean) =>
     `/group/confirmInvite/${groupId}?accept=${accept}`,
-  PROJECT_CONFIRM_INVITE: (projectId: string, accept: string = 'true') =>
+  PROJECT_CONFIRM_INVITE: (projectId: string, accept: boolean) =>
     `/project/confirmInvite/${projectId}?accept=${accept}`,
 
   // Project-related

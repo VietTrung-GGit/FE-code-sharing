@@ -65,7 +65,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
   const { pin, isPinned, unPin } = usePinned();
   const [searchParams] = useSearchParams();
   const [activeComponent, setActiveComponent] = useState<'sidebar' | 'quicknav' | null>(null);
-
+  const [postCount, setPostCount] = useState(0);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const tagListRef = useRef<HTMLDivElement>(null);
   const sidebarButtonRef = useRef<HTMLButtonElement>(null);
@@ -288,6 +288,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
       try {
         const data = await getGroupFullData(groupId);
         setGroup(data);
+        setPostCount(data.numberOfPostsApproved);
         setPrivacy(!data.canJoin);
         setHasJoined(data.joined);
         setModeration(data.moderation);
@@ -493,6 +494,19 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
     setShowPostCreate(false);
   };
 
+  const textGroupDashboardRef = useRef<HTMLDivElement>(null);
+  const [isGroupnameOverflowing, setIsGroupnameOverflowing] = useState(false);
+  const checkOverflow = () => {
+    if (textGroupDashboardRef.current) {
+      setIsGroupnameOverflowing(
+        textGroupDashboardRef.current.scrollWidth > textGroupDashboardRef.current.clientWidth,
+      );
+    }
+  };
+
+  useEffect(() => {
+    checkOverflow();
+  }, [group?.name]);
   return (
     <div className='bg-[var(--background)] text-[var(--text)] relative min-h-screen flex flex-col w-full'>
       <div className='mx-8 xsm:mx-8 sm:max-lg:mx-14 lg:mx-8 mb-5 flex justify-center mt-28 lg:mt-16 '>
@@ -670,8 +684,10 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                   <div
                     className={`flex flex-col ${group && group.role == 'creator' ? 'xxsm:mt-4 xsm:max-sm:mt-6' : ''}`}
                   >
-                    <p className=' font-semibold mt-6 text-2xl sm:text-3xl lg:text-2xl xl:text-3xl break-words'>
-                      {group?.name || 'Group Name'}
+                    <p className=' font-semibold mt-6 text-lg xsm:text-xl sm:text-3xl lg:text-2xl xl:text-3xl break-words'>
+                      {group?.name.length > 12
+                        ? `${group?.name.slice(0, 9)}...` || 'Group name'
+                        : group?.name || 'Group name'}
                     </p>
                     <div className='flex flex-row block sm:mt-2 lg:hidden lg:static'>
                       {group && group?.members?.length > 0 && (
@@ -754,21 +770,25 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
           <div className='flex flex-col items-center gap-y-4 xxsm:gap-y-0'>
             <div className='flex flex-row gap-4 xsm:gap-8 sm:gap-20 '>
               <div className='flex flex-col'>
-                <p className=' text-xl flex justify-center'>{group?.numberOfPostsApproved || 0}</p>
+                <p className=' text-xl flex justify-center'>{formatNumber(postCount) || 0}</p>
                 <p className='text-[var(--text-title)] text-lg xxsm:text-xl flex justify-center'>
                   Posts
                 </p>
               </div>
 
               <div className='flex flex-col'>
-                <p className=' text-xl flex justify-center'>{group?.numberOfProjects || 0}</p>
+                <p className=' text-xl flex justify-center'>
+                  {formatNumber(group?.numberOfProjects) || 0}
+                </p>
                 <p className='text-[var(--text-title)] text-lg xxsm:text-xl flex justify-center'>
                   Projects
                 </p>
               </div>
 
               <div className='flex flex-col'>
-                <p className=' text-xl flex justify-center'>{group?.numberOfMembers || 0}</p>
+                <p className=' text-xl flex justify-center'>
+                  {formatNumber(group?.numberOfMembers) || 1}
+                </p>
                 <p className='text-[var(--text-title)] text-lg xxsm:text-xl flex justify-center'>
                   Members
                 </p>
@@ -957,7 +977,10 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                     <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
                       <PostCreate
                         closeModal={handleCloseModal}
-                        onPostCreated={refetchPosts}
+                        onPostCreated={() => {
+                          refetchPosts();
+                          if (!privacy || isAdmin) setPostCount((prev) => prev + 1);
+                        }}
                         mode={1}
                         desId={groupId}
                         role={group?.role} // Cleaner way to pass `role` if `group` exists
@@ -1003,6 +1026,12 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                     <PostBrief
                       postData={post}
                       deletable={group.role == 'admin' || group.role == 'creator'}
+                      onPostApproved={() => setPostCount((prev) => prev + 1)}
+                      onPostDeleted={() => {
+                        if (post.status === 'approved') {
+                          setPostCount((prev) => prev - 1);
+                        }
+                      }}
                       shareAction={handleShare}
                       detail={false}
                       role={group.role}
@@ -1039,9 +1068,11 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
       <div className=' fixed flex flex-col top-12 lg:right-2 xl:right-4 sm:max-lg:invisible invisible lg:visible'>
         <div className=' bg-cover rounded-3xl bg-[var(--background-side)]  border-2 border-[var(--border)] lg:w-[22vw] xl:w-[19vw] h-[400px] mt-4 ml-[3rem] lg:py-8 xl:py-8 '>
           <div className='flex flex-col lg:mt-6 xl:mt-4'>
-            <div className='flex justify-center mx-2'>
+            <div className='flex justify-center mx-2' ref={textGroupDashboardRef}>
               <p className=' text-xl font-semibold text-center break-words'>
-                {group?.name || 'Group name'}
+                {isGroupnameOverflowing
+                  ? `${group?.name.slice(0, 12)}...` || 'Group name'
+                  : group?.name || 'Group name'}
               </p>
             </div>
             <div className='flex justify-center gap-2'>

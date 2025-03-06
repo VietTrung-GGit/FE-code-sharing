@@ -60,14 +60,14 @@ export const deleteNotification = async (notificationId: string) => {
 };
 
 // Confirm a group invite
-export const confirmGroupInvite = async (groupId: string) => {
-  const response = await axiosInstance.post(API_ENDPOINTS.GROUP_CONFIRM_INVITE(groupId));
+export const confirmGroupInvite = async (groupId: string, accept: boolean) => {
+  const response = await axiosInstance.post(API_ENDPOINTS.GROUP_CONFIRM_INVITE(groupId, accept));
   return response.data;
 };
 
 // Confirm a project invite
-export const confirmProjectInvite = async (projectId: string) => {
-  const response = await axiosInstance.post(API_ENDPOINTS.PROJECT_CONFIRM_INVITE(projectId));
+export const confirmProjectInvite = async (projectId: string, accept: boolean) => {
+  const response = await axiosInstance.post(API_ENDPOINTS.PROJECT_CONFIRM_INVITE(projectId, accept));
   return response.data;
 };
 
