@@ -635,10 +635,10 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                       <button
                         disabled={loading || waiting}
                         className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-24
-                       lg:w-24 xl:w-24 h-7 px-[2px] rounded-xl text-xs md:text-base lg:text-base`}
+                       lg:w-24 xl:w-24 h-7 px-[2px] rounded-xl text-xs md:text-base lg:text-base lg:hidden`}
                         onClick={() => setShowInvite((prev) => !prev)}
                       >
-                        Invite
+                        Assign
                       </button>
                       {showInvite && projectId && (
                         <div className='absolute top-12 right-20'>
@@ -733,7 +733,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                        `}
                             onClick={() => setShowInvite((prev) => !prev)}
                           >
-                            Invite
+                            Assign
                           </button>
                           {showInvite && projectId && (
                             <div className='absolute top-12 right-[300px]'>
