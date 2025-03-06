@@ -244,18 +244,18 @@ function TagList({
       <div
         className={`${
           theme === 'original'
-            ? 'bg-Background/Bottom text-white lg:border-2'
+            ? 'bg-Background/Bottom text-white border-2'
             : 'bg-[var(--surface)] text-[var(--text)]'
-        } justify-center overflow-y-auto w-full ${activeFilter != 'Posts' ? 'lg:h-[50vh]' : 'lg:h-[90vh]'} lg:w-[50vw] min-h-[480px] p-10  flex flex-col border-Primary/Dark border-solid box-border rounded-3xl  lg:mt-4  relative`}
+        } justify-center overflow-y-auto w-full ${activeFilter != 'Posts' ? 'lg:h-[50vh] max-h-[450px]' : 'lg:h-[90vh] max-h-[750px]'} lg:w-[50vw] min-h-[480px] p-10  flex flex-col border-Primary/Dark border-solid box-border rounded-3xl  lg:mt-4  relative`}
       >
         <button
           onClick={handleClose}
-          className='absolute top-6 right-12  text-3xl hover:text-Primary/Light'
+          className='absolute top-6 right-16 xsm:right-12  text-3xl hover:text-Primary/Light'
         >
           ×
         </button>
         {/* */}
-        <p className=' flex items-center gap-2 text-xl'>
+        <p className=' flex items-center gap-2 ml-6 xxsm:ml-4 xsm:ml-0 text-xl'>
           <FaFilter className='text-2xl' />
           {`${activeFilter} Filter`}
         </p>
@@ -266,7 +266,7 @@ function TagList({
           <div className='mb-4 flex flex-col space-y-4'>
             <p className='text-[var(--text)] text-xl'>Order:</p>
 
-            <button className='w-[140px] ml-14' onClick={() => setOrder('descending')}>
+            <button className='w-[140px] ml-6 xsm:ml-14' onClick={() => setOrder('descending')}>
               <div
                 className={`rounded-lg pt-1 flex flex-row gap-1 ${order === 'descending' ? 'text-[var(--text-title)] bg-[var(--background-hovered)] ' : ''}`}
               >
@@ -310,7 +310,7 @@ function TagList({
                 </div>
               </div>
             </button>
-            <button className='w-[140px] ml-14' onClick={() => setOrder('ascending')}>
+            <button className='w-[140px] ml-6 xsm:ml-14' onClick={() => setOrder('ascending')}>
               <div
                 className={`rounded-lg pt-1 flex flex-row gap-1 ${order === 'ascending' ? 'text-[var(--text-title)] bg-[var(--background-hovered)] ' : ''}`}
               >
@@ -363,14 +363,16 @@ function TagList({
           </div>
 
           {/*date,likes,comments*/}
-          <div className='mb-2 flex flex-col space-y-4 ml-14'>
+          <div
+            className={`mb-2 flex flex-col space-y-4 ${activeFilter == 'Posts' ? '-ml-4' : '-ml-8'} xxsm:-ml-4 xsm:ml-14`}
+          >
             <p className='text-[var(--text)] text-xl'>Criteria:</p>
             {activeFilter == 'Posts' && (
               <>
                 {buttonsPosts.map(({ label, criteriaKey, svg }) => (
                   <button
                     key={criteriaKey}
-                    className={`w-[140px] p-1 rounded-lg ml-14 mb-4 flex items-center space-x-2 ${
+                    className={`w-[120px] xxsm:w-[140px] p-1 rounded-lg ml-14 mb-4 flex items-center space-x-2 ${
                       criteriaPosts === criteriaKey
                         ? 'text-[var(--text-title)] bg-[var(--background-hovered)] '
                         : ''
@@ -388,7 +390,7 @@ function TagList({
                 {buttonsUsers.map(({ label, criteriaKey, svg }) => (
                   <button
                     key={criteriaKey}
-                    className={`w-[160px] p-1 rounded-lg ml-14 mb-4 flex items-center space-x-2 ${
+                    className={`w-[140px] xsm:w-[160px] p-1 rounded-lg ml-14 mb-4 flex items-center space-x-2 ${
                       criteriaUsers === criteriaKey
                         ? 'text-[var(--text-title)] bg-[var(--background-hovered)] '
                         : ''
@@ -407,7 +409,7 @@ function TagList({
                 {buttonsGroupProject.map(({ label, criteriaKey, svg }) => (
                   <button
                     key={criteriaKey}
-                    className={`w-[160px] p-1 rounded-lg ml-14 mb-4 flex items-center space-x-2 ${
+                    className={`w-[145px] xsm:w-[160px] p-1 rounded-lg ml-14 mb-4 flex items-center space-x-2 ${
                       criteriaGroupProject === criteriaKey
                         ? 'text-[var(--text-title)] bg-[var(--background-hovered)] '
                         : ''
@@ -427,13 +429,13 @@ function TagList({
             {/*filter by tags*/}
             <div className='mb-4 flex'>
               <div className='w-32 flex'>
-                <p className='text-left text-[var(--text)] text-xl'>Tags:</p>
+                <p className='ml-6 xxsm:ml-0 text-left text-[var(--text)] text-xl'>Tags:</p>
               </div>
             </div>
 
             {/*tags*/}
 
-            <div className=' flex-1 overflow-y-auto scrollbar'>
+            <div className='w-full h-72 xxsm:h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
               {tags.map((tag) => (
                 <button key={tag} className='w-24 my-2 mr-6' onClick={() => handleButtonClick(tag)}>
                   <div className='flex flex-col'>

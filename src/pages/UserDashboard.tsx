@@ -511,7 +511,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
               theme === 'original'
                 ? 'bg-Background/Bottom text-white border-2'
                 : 'bg-[var(--surface)] text-[var(--text)]'
-            }  justify-center w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[720px] xl:h-[400px] lg:h-[400px] sm:h-[420px] h-[560px] border-Primary/Dark rounded-3xl lg:p-5 relative flex items-center`}
+            }  justify-center w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[720px] xl:h-[400px] lg:h-[400px] sm:h-[420px] xsm:h-[480px] h-[440px] border-Primary/Dark rounded-3xl lg:p-5 relative flex items-center`}
           >
             <div className='absolute right-3 top-2' ref={dropdownConfigRef}>
               <button
@@ -582,7 +582,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                 </div>
               )}
             </div>
-            <div className='flex flex-row justify-center space-x-4 xsm:space-x-10 sm:space-x-4 xl:space-x-2 mt-10 xsm:mt-8 sm:-mt-2 lg:-mt-1 mb-44 xsm:mb-48 sm:mb-0 lg:-ml-2 xl:-ml-4'>
+            <div className='flex flex-row justify-center space-x-4 xsm:space-x-10 sm:space-x-4 xl:space-x-2 mt-32 xxsm:mt-24 xsm:mt-14 sm:-mt-2 lg:-mt-1 mb-44 xsm:mb-48 sm:mb-0 lg:-ml-2 xl:-ml-4'>
               <div className=' sm:-mt-10 lg:-mt-6 flex flex-col h-[380px] items-center'>
                 <img
                   src={host?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
@@ -690,7 +690,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                   </div>
                 </div>
 
-                <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] xsm:h-1/2 sm:h-full rounded-xl absolute xsm:top-52 xsm:inset-x-8 top-48 inset-x-4 sm:static '>
+                <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-1/2 max-h-[230px] lg:max-h-[210px] xl:max-h-[200px] sm:h-full rounded-xl absolute xsm:top-44 xsm:inset-x-8 top-40 inset-x-4 sm:static break-words overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent overflow-hidden'>
                   <p className=' p-4'>{host?.story || "I'm here to share my code!"}</p>
                 </div>
               </div>
@@ -881,7 +881,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                     <img
                       src={user?.avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
                       alt='Profile Icon'
-                      className='w-8 h-8 rounded-full object-cover'
+                      className='w-12 h-12 rounded-full object-cover'
                     />
                   </div>
 

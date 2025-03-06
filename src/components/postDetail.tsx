@@ -511,7 +511,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                         shareAction(post._id);
                         setIsDropdownOpen(false);
                       }}
-                      className='block px-4 py-2 hover:bg-[var(--button-hovered)] w-full text-left flex flex-row gap-4'
+                      className='block px-4 py-2 hover:bg-[var(--background-hovered)] w-full text-left flex flex-row gap-4'
                     >
                       <TbMessage2Share className='text-lg lg:text-xl' />
                       Share in a new post
@@ -525,7 +525,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                         setIsDropdownOpen(false);
                         toast.success('Link copied to clipboard!');
                       }}
-                      className='block px-4 py-2 hover:bg-[var(--button-hovered)] w-full text-left flex flex-row gap-4'
+                      className='block px-4 py-2 hover:bg-[var(--background-hovered)] w-full text-left flex flex-row gap-4'
                     >
                       <TbLink className='text-lg lg:text-xl' />
                       Copy Link

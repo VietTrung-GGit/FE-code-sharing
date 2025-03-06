@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MdCenterFocusWeak, MdOutlineZoomOutMap, MdOutlineZoomInMap } from 'react-icons/md';
+import { Tooltip } from 'react-tooltip';
 import { BiSolidEdit } from 'react-icons/bi';
 import {
   NodeStructure,
@@ -471,22 +472,34 @@ const ProjectBoard: React.FC<sectionsProps> = ({
             theme === 'original' ? 'text-Primary/Dark' : ''
           }  bg-[var(--button)]  px-4 py-2 rounded-lg shadow-lg hover:[var(--button-hovered)]`}
           onClick={zoomIn}
+          data-tooltip-id='zoomin'
+          data-tooltip-content={'Zoom in'}
+          data-tooltip-place='right'
         >
           <MdOutlineZoomInMap />
+          <Tooltip id='zoomin' classNameArrow='noArrow' />
         </button>
         <button
           className={`${
             theme === 'original' ? 'text-Primary/Dark' : ''
           }  bg-[var(--button)]  px-4 py-2 rounded-lg shadow-lg hover:[var(--button-hovered)]`}
           onClick={zoomOut}
+          data-tooltip-id='zoomout'
+          data-tooltip-content={'Zoom out'}
+          data-tooltip-place='right'
         >
           <MdOutlineZoomOutMap />
+          <Tooltip id='zoomout' classNameArrow='noArrow' />
         </button>
         <button
           className='bg-Accent/Target text-white  px-4 py-2 rounded-lg shadow-lg'
           onClick={focusCanvas}
+          data-tooltip-id='focusproject'
+          data-tooltip-content={'Focus on project'}
+          data-tooltip-place='right'
         >
           <MdCenterFocusWeak />
+          <Tooltip id='focusproject' classNameArrow='noArrow' />
         </button>
       </div>
     </div>

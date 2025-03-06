@@ -552,7 +552,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                         </li>
                         <li>
                           <button
-                            className='block px-4 py-2  hover:bg-[var(--background-hovered)]  w-full text-left flex flex-row gap-4'
+                            className='block px-4 py-2  hover:bg-[var(--background-hovered)] text-red-500  w-full text-left flex flex-row gap-4'
                             onClick={async () => {
                               try {
                                 await deleteGroup(groupId);
@@ -621,27 +621,28 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                   </div>
                 )}
 
-                {hasJoined && (
-                  <div className='relative flex'>
-                    <button
-                      className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-24 lg:w-28 h-7 px-[2px] rounded-xl text-xs sm:text-base lg:text-base sm:my-2 `}
-                      onClick={() => setShowInvite((prev) => !prev)}
-                    >
-                      Invite
-                    </button>
-                    {showInvite && groupId && (
-                      <div className='lg:absolute top-12 right-20'>
-                        {' '}
-                        <AddMember
-                          type='group'
-                          desId={groupId}
-                          isOpen={showInvite}
-                          closeModal={() => setShowInvite(false)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
+                {hasJoined &&
+                  (!privacy || (group && (group.role === 'admin' || group.role === 'creator'))) && (
+                    <div className='relative flex'>
+                      <button
+                        className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target transition-colors font-semibold duration-300 ease-in-out w-12 sm:w-24 lg:w-28 h-7 px-[2px] rounded-xl text-xs sm:text-base lg:text-base sm:my-2 `}
+                        onClick={() => setShowInvite((prev) => !prev)}
+                      >
+                        Invite
+                      </button>
+                      {showInvite && groupId && (
+                        <div className='lg:absolute top-12 right-20'>
+                          {' '}
+                          <AddMember
+                            type='group'
+                            desId={groupId}
+                            isOpen={showInvite}
+                            closeModal={() => setShowInvite(false)}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
               </div>
               <div className='flex items-center lg:mt-8 xl:mt-0 space-x-2 hidden lg:block'>
                 <div className='flex flex-row '>
@@ -649,7 +650,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
 
                   {group && group?.members?.length > 0 && (
                     <div className='flex space-x-1'>
-                      {group.members.map(({ avatar, user }, index) => (
+                      {group.members.slice(0, 4).map(({ avatar, user }, index) => (
                         <img
                           key={user || index} // Prefer `user` as a unique key if available
                           src={avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
@@ -667,15 +668,15 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
               <div className='flex flex-row sm:-mt-4 lg:mt-0'>
                 <div className='flex flex-col'>
                   <div
-                    className={`flex flex-col ${group && group.role == 'creator' ? 'xxsm:max-xsm:mt-4' : ''}`}
+                    className={`flex flex-col ${group && group.role == 'creator' ? 'xxsm:mt-4 xsm:max-sm:mt-6' : ''}`}
                   >
                     <p className=' font-semibold mt-6 text-2xl sm:text-3xl lg:text-2xl xl:text-3xl break-words'>
                       {group?.name || 'Group Name'}
                     </p>
-                    <div className='flex flex-row block xsm:mt-2 lg:hidden lg:static'>
+                    <div className='flex flex-row block sm:mt-2 lg:hidden lg:static'>
                       {group && group?.members?.length > 0 && (
                         <div className='flex space-x-1'>
-                          {group.members.map(({ avatar, user }, index) => (
+                          {group.members.slice(0, 4).map(({ avatar, user }, index) => (
                             <img
                               key={user || index} // Prefer `user` as a unique key if available
                               src={avatar || 'https://i.postimg.cc/02Xx40Yq/default.png'}
@@ -709,34 +710,36 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                       </button>
                     )}
 
-                    {hasJoined && (
-                      <div className='relative sm:hidden'>
-                        <button
-                          disabled={loading || waiting}
-                          className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target transition-colors font-semibold duration-300 ease-in-out w-16 xxsm:w-20 h-5 xsm:h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base my-1 xsm:my-2 mt-2 xxsm:mt-0
+                    {hasJoined &&
+                      (!privacy ||
+                        (group && (group.role === 'admin' || group.role === 'creator'))) && (
+                        <div className='relative sm:hidden'>
+                          <button
+                            disabled={loading || waiting}
+                            className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target transition-colors font-semibold duration-300 ease-in-out w-16 xxsm:w-20 h-5 xsm:h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base my-1 xsm:my-2 mt-2 xxsm:mt-0
                        `}
-                          onClick={() => setShowInvite((prev) => !prev)}
-                        >
-                          Invite
-                        </button>
-                        {showInvite && groupId && (
-                          <div className='lg:absolute top-12 right-[300px]'>
-                            {' '}
-                            <AddMember
-                              type='group'
-                              desId={groupId}
-                              isOpen={showInvite}
-                              closeModal={() => setShowInvite(false)}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    )}
+                            onClick={() => setShowInvite((prev) => !prev)}
+                          >
+                            Invite
+                          </button>
+                          {showInvite && groupId && (
+                            <div className='lg:absolute top-12 right-[300px]'>
+                              {' '}
+                              <AddMember
+                                type='group'
+                                desId={groupId}
+                                isOpen={showInvite}
+                                closeModal={() => setShowInvite(false)}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
                   </div>
                 </div>
               </div>
 
-              <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] xsm:h-1/2 sm:h-[190px] lg:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 xxsm:top-48 top-40 inset-x-4 sm:static'>
+              <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] lg:max-h-[230px] xsm:h-1/2 sm:h-[180px] lg:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 xxsm:top-48 top-40 inset-x-4 sm:static break-words overflow-hidden overflow-y-auto  scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
                 <p className='p-4'>{group?.bio || 'Group Description'}</p>
               </div>
             </div>
@@ -999,6 +1002,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                   <div key={post._id} className='post'>
                     <PostBrief
                       postData={post}
+                      deletable={group.role == 'admin' || group.role == 'creator'}
                       shareAction={handleShare}
                       detail={false}
                       role={group.role}
@@ -1064,29 +1068,30 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
 
               <div className=''>
                 {' '}
-                {hasJoined && (
-                  <div className='relative'>
-                    <button
-                      disabled={loading || waiting}
-                      className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target transition-colors font-semibold duration-300 ease-in-out w-12 md:w-20 h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base my-4
+                {hasJoined &&
+                  (!privacy || (group && (group.role === 'admin' || group.role === 'creator'))) && (
+                    <div className='relative'>
+                      <button
+                        disabled={loading || waiting}
+                        className={`${theme == 'original' ? ' bg-white hover:text-white hover:bg-Accent/Target' : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border-[1px] border-[var(--border)]'} text-Accent/Target transition-colors font-semibold duration-300 ease-in-out w-12 md:w-20 h-6 lg:h-8 px-[2px] rounded-xl text-xs md:text-base lg:text-base my-4
      `}
-                      onClick={() => setShowInvite((prev) => !prev)}
-                    >
-                      Invite
-                    </button>
-                    {showInvite && groupId && (
-                      <div className='lg:absolute top-10 right-[400px]'>
-                        {' '}
-                        <AddMember
-                          type='group'
-                          desId={groupId}
-                          isOpen={showInvite}
-                          closeModal={() => setShowInvite(false)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
+                        onClick={() => setShowInvite((prev) => !prev)}
+                      >
+                        Invite
+                      </button>
+                      {showInvite && groupId && (
+                        <div className='lg:absolute top-10 right-[400px]'>
+                          {' '}
+                          <AddMember
+                            type='group'
+                            desId={groupId}
+                            isOpen={showInvite}
+                            closeModal={() => setShowInvite(false)}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
               </div>
             </div>
             {group && (

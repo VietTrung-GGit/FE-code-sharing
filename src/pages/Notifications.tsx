@@ -178,8 +178,23 @@ function Notifications() {
 
   const NotificationItem = ({ notification }: { notification: Notification }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef(null);
 
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const handleOptionSelect = () => {
+      setIsDropdownOpen(false); // Close after selection
+    };
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+          setIsDropdownOpen(false);
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, []);
     return (
       <div
         key={notification._id}
@@ -191,7 +206,7 @@ function Notifications() {
           !notification.isRead ? 'border-[var(--text-title)]' : 'border-Primary/Dark'
         }  relative w-[94vw] sm:w-[94vw] lg:w-[48vw] xl:min-w-[700px] my-2  rounded-3xl px-2 xsm:px-10 py-4 lg:mx-4 flex justify-center`}
       >
-        <div className='absolute right-3 top-2' ref={dropdownRef}>
+        <div className='absolute right-4 lg:right-3 top-2' ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className='hover:text-[var(--text-hovered)] text-3xl'
@@ -416,7 +431,7 @@ function Notifications() {
         </div>
       </div>
       <div
-        className={`bg-[var(--background-side)] text-[var(--text)] border-[var(--border)] border-2 fixed top-60 right-4 xl:right-6 flex flex-col lg:w-[21vw] xl:w-[18vw] border-solid box-border rounded-3xl h-[280px] justify-center items-center max-lg:invisible`}
+        className={`bg-[var(--background-side)] text-[var(--text)] border-[var(--border)] border-2 fixed top-40 right-4 xl:right-6 flex flex-col lg:w-[21vw] xl:w-[18vw] border-solid box-border rounded-3xl h-[280px] justify-center items-center max-lg:invisible`}
       >
         <div className=' flex flex-col gap-3 justify-center'>
           <button

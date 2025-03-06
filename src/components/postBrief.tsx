@@ -30,6 +30,7 @@ import { getProjectPublicData } from '../services/projectService';
 
 interface PostBriefProps {
   postData: Post;
+  deletable?: boolean;
   shareAction?: (postRefId: string) => void;
   detail?: boolean;
   role?: string;
@@ -111,6 +112,7 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) 
 
 const PostBrief: React.FC<PostBriefProps> = ({
   postData,
+  deletable = false,
   shareAction = () => {},
   detail = true,
   role,
@@ -386,11 +388,13 @@ const PostBrief: React.FC<PostBriefProps> = ({
                 <img
                   src={post.avatar || import.meta.env.VITE_DEFAULT_AVATAR}
                   alt='Avatar'
-                  className='w-[52px] h-[52px] rounded-full object-cover'
+                  className='w-[52px] h-[52px] rounded-full object-cover flex-shrink-0'
                 />
               </Link>
               <div>
-                <div className='flex flex-row items-center space-x-1'>
+                <div
+                  className={`flex flex-row items-center space-x-1 ${post.tags.length > 0 ? '-mt-5 -mb-1' : ''}`}
+                >
                   {' '}
                   <Link to={`/user/${post.author}/posts`} className='font-bold text-base flex'>
                     {post ? post.authorname : ''}
@@ -512,7 +516,7 @@ const PostBrief: React.FC<PostBriefProps> = ({
           {/* Buttons */}
           <div className='flex justify-between items-center mt-4'>
             {/* Left-aligned buttons */}
-            {post.isAuthor ? (
+            {post.isAuthor || deletable ? (
               <div className='flex space-x-1 sm:space-x-4'>
                 <button
                   onClick={() => setShowDeletePostModal(true)}
@@ -524,36 +528,39 @@ const PostBrief: React.FC<PostBriefProps> = ({
                   <BiTrashAlt className='text-2xl' />
                   <Tooltip id='delete' classNameArrow='noArrow' />
                 </button>
+                {post.isAuthor && (
+                  <>
+                    <button
+                      onClick={handleEdit}
+                      data-tooltip-id='edit'
+                      data-tooltip-content='Edit post'
+                      data-tooltip-place='top' // Auto-adjusts the position
+                      className=' rounded-lg hover:text-[var(--green-highlight)]'
+                    >
+                      <BiSolidEdit className='text-2xl' />
+                      <Tooltip id='edit' classNameArrow='noArrow' />
+                    </button>
 
-                <button
-                  onClick={handleEdit}
-                  data-tooltip-id='edit'
-                  data-tooltip-content='Edit post'
-                  data-tooltip-place='top' // Auto-adjusts the position
-                  className=' rounded-lg hover:text-[var(--green-highlight)]'
-                >
-                  <BiSolidEdit className='text-2xl' />
-                  <Tooltip id='edit' classNameArrow='noArrow' />
-                </button>
-
-                <button
-                  onClick={handleClick}
-                  onMouseEnter={() => setHovered(true)}
-                  onMouseLeave={() => setHovered(false)}
-                  data-tooltip-id='setprivate'
-                  data-tooltip-content={`Set ${post.visibility === 'public' ? 'private' : 'public'}`}
-                  data-tooltip-place='top' // Auto-adjusts the position
-                  className='rounded-lg hover:text-[var(--blue-highlight)]'
-                >
-                  {post.visibility === 'private' ? (
-                    <TbLock className=' text-2xl ' />
-                  ) : hovered ? (
-                    <TbLockOpen className=' text-2xl ' />
-                  ) : (
-                    <TbEye className=' text-2xl ' />
-                  )}
-                  <Tooltip id='setprivate' classNameArrow='noArrow' />
-                </button>
+                    <button
+                      onClick={handleClick}
+                      onMouseEnter={() => setHovered(true)}
+                      onMouseLeave={() => setHovered(false)}
+                      data-tooltip-id='setprivate'
+                      data-tooltip-content={`Set ${post.visibility === 'public' ? 'private' : 'public'}`}
+                      data-tooltip-place='top' // Auto-adjusts the position
+                      className='rounded-lg hover:text-[var(--blue-highlight)]'
+                    >
+                      {post.visibility === 'private' ? (
+                        <TbLock className=' text-2xl ' />
+                      ) : hovered ? (
+                        <TbLockOpen className=' text-2xl ' />
+                      ) : (
+                        <TbEye className=' text-2xl ' />
+                      )}
+                      <Tooltip id='setprivate' classNameArrow='noArrow' />
+                    </button>
+                  </>
+                )}
               </div>
             ) : (
               <div />
@@ -587,7 +594,7 @@ const PostBrief: React.FC<PostBriefProps> = ({
                             shareAction(post._id);
                             setIsDropdownOpen(false);
                           }}
-                          className='block px-4 py-2 hover:bg-[var(--button-hovered)] w-full text-left flex flex-row gap-4'
+                          className='block px-4 py-2  hover:bg-[var(--background-hovered)] w-full text-left flex flex-row gap-4'
                         >
                           <TbMessage2Share className='text-lg lg:text-xl' />
                           Share in a new post
@@ -601,7 +608,7 @@ const PostBrief: React.FC<PostBriefProps> = ({
                             setIsDropdownOpen(false);
                             toast.success('Link copied to clipboard!');
                           }}
-                          className='block px-4 py-2 hover:bg-[var(--button-hovered)] w-full text-left flex flex-row gap-4'
+                          className='block px-4 py-2  hover:bg-[var(--background-hovered)] w-full text-left flex flex-row gap-4'
                         >
                           <TbLink className='text-lg lg:text-xl' />
                           Copy link
