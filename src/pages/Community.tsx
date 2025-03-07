@@ -393,27 +393,27 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
       <>
         <>
           <div className='flex justify-center mt-3 xxsm:mt-8 sm:max-lg:mt-10 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-2'>
-            <div className='flex flex-row justify-center gap-8 xsm:gap-14 sm:gap-24 lg:gap-16 xl:gap-28 2xl:gap-36w-[94vw] lg:w-1/2 xl:min-w-[650px]'>
+            <div className='overflow-x-auto scrollbar text-base xxsm:text-lg xsm:text-xl flex flex-row justify-center gap-8 xsm:gap-14 sm:gap-24 lg:gap-16 xl:gap-28 2xl:gap-36w-[94vw] lg:w-1/2 xl:min-w-[650px]'>
               <button
-                className={`${active === 'Posts' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-lg xxsm:text-xl `}
+                className={`${active === 'Posts' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} `}
                 onClick={() => navigate(`/community/posts`)}
               >
                 Posts
               </button>
               <button
-                className={`${active === 'Users' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-lg xxsm:text-xl `}
+                className={`${active === 'Users' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} `}
                 onClick={() => navigate(`/community/users`)}
               >
                 Users
               </button>
               <button
-                className={`${active === 'Groups' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-lg xxsm:text-xl `}
+                className={`${active === 'Groups' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'}  `}
                 onClick={() => navigate(`/community/groups`)}
               >
                 Groups
               </button>
               <button
-                className={`${active === 'Projects' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-lg xxsm:text-xl `}
+                className={`${active === 'Projects' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} `}
                 onClick={() => navigate(`/community/projects`)}
               >
                 Projects

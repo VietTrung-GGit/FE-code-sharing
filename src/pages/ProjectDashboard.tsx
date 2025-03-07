@@ -752,7 +752,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                 </div>
               </div>
 
-              <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] lg:max-h-[210px] xl:max-h-[220px] xsm:h-1/2 sm:h-[170px] lg:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 xxsm:top-48 top-40 inset-x-4 sm:static break-words overflow-hidden overflow-y-auto  scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
+              <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] lg:max-xl:max-h-[230px] xl:max-h-[230px] xsm:h-1/2 sm:h-[190px] lg:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 xxsm:top-48 top-40 inset-x-4 sm:static break-words overflow-hidden overflow-y-auto  scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
                 <p className='p-4'>{project?.bio || 'Project Description'}</p>
               </div>
             </div>
@@ -804,16 +804,16 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
       {hasJoined || !privacy ? (
         <>
           <div className='flex justify-center mt-8 sm:max-lg:mt-8 lg:mt-6 mx-6 sm:max-lg:mx-14 lg:mx-8 mb-5'>
-            <div className='flex flex-row justify-center gap-24 xxsm:gap-28 xsm:gap-32 w-1/2'>
+            <div className='overflow-x-auto scrollbar text-base xxsm:text-lg xsm:text-xl flex flex-row justify-center gap-24 xxsm:gap-28 xsm:gap-32 w-1/2'>
               <button
-                className={`${!viewMember ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl whitespace-nowrap`}
+                className={`${!viewMember ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} whitespace-nowrap`}
                 onClick={() => navigate(`/project/${projectId}/sections/root/posts`)}
                 disabled={loading || waiting}
               >
                 Overview
               </button>
               <button
-                className={`${viewMember ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl whitespace-nowrap`}
+                className={`${viewMember ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} whitespace-nowrap`}
                 onClick={() => navigate(`/project/${projectId}/members`)}
                 disabled={loading || waiting}
               >
@@ -876,9 +876,9 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
               </div>
 
               <div className='mt-4 lg:mt-0 mb-4 flex justify-center px-8 xsm:px-8 sm:px-14 lg:px-8'>
-                <div className='flex flex-row justify-center gap-24 xl:gap-28 w-1/2'>
+                <div className='overflow-x-auto scrollbar text-base xxsm:text-lg xsm:text-xl flex flex-row justify-center gap-24 xl:gap-28 w-1/2'>
                   <button
-                    className={`block px-4 py-2 text-base sm:text-lg font-semibold ${!viewParticipant ? 'text-[var(--text-title)]' : 'text-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
+                    className={`block px-4 py-2 font-semibold ${!viewParticipant ? 'text-[var(--text-title)]' : 'text-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
                     onClick={() => {
                       navigate(`/project/${projectId}/sections/${sectionId}/posts`);
                       setActiveLabel('Posts');
@@ -890,7 +890,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
 
                   <button
                     disabled={loading || waiting}
-                    className={`block px-4 py-2 text-lg font-semibold ${viewParticipant ? 'text-[var(--text-title)]' : 'text-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
+                    className={`block px-4 py-2 font-semibold ${viewParticipant ? 'text-[var(--text-title)]' : 'text-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
                     onClick={() => {
                       navigate(`/project/${projectId}/sections/${sectionId}/participants`);
                       setActiveLabel('Participants');
@@ -1063,9 +1063,6 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                 </div>
               )}
 
-              {/* Show NothingPost only after the first load, no posts, and not loading */}
-              {!loading && posts.length === 0 && <NothingPost />}
-
               {/* Display posts if available */}
               {posts.length > 0 && project && (
                 <div id='posts-container' className={'mx-6 sm:max-lg:mx-14 lg:mx-10 '}>
@@ -1108,6 +1105,11 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
             </div>
           )}
 
+          {/* Show NothingPost only after the first load, no posts, and not loading */}
+          {!loading &&
+            ((posts.length === 0 && !viewMember && !viewParticipant) ||
+              (users.length === 0 && (viewMember || viewParticipant))) && <NothingPost />}
+
           {/* Show LoadingSpinner during additional data fetching */}
           {loading && <LoadingSpinner />}
         </>
@@ -1126,7 +1128,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
             <div className='flex justify-center mx-2' ref={textProjectDashboardRef}>
               <p className=' text-xl font-semibold text-center break-words'>
                 {isProjectnameOverflowing
-                  ? `${project?.name.slice(0, 12)}...` || 'Project Name'
+                  ? `${project?.name.slice(0, 10)}...` || 'Project Name'
                   : project?.name || 'Project Name'}
               </p>
             </div>
@@ -1185,7 +1187,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
               <div className='flex flex-row justify-center lg:gap-8 xl:gap-10 2xl:gap-16 mb-5'>
                 <div className='flex flex-col'>
                   <p className=' text-xl flex justify-center'>
-                    {formatNumber(project.numberOfPosts)}
+                    {formatNumber(postCount)}
                   </p>
                   <p className='text-[var(--text-title)] text-base flex justify-center'>Posts</p>
                 </div>

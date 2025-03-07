@@ -42,9 +42,15 @@ interface ToggleButtonProps {
   status: string;
   isAdmin: boolean;
   postId: string;
+  onPostApproved?: () => void;
 }
 
-const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) => {
+const ToggleButton: React.FC<ToggleButtonProps> = ({
+  status,
+  isAdmin,
+  postId,
+  onPostApproved = () => {},
+}) => {
   const [loading, setLoading] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(status);
   const { theme } = useTheme();
@@ -67,32 +73,34 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) 
     <div className='absolute text-sm top-0 right-0 flex gap-2 p-2'>
       {/* Show status with bold color once moderated */}
       {currentStatus === 'pending' && !isAdmin && (
-        <div className='flex items-center justify-center gap-2 w-28 py-1 px-[2px] rounded-full bg-[#e8c64d] text-white font-semibold'>
-          <TbFlag className='text-xl' />
-          Pending
+        <div className='flex items-center justify-center gap-0 sm:gap-2 w-10 xxsm:w-16 xsm:w-28 py-[2px] sm:py-1 px-[2px] rounded-full bg-[#e8c64d] text-white font-semibold'>
+          <TbFlag className='text-xl mx-2 sm:mx-0 flex-shrink-0' />
+          <span className='hidden sm:block'>Pending</span>
         </div>
       )}
       {currentStatus === 'rejected' && (
-        <div className='flex items-center justify-center gap-2 w-28 py-1 px-[2px] rounded-full bg-red-400 text-white font-semibold'>
-          <TbFlagCancel className='text-xl' />
-          Rejected
+        <div className='flex items-center justify-center gap-1 sm:gap-2 w-20 sm:w-28 py-[2px] sm:py-1 px-[2px] rounded-full bg-red-400 text-white font-semibold'>
+          <TbFlagCancel className='text-xl mx-2 sm:mx-0' />
+          <span className='hidden sm:block'>Rejected</span>
         </div>
       )}
 
-      {/* Show moderation buttons if pending and admin */}
       {currentStatus === 'pending' && isAdmin && (
         <div className='flex gap-1'>
           <button
-            onClick={() => {handleModeration('approve'); onPostApproved()}}
+            onClick={() => {
+              handleModeration('approve');
+              onPostApproved();
+            }}
             disabled={loading}
             className={`   ${
               theme === 'original'
                 ? 'bg-white hover:bg-green-400 hover:text-white  text-green-500'
                 : 'bg-[var(--button)] hover:bg-[var(--button-hovered)]'
-            } flex items-center justify-center gap-2 w-20 md:w-24 py-1 rounded-l-full border-r-4 border-green-400  transition disabled:opacity-50`}
+            } flex items-center justify-center gap-2 sm:w-20 md:w-24 py-1 rounded-l-full border-r-4 border-green-400  transition disabled:opacity-50`}
           >
-            <TbFlagCheck className='text-xl' />
-            Approve
+            <TbFlagCheck className='text-xl ml-2 sm:mx-0' />
+            <span className='hidden sm:block'>Approve</span>
           </button>
           <button
             onClick={() => handleModeration('reject')}
@@ -101,10 +109,10 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({ status, isAdmin, postId }) 
               theme === 'original'
                 ? ' bg-white text-red-400 hover:bg-red-300 hover:text-white '
                 : 'bg-[var(--button)] hover:bg-[var(--button-hovered)]'
-            } flex items-center justify-center gap-2 w-20 md:w-24 py-1 rounded-r-full border-l-4 border-red-400 transition disabled:opacity-50`}
+            } flex items-center justify-center gap-2 sm:w-20 md:w-24 py-1 rounded-r-full border-l-4 border-red-400 transition disabled:opacity-50`}
           >
-            <TbFlagCancel className='text-xl' />
-            Reject
+            <TbFlagCancel className='text-xl mr-2 sm:mx-0' />
+            <span className='hidden sm:block'>Reject</span>
           </button>
         </div>
       )}
@@ -402,7 +410,11 @@ const PostBrief: React.FC<PostBriefProps> = ({
                 >
                   {' '}
                   <Link to={`/user/${post.author}/posts`} className='font-bold text-base flex'>
-                    {post ? post.authorname : ''}
+                    {post
+                      ? post.authorname.length > 14
+                        ? `${post.authorname.slice(0, 14)}...`
+                        : post.authorname
+                      : ''}
                   </Link>
                   {(post.project || post.group) && detail && (
                     <Link
@@ -427,7 +439,9 @@ const PostBrief: React.FC<PostBriefProps> = ({
                     Math.abs(
                       new Date(post.createdAt).getTime() - new Date(post.editedAt).getTime(),
                     ) > 100 && (
-                      <span className='text-xs'>(Edited: {formatDate(post.editedAt)})</span>
+                      <span className='text-xs hidden sm:block'>
+                        (Edited: {formatDate(post.editedAt)})
+                      </span>
                     )}
                 </p>
                 {post.tags.length > 0 && <TagsScroll tags={post.tags} />}
@@ -435,7 +449,12 @@ const PostBrief: React.FC<PostBriefProps> = ({
             </div>
             <div className='mt-2 sm:mt-0 w-full sm:w-auto'></div>
             {post && post.group && (
-              <ToggleButton status={post.status} isAdmin={isAdmin} postId={post._id} />
+              <ToggleButton
+                status={post.status}
+                isAdmin={isAdmin}
+                postId={post._id}
+                onPostApproved={onPostApproved}
+              />
             )}
           </div>
 

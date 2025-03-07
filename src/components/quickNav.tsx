@@ -46,7 +46,7 @@ const GroupButton: React.FC<PinnedItem & { onUnpin?: () => void; onClose: () => 
         />
         <div className='flex flex-col justify-between'>
           <p className='text-base leading-tight text-left truncate'>
-            {isTextOverflowing ? `${name.slice(0, 14)}...` : name}
+            {name.length > 14 ? `${name.slice(0, 6)}...` : name}
           </p>
           {total && (
             <div className='flex items-center space-x-1'>

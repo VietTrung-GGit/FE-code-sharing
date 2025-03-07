@@ -56,6 +56,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
   const [replyParentHeight, setReplyParentHeight] = useState<number | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const emojis = ['😀', '😆', '😎', '🔥', '💯', '🚀', '🎉', '🥳'];
+  const pickerRef = useRef<HTMLDivElement>(null);
   const getRandomEmoji = () => emojis[Math.floor(Math.random() * emojis.length)];
   useEffect(() => {
     if (replyContainerRef.current) {
@@ -463,6 +464,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                         {showPicker && (
                           <div className='absolute bottom-full right-0 mb-2 z-30 bg-gray-800 rounded-lg shadow-lg'>
                             <EmojiPickerComponent
+                              ref={pickerRef}
                               theme={theme}
                               onSelect={(emoji: EmojiClickData) =>
                                 setReplyText((prev) => prev + emoji.emoji)

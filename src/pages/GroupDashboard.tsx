@@ -663,7 +663,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                   {/* Avatar Members */}
 
                   {group && group?.members?.length > 0 && (
-                    <div className='flex space-x-1'>
+                    <div className='flex space-x-1 -mt-4 xl:mt-0'>
                       {group.members.slice(0, 4).map(({ avatar, user }, index) => (
                         <img
                           key={user || index} // Prefer `user` as a unique key if available
@@ -755,7 +755,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                 </div>
               </div>
 
-              <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] lg:max-h-[230px] xsm:h-1/2 sm:h-[180px] lg:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 xxsm:top-48 top-40 inset-x-4 sm:static break-words overflow-hidden overflow-y-auto  scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
+              <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] lg:max-xl:max-h-[230px] xsm:h-1/2 sm:h-[170px] lg:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 xxsm:top-48 top-40 inset-x-4 sm:static break-words overflow-hidden overflow-y-auto  scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
                 <p className='p-4'>{group?.bio || 'Group Description'}</p>
               </div>
             </div>
@@ -828,30 +828,30 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
       {hasJoined || !privacy ? (
         <>
           <div className='flex justify-center  mt-8 lg:mt-6 mx-16 xsm:mx-16 sm:mx-36 lg:mx-24 xl:mx-8'>
-            <div className='flex flex-row xl:justify-center gap-20 xsm:gap-20 sm:gap-24 lg:gap-20 xl:gap-20 2xl:gap-24 xsm:w-full lg:w-1/2 justify-start max-xl:overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
+            <div className='overflow-x-auto scrollbar text-base xxsm:text-lg xsm:text-xl flex flex-row xl:justify-center gap-20 xsm:gap-20 sm:gap-24 lg:gap-20 xl:gap-20 2xl:gap-24 xsm:w-full lg:w-1/2 justify-start max-xl:overflow-y-auto'>
               <button
-                className={`${active === 'Posts' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl whitespace-nowrap`}
+                className={`${active === 'Posts' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} whitespace-nowrap`}
                 onClick={() => navigate(`/group/${groupId}/posts`)}
                 disabled={loading}
               >
                 Posts
               </button>
               <button
-                className={`${active === 'Projects' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl whitespace-nowrap`}
+                className={`${active === 'Projects' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} whitespace-nowrap`}
                 onClick={() => navigate(`/group/${groupId}/projects`)}
                 disabled={loading}
               >
                 Projects
               </button>
               <button
-                className={`${active === 'Members' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl whitespace-nowrap`}
+                className={`${active === 'Members' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} whitespace-nowrap`}
                 onClick={() => navigate(`/group/${groupId}/members`)}
                 disabled={loading}
               >
                 Members
               </button>
               <button
-                className={`${active === 'My posts' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl whitespace-nowrap`}
+                className={`${active === 'My posts' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} whitespace-nowrap`}
                 onClick={() => navigate(`/group/${groupId}/myposts`)}
                 disabled={loading}
               >
@@ -859,7 +859,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
               </button>
               {isAdmin && moderation && (
                 <button
-                  className={`${active === 'Pending posts' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} text-xl whitespace-nowrap`}
+                  className={`${active === 'Pending posts' ? 'text-Accent/Target' : 'hover:text-[var(--text-hovered)]'} whitespace-nowrap`}
                   onClick={() => navigate(`/group/${groupId}/pendingposts`)}
                   disabled={loading}
                 >
@@ -1071,7 +1071,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
             <div className='flex justify-center mx-2' ref={textGroupDashboardRef}>
               <p className=' text-xl font-semibold text-center break-words'>
                 {isGroupnameOverflowing
-                  ? `${group?.name.slice(0, 12)}...` || 'Group name'
+                  ? `${group?.name.slice(0, 10)}...` || 'Group name'
                   : group?.name || 'Group name'}
               </p>
             </div>

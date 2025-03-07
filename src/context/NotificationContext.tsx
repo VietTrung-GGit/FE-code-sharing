@@ -22,7 +22,6 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [totalNotifications, setTotalNotifications] = useState(0);
-  const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const socket = useRef<Socket | null>(null);
 
@@ -39,7 +38,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
         const ids = new Set(prev.map((notif) => notif._id));
         return [...prev, ...newNotifications.filter((notif) => !ids.has(notif._id))];
       });
-      setTotalNotifications(response.data.totalNotifications);
+      setTotalNotifications(response.data.totalUnreadNotifications);
       setHasMore(response.data.hasMore); // Check if more notifications are available
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -73,7 +72,9 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
       socket.current.on('newNotification', (newNotification: Notification) => {
         setNotifications((prev) => [newNotification, ...prev]);
         setTotalNotifications(totalNotifications + 1);
-        toast.info(`🔔 ${newNotification.senderName} ${newNotification.message}`);
+        toast.info(
+          `🔔 ${newNotification.senderName} ${newNotification.message} ${newNotification.extraData}`,
+        );
       });
 
       socket.current.on('disconnect', () => {

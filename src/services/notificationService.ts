@@ -6,7 +6,7 @@ export type Notification = {
   senderId: string;
   senderName: string;
   message: string;
-  avatar: string;
+  senderAvatar: string;
   type: string;
   relatedEntityId: string;
   entityType: string;
@@ -37,7 +37,7 @@ export const getUserNotifications = async (
   return await axiosInstance.get<{
     notifications: Notification[];
     hasMore: boolean;
-    totalNotifications: number;
+    totalUnreadNotifications: number;
   }>(`/notification`, {
     params: { filter, page, limit, category },
   });
@@ -67,7 +67,9 @@ export const confirmGroupInvite = async (groupId: string, accept: boolean) => {
 
 // Confirm a project invite
 export const confirmProjectInvite = async (projectId: string, accept: boolean) => {
-  const response = await axiosInstance.post(API_ENDPOINTS.PROJECT_CONFIRM_INVITE(projectId, accept));
+  const response = await axiosInstance.post(
+    API_ENDPOINTS.PROJECT_CONFIRM_INVITE(projectId, accept),
+  );
   return response.data;
 };
 

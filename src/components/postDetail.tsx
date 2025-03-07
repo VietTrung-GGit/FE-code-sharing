@@ -62,6 +62,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
   const { user } = useAuthUser();
   const emojis = ['😀', '😆', '😎', '🔥', '💯', '🚀', '🎉', '🥳'];
   const getRandomEmoji = () => emojis[Math.floor(Math.random() * emojis.length)];
+  const pickerRef = useRef<HTMLDivElement>(null);
   const downloadTextFile = (content: string, title: string): void => {
     // Create a Blob with the content as text and the type 'text/plain'
     const blob = new Blob([content], { type: 'text/plain' });
@@ -631,6 +632,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
                 {showPicker && (
                   <div className='absolute bottom-full right-0 mb-2 z-30 bg-gray-800 rounded-lg shadow-lg'>
                     <EmojiPickerComponent
+                      ref={pickerRef}
                       theme={theme}
                       onSelect={(emoji: EmojiClickData) =>
                         setNewCommentText((prev) => prev + emoji.emoji)

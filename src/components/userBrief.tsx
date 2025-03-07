@@ -142,7 +142,7 @@ const UserBrief: React.FC<UserBriefProps> = ({
         <div
           className={`${
             theme === 'original'
-              ? 'bg-Background/Bottom text-white lg:border-2'
+              ? 'bg-Background/Bottom text-white border-2'
               : 'bg-[var(--surface)] text-[var(--text)]'
           } relative w-[94vw] sm:w-[94vw] lg:w-1/2 xl:min-w-[730px] my-3 border-Primary/Dark rounded-3xl p-5 md:p-7 lg:p-8`}
         >

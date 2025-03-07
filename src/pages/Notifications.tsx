@@ -65,7 +65,7 @@ function Notifications() {
         const ids = new Set(prev.map((notif) => notif._id));
         return [...prev, ...newNotifications.filter((notif) => !ids.has(notif._id))];
       });
-      setTotalNotifications(response.data.totalNotifications);
+      setTotalNotifications(response.data.totalUnreadNotifications);
       setHasMore(response.data.hasMore); // Check if more notifications are available
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -252,7 +252,7 @@ function Notifications() {
           </div>
           <div className='flex justify-center'>
             <img
-              src={notification.avatar || import.meta.env.VITE_DEFAULT_AVATAR}
+              src={notification.senderAvatar || import.meta.env.VITE_DEFAULT_AVATAR}
               alt='Avatar'
               className='w-16 h-16 rounded-full object-cover flex-shrink-0'
             />

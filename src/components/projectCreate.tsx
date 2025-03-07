@@ -126,7 +126,7 @@ const ProjectCreate: React.FC<PostCreateProps> = ({
                 avatarFile ? URL.createObjectURL(avatarFile) : import.meta.env.VITE_DEFAULT_AVATAR
               }
               alt='Profile Icon'
-              className='w-40 h-40 rounded-3xl object-cover transition duration-300 group-hover:brightness-60'
+              className='w-24 h-24 xsm:w-32 xsm:h-32 xsm:w-40 xsm:h-40 rounded-3xl object-cover transition duration-300 group-hover:brightness-60'
             />
             <div className='text-white absolute w-40 h-40 inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-50 rounded-3xl  font-semibold'>
               Choose image
@@ -154,7 +154,7 @@ const ProjectCreate: React.FC<PostCreateProps> = ({
               onChange={(e) => setTitle(e.target.value)}
               className={` ${
                 theme === 'original' ? '' : 'border'
-              }  w-full mt-1 px-3 py-2 bg-[var(--input)]  rounded-md border-[var(--text-placeholder)] focus:outline-none focus:ring-2`}
+              }  w-[30vw] xxsm:w-[35vw] xsm:w-[40vw] lg:w-full mt-1 px-3 py-2 bg-[var(--input)]  rounded-md border-[var(--text-placeholder)] focus:outline-none focus:ring-2`}
             />
             <textarea
               value={description}
@@ -172,7 +172,7 @@ const ProjectCreate: React.FC<PostCreateProps> = ({
               placeholder='Description'
               className={` ${
                 theme === 'original' ? '' : 'border'
-              }  w-full h-28 mt-1 px-3 py-2 bg-[var(--input)]  rounded-md border-[var(--text-placeholder)] focus:outline-none focus:ring-2 resize-none overflow-y-auto`}
+              }  w-[30vw] xxsm:w-[35vw] xsm:w-[40vw] lg:w-full h-12 xsm:h-20 lg:h-28 mt-1 px-3 py-2 bg-[var(--input)]  rounded-md border-[var(--text-placeholder)] focus:outline-none focus:ring-2 resize-none overflow-y-auto`}
               rows={4}
             />
           </div>

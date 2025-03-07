@@ -9,7 +9,7 @@ interface TagsScrollProps {
 
 const TagsScroll: React.FC<TagsScrollProps> = ({
   tags,
-  containerClassName = 'flex gap-[2px] overflow-x-auto w-[200px] xxsm:w-[236px]',
+  containerClassName = 'flex gap-[2px] overflow-x-auto w-[165px] xxsm:w-[236px]',
 }) => {
   const scrollContainer = useRef<HTMLDivElement>(null);
 
@@ -49,7 +49,7 @@ const TagsScroll: React.FC<TagsScrollProps> = ({
           tags.map((tagName, index) => (
             <span
               key={index}
-              className={`flex-shrink-0 ${tagColors[tagName]} text-[11px] flex justify-center text-Primary/Dark px-2 w-16 rounded-xl py-[1px]`}
+              className={`flex-shrink-0 ${tagColors[tagName]} text-[8px] sm:text-[11px] flex justify-center text-Primary/Dark px-2 w-10 sm:w-16 rounded-xl py-[1px]`}
             >
               {tagName}
             </span>

@@ -129,7 +129,7 @@ const GroupCreate: React.FC<PostCreateProps> = ({
         {groupId ? 'Edit group profile' : 'New group'}
       </p>
 
-      <div className='inline-block flex-shrink-0 flex-row flex mt-8 space-x-8'>
+      <div className='inline-block flex-shrink-0 flex-row flex mt-8 space-x-6 lg:space-x-8'>
         <div className='relative group'>
           <label htmlFor='avatar-upload' className='cursor-pointer'>
             {/* Image */}
@@ -138,7 +138,7 @@ const GroupCreate: React.FC<PostCreateProps> = ({
                 avatarFile ? URL.createObjectURL(avatarFile) : import.meta.env.VITE_DEFAULT_AVATAR
               }
               alt='Profile Icon'
-              className='w-40 h-40 rounded-3xl object-cover transition duration-300 group-hover:brightness-60'
+              className='w-24 h-24 xxsm:w-32 xxsm:h-32 lg:w-40 lg:h-40 rounded-3xl object-cover transition duration-300 group-hover:brightness-60 flex-shrink-0'
               // onClick={() => document.getElementById('imageUpload')?.click()}
             />
             {/* Overlay Text */}
@@ -160,7 +160,7 @@ const GroupCreate: React.FC<PostCreateProps> = ({
         </div>
 
         <div className='flex flex-col -mt-2 '>
-          <div className='space-y-4'>
+          <div className='space-y-4 max-lg:flex-col max-lg:flex'>
             <input
               type='text'
               placeholder='Title'
@@ -168,7 +168,7 @@ const GroupCreate: React.FC<PostCreateProps> = ({
               onChange={(e) => setTitle(e.target.value)}
               className={` ${
                 theme === 'original' ? '' : 'border'
-              }  w-full mt-1 px-3 py-2 bg-[var(--input)] rounded-md  border-[var(--text-placeholder)] focus:outline-none focus:ring-2 `}
+              } w-[30vw] xxsm:w-[35vw] xsm:w-[40vw] lg:w-full mt-1 px-3 py-2 bg-[var(--input)] rounded-md text-sm xxsm:text-base border-[var(--text-placeholder)] focus:outline-none focus:ring-2 `}
             />
             {/* <input
               type='text'
@@ -195,7 +195,7 @@ const GroupCreate: React.FC<PostCreateProps> = ({
               placeholder='Description'
               className={` ${
                 theme === 'original' ? '' : 'border'
-              } w-full h-28 mt-1 px-3 py-2 bg-[var(--input)]  rounded-md border-[var(--text-placeholder)] focus:outline-none focus:ring-2 resize-none overflow-y-auto`}
+              } w-[30vw] xxsm:w-[35vw] xsm:w-[40vw] lg:w-full h-12 xsm:h-20 lg:h-28 mt-1 px-3 py-2 bg-[var(--input)] text-sm xxsm:text-base rounded-md border-[var(--text-placeholder)] focus:outline-none focus:ring-2 resize-none overflow-y-auto`}
               rows={4}
             />
           </div>
