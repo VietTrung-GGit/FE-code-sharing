@@ -72,7 +72,7 @@ const GroupBrief: React.FC<GroupBriefProps> = ({ userId, groupData }) => {
     } catch (error) {
       setJoined(false);
       setMemberCount((prev) => prev - 1);
-      toast.error('Failed to join group');
+      toast.error('Failed to join group!');
     }
   };
 

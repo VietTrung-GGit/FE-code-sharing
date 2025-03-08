@@ -4,7 +4,6 @@ import { toast } from 'react-toastify';
 import { loginUser, logoutUser, refreshAccessToken, signupUser } from '../services/authService';
 import { getUserFullData, updateUserFullData, UserDataFull } from '../services/userService';
 
-
 interface AuthUserContextType {
   isAuthenticated: boolean;
   authLoading: boolean;
@@ -96,7 +95,7 @@ export const AuthUserProvider: React.FC<AuthUserProviderProps> = ({ children }) 
   const signup = async (username: string, email: string, password: string) => {
     try {
       await signupUser(username, email, password);
-      toast.success('Sign up successful!');
+      toast.success('Sign up successfully!');
       await login(username, password); // Log in after successful signup
     } catch (error) {
       console.error('Sign up failed:', error);

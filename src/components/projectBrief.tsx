@@ -46,7 +46,7 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ userId, projectData, detail
       toast.success(`Joined project: ${project.name}`);
     } catch (error) {
       setJoined(false);
-      toast.error('Failed to join project');
+      toast.error('Failed to join project!');
     }
   };
 

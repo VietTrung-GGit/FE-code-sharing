@@ -571,10 +571,10 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                               try {
                                 await deleteGroup(groupId);
                                 navigate('/community/posts');
-                                toast.success('Group deleted successfully');
+                                toast.success('Group deleted successfully!');
                                 // Optionally, you can navigate away or update state after deletion
                               } catch (error) {
-                                toast.error('Failed to delete group');
+                                toast.error('Failed to delete group!');
                                 console.error(error);
                               }
                             }}
@@ -946,6 +946,21 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                 )}
               </div>
             </div>
+            {showPostCreate && (
+              <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
+                <PostCreate
+                  closeModal={handleCloseModal}
+                  onPostCreated={() => {
+                    refetchPosts();
+                    if (!privacy || isAdmin) setPostCount((prev) => prev + 1);
+                  }}
+                  mode={1}
+                  desId={groupId}
+                  role={group?.role} // Cleaner way to pass `role` if `group` exists
+                  postRefId={refId || undefined} // Ensures it's only passed when defined
+                />
+              </div>
+            )}
           </div>
 
           {/* Content Sections */}
@@ -972,22 +987,6 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({ active }) => {
                   >
                     <p className='text-left text-sm overflow-hidden'>Share your code...</p>
                   </button>
-
-                  {showPostCreate && (
-                    <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
-                      <PostCreate
-                        closeModal={handleCloseModal}
-                        onPostCreated={() => {
-                          refetchPosts();
-                          if (!privacy || isAdmin) setPostCount((prev) => prev + 1);
-                        }}
-                        mode={1}
-                        desId={groupId}
-                        role={group?.role} // Cleaner way to pass `role` if `group` exists
-                        postRefId={refId || undefined} // Ensures it's only passed when defined
-                      />
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

@@ -86,7 +86,7 @@ const ProfileCard: React.FC = () => {
       setPasswords({ currentPassword: '', newPassword: '', confirmNewPassword: '' }); // Clear fields
     } catch (error) {
       console.log(error);
-      toast.error(error?.response?.data || 'Failed to update password. Please try again.');
+      toast.error(error?.response?.data || 'Failed to update password. Please try again!');
     }
   };
 
@@ -112,7 +112,7 @@ const ProfileCard: React.FC = () => {
       setIsEditing(false); // Exit editing mode
     } catch (error) {
       setProfileData(previousProfileData); // Revert to the previous data if an error occurs
-      toast.error('Failed to update profile. Please try again.');
+      toast.error('Failed to update profile. Please try again!');
     }
   };
 

@@ -109,7 +109,7 @@ function Notifications() {
       toast.success('Notification deleted successfully');
     } catch (error) {
       console.error('Error deleting notification:', error);
-      toast.error('Failed to delete notification');
+      toast.error('Failed to delete notification!');
     }
   };
 
@@ -206,7 +206,7 @@ function Notifications() {
           !notification.isRead ? 'border-[var(--text-title)]' : 'border-Primary/Dark'
         }  relative w-[94vw] sm:w-[94vw] lg:w-[48vw] xl:min-w-[700px] my-2  rounded-3xl px-2 xsm:px-10 py-4 lg:mx-4 flex justify-center`}
       >
-        <div className='absolute right-4 lg:right-3 top-2' ref={dropdownRef}>
+        <div className='absolute right-4 lg:right-3 top-1' ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className='hover:text-[var(--text-hovered)] text-3xl'
@@ -250,7 +250,7 @@ function Notifications() {
           <div className='flex items-center min-w-[15px] min-h-[15px]'>
             {!notification.isRead && <FaCircle className='text-base text-Accent/Target' />}
           </div>
-          <div className='flex justify-center'>
+          <div className='flex flex-shrink-0'>
             <img
               src={notification.senderAvatar || import.meta.env.VITE_DEFAULT_AVATAR}
               alt='Avatar'
@@ -259,12 +259,14 @@ function Notifications() {
           </div>
           <div className='flex flex-col justify-center flex-grow'>
             <div className='flex'>
-              <p className=' text-sm xsm:text-base sm:text-lg'>
+              <p className=' text-sm xsm:text-base sm:text-lg '>
                 <Link
                   to={`/user/${notification.senderId}/posts`}
                   className='text-[var(--text-title)] hover:underline'
                 >
-                  {notification.senderName}
+                  {notification.senderName.length > 12
+                    ? `${notification.senderName.slice(0, 12)}...`
+                    : notification.senderName}
                 </Link>{' '}
                 {notification.message}{' '}
                 <Link
@@ -282,12 +284,14 @@ function Notifications() {
                   }
                   className='text-[var(--text-title)] hover:underline'
                 >
-                  {notification.extraData}
+                  {notification.extraData.length > 12
+                    ? `${notification.extraData.slice(0, 12)}...`
+                    : notification.extraData}
                 </Link>
               </p>
             </div>
             <div className='flex'>
-              <p className='text-[var(--green-highlight)] text-sm sm:text-base'>
+              <p className='text-[var(--text-hovered)] text-sm sm:text-base'>
                 {formatDate(notification.createdAt)}
               </p>
             </div>

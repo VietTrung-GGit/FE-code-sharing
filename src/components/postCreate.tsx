@@ -50,7 +50,6 @@ const PostCreate: React.FC<PostCreateProps> = ({
   const { theme } = useTheme();
   const [waiting, setWaiting] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
-  const pickerRef = useRef<HTMLDivElement>(null);
   const emojis = ['😀', '😆', '😎', '🔥', '💯', '🚀', '🎉', '🥳'];
   const getRandomEmoji = () => emojis[Math.floor(Math.random() * emojis.length)];
   useEffect(() => {
@@ -302,7 +301,7 @@ const PostCreate: React.FC<PostCreateProps> = ({
             rows={6}
             className='mt-2 w-full p-2 bg-[var(--input)] overflow-hidden resize-none rounded-md focus:outline-none focus:border-transparent'
           />
-          <div ref={pickerRef}>
+          <div>
             <button
               onClick={() => setShowPicker(!showPicker)}
               className='absolute top-2 right-2 z-40 text-lg hidden lg:block'

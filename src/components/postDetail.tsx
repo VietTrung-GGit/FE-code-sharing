@@ -269,7 +269,7 @@ const PostDetail: React.FC<PostDetailProps> = ({
         // });
         setNewCommentText('');
         setNewCommentCode('');
-        toast.success('Comment success');
+        toast.success('Commented successfully');
       } catch (error) {
         commentDelete(true);
         handleCommentChange(true);
@@ -632,7 +632,6 @@ const PostDetail: React.FC<PostDetailProps> = ({
                 {showPicker && (
                   <div className='absolute bottom-full right-0 mb-2 z-30 bg-gray-800 rounded-lg shadow-lg'>
                     <EmojiPickerComponent
-                      ref={pickerRef}
                       theme={theme}
                       onSelect={(emoji: EmojiClickData) =>
                         setNewCommentText((prev) => prev + emoji.emoji)

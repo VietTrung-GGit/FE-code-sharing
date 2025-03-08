@@ -498,7 +498,7 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
           </div>
 
           {showPostCreate && (
-            <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
+            <div className='flex h-screen w-screen items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
               <PostCreate
                 closeModal={handleCloseModal}
                 onPostCreated={refetchPosts}

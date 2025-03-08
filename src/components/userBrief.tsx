@@ -90,13 +90,13 @@ const UserBrief: React.FC<UserBriefProps> = ({
     try {
       if (group) {
         await removeGroupMember(group, user._id);
-        toast.success(`${user.displayname} has been removed from the group`);
+        toast.success(`${user.displayname} has been removed from the group!`);
       } else if (project) {
         await removeProjectMember(project, user._id);
-        toast.success(`${user.displayname} has been removed from the project`);
+        toast.success(`${user.displayname} has been removed from the project!`);
       } else if (section) {
         await removeSectionParticipant(section, user._id);
-        toast.success(`${user.displayname} has been removed from the section`);
+        toast.success(`${user.displayname} has been removed from the section!`);
       }
       setIsVisible(false);
       if (decreaseMember) {
@@ -111,7 +111,7 @@ const UserBrief: React.FC<UserBriefProps> = ({
     try {
       if (section) {
         await removeGroupMember(section, user._id);
-        toast.success(`${user.displayname} has been removed from the group`);
+        toast.success(`${user.displayname} has been removed from the group!`);
         setIsVisible(false);
       }
     } catch (error) {
@@ -195,9 +195,9 @@ const UserBrief: React.FC<UserBriefProps> = ({
                                     await assignProjectAdmin(project, user._id);
                                   }
                                   setUser((prev) => ({ ...prev, role: 'admin' })); // Update role to admin
-                                  toast.success(`${user.displayname} is now an admin`);
+                                  toast.success(`${user.displayname} is now an admin!`);
                                 } catch (error) {
-                                  toast.error('Failed to assign admin');
+                                  toast.error('Failed to assign admin!');
                                 }
                               }}
                             >
@@ -220,9 +220,9 @@ const UserBrief: React.FC<UserBriefProps> = ({
                                   await removeProjectAdmin(project, user._id);
                                 }
                                 setUser((prev) => ({ ...prev, role: 'member' })); // Revert role to member
-                                toast.success(`${user.displayname} is no longer an admin`);
+                                toast.success(`${user.displayname} is no longer an admin!`);
                               } catch (error) {
-                                toast.error('Failed to remove admin permission');
+                                toast.error('Failed to remove admin permission!');
                               }
                             }}
                           >

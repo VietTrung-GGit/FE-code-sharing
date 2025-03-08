@@ -438,7 +438,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
       } catch (error) {
         setIsFollowing(false);
         setFollowersCount((prev) => prev - 1);
-        toast.error('Failed to follow user');
+        toast.error('Failed to follow user!');
       }
     }
   };
@@ -887,7 +887,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
             )}
 
             {showPostCreate && (
-              <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
+              <div className='h-screen w-screen items-center justify-center fixed inset-0 bg-black bg-opacity-50 flex z-50'>
                 <PostCreate
                   closeModal={handleCloseModal}
                   onPostCreated={() => {

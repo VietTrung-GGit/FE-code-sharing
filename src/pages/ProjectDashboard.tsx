@@ -429,7 +429,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
         toast.success(`Joined project: ${project.name}`);
       } catch (error) {
         setHasJoined(false);
-        toast.error('Failed to join project');
+        toast.error('Failed to join project!');
       }
     }
   };
@@ -566,10 +566,10 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                             try {
                               await deleteProject(projectId);
                               navigate(`/group/${project.group}/posts`);
-                              toast.success('Project deleted successfully');
+                              toast.success('Project deleted successfully!');
                               // Optionally, you can navigate away or update state after deletion
                             } catch (error) {
-                              toast.error('Failed to delete project');
+                              toast.error('Failed to delete project!');
                               console.error(error);
                             }
                           }}
@@ -890,7 +890,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
 
                   <button
                     disabled={loading || waiting}
-                    className={`block px-4 py-2 font-semibold ${viewParticipant ? 'text-[var(--text-title)]' : 'text-white'} w-36 text-left flex flex-row gap-4 rounded-3xl`}
+                    className={`block px-4 py-2 font-semibold ${viewParticipant ? 'text-[var(--text-title)]' : ''} w-36 text-left flex flex-row gap-4 rounded-3xl`}
                     onClick={() => {
                       navigate(`/project/${projectId}/sections/${sectionId}/participants`);
                       setActiveLabel('Participants');
@@ -1013,7 +1013,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
             </div>
 
             {showPostCreate && (
-              <div className='flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 z-50'>
+              <div className='h-screen w-screen flex items-center justify-center fixed inset-0 bg-black bg-opacity-50 z-50'>
                 <PostCreate
                   closeModal={handleCloseModal}
                   onPostCreated={() => {

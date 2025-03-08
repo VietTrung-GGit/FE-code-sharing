@@ -71,9 +71,9 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
 
       socket.current.on('newNotification', (newNotification: Notification) => {
         setNotifications((prev) => [newNotification, ...prev]);
-        setTotalNotifications(totalNotifications + 1);
+        setTotalNotifications((prev) => prev + 1);
         toast.info(
-          `🔔 ${newNotification.senderName} ${newNotification.message} ${newNotification.extraData}`,
+          `🔔 ${newNotification.senderName} ${newNotification.message} ${newNotification.extraData.length > 20 ? newNotification.extraData.slice(0, 20) : newNotification.extraData}`,
         );
       });
 

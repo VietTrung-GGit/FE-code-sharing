@@ -464,7 +464,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
                         {showPicker && (
                           <div className='absolute bottom-full right-0 mb-2 z-30 bg-gray-800 rounded-lg shadow-lg'>
                             <EmojiPickerComponent
-                              ref={pickerRef}
                               theme={theme}
                               onSelect={(emoji: EmojiClickData) =>
                                 setReplyText((prev) => prev + emoji.emoji)

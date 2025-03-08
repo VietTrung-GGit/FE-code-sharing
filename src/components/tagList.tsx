@@ -246,7 +246,7 @@ function TagList({
           theme === 'original'
             ? 'bg-Background/Bottom text-white border-2'
             : 'bg-[var(--surface)] text-[var(--text)]'
-        } justify-center overflow-y-auto w-full ${activeFilter != 'Posts' ? 'lg:h-[50vh] max-h-[450px]' : 'lg:h-[90vh] max-h-[750px]'} lg:w-[50vw] min-h-[480px] p-10  flex flex-col border-Primary/Dark border-solid box-border rounded-3xl  lg:mt-4  relative`}
+        } h-screen justify-center overflow-y-auto w-full ${activeFilter != 'Posts' ? 'lg:h-[50vh]' : 'lg:h-[90vh]'} lg:w-[50vw] min-h-[480px] p-10  flex flex-col border-Primary/Dark border-solid box-border lg:rounded-3xl  lg:mt-4  relative`}
       >
         <button
           onClick={handleClose}

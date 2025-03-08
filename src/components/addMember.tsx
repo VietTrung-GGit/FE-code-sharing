@@ -128,7 +128,7 @@ const AddMember: React.FC<AddMemberProps> = ({ type, desId, isOpen, closeModal, 
       setWaiting(false);
       setUsers([]); // Clear selected users after inviting
       closeModal();
-      toast.success('Sending invitations successfully!');
+      toast.success('Invites sent successfully!');
     } catch (error) {
       console.error('Error sending invites:', error);
     }

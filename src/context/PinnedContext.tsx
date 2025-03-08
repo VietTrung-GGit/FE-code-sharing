@@ -55,7 +55,7 @@ export const PinnedProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (newPinnedItem) {
         setPinnedItems((prev) => [...prev, newPinnedItem]);
       }
-      toast.success('Pinned');
+      toast.success('Pinned!');
     } catch (error) {
       console.error('Error pinning item:', error);
     }

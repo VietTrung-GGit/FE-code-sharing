@@ -37,7 +37,7 @@ function PassReset() {
       // Simulate API call to send reset email
       const response = await passwordReset(formData.email);
       // Display success message
-      toast.success(response || 'Password reset email sent successfully. Please check your inbox.');
+      toast.success(response || 'Password reset email sent successfully. Please check your inbox!');
     } catch (error: any) {
       // Display error message
       toast.error(error.message || 'An error occurred while sending the reset email.');
