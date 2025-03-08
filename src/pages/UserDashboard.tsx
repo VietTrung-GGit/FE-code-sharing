@@ -114,8 +114,9 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
   const [postCount, setPostCount] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [showGroupCreate, setShowGroupCreate] = useState<boolean>(false); // New state for modal visibility
+
   const fetchAndUpdatePosts = async () => {
-    if (userId) {
+    if (userId && host) {
       setLoading(true);
       try {
         console.log('Debounced search term call:', debouncedSearchTerm);
@@ -228,7 +229,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
     if (active === 'Users') fetchAndUpdateUsers();
     if (active === 'Groups') fetchAndUpdateGroups();
     if (active === 'Projects') fetchAndUpdateProjects();
-  }, [active, debouncedSearchTerm, searchParams]);
+  }, [host, active, debouncedSearchTerm, searchParams]);
 
   useEffect(() => {
     if (hasMore && !firstLoad) {
@@ -268,8 +269,11 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
     };
 
     fetchData();
-    setPostCount(postCount);
   }, [userId]);
+
+  useEffect(() => {
+    setPostCount(host?.totalPosts || 0);
+  }, [host]);
 
   const [refId, setRefId] = useState<string>('');
   const handleCreate = () => {

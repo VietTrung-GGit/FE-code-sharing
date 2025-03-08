@@ -265,7 +265,7 @@ const ProjectCreate: React.FC<PostCreateProps> = ({
         <div
           className={`${
             theme === 'original'
-              ? 'bg-Accent/Target  hover:text-Accent/Target hover:bg-white'
+              ? 'bg-Accent/Target'
               : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border border-[var(--border)] text-Accent/Target'
           }  mt-10 ml-auto justify-center transition-colors duration-300 ease-in-out w-32 h-8 rounded-xl text-lg  mb-4  flex flex-row gap-2 px-6 py-2 items-center`}
         >

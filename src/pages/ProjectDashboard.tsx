@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { IoIosMore, IoIosMail, IoMdArrowDropdown } from 'react-icons/io';
+import { IoIosMore, IoIosMail, IoMdArrowDropdown, IoIosCloseCircleOutline } from 'react-icons/io';
 import { MdOutlinePublicOff, MdOutlinePublic, MdGroupRemove } from 'react-icons/md';
 import { BiSolidEdit } from 'react-icons/bi';
 import ProjectBoard from '../components/projectBoard';
@@ -93,6 +93,12 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
   const [pinned, setPinned] = useState(alreadyPinned);
   const [waiting, setWaiting] = useState(false);
   const [postCount, setPostCount] = useState(0);
+  const [showProjectConfigModal, setShowProjectConfigModal] = useState(false);
+  const modalProjectConfigRef = useRef<HTMLDivElement>(null);
+
+  const closeModal = () => {
+    setShowProjectConfigModal(false); // Close the logout confirmation modal
+  };
 
   const handlePinToggle = () => {
     if (projectId) {
@@ -561,18 +567,8 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                     {projectId && project.role == 'leader' && (
                       <li>
                         <button
-                          className='block px-4 py-2  hover:bg-[var(--background-hovered)]  w-full text-left flex flex-row gap-4'
-                          onClick={async () => {
-                            try {
-                              await deleteProject(projectId);
-                              navigate(`/group/${project.group}/posts`);
-                              toast.success('Project deleted successfully!');
-                              // Optionally, you can navigate away or update state after deletion
-                            } catch (error) {
-                              toast.error('Failed to delete project!');
-                              console.error(error);
-                            }
-                          }}
+                          className='block px-4 py-2  hover:bg-[var(--background-hovered)]  w-full text-left flex flex-row gap-4 text-red-500'
+                          onClick={() => setShowProjectConfigModal(true)}
                         >
                           <AiOutlineUsergroupDelete className='text-lg lg:text-xl' />
                           Delete project
@@ -594,6 +590,60 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                   />
                 </div>
               )}
+            </div>
+          )}
+
+          {project && projectId && project.role == 'leader' && showProjectConfigModal && (
+            <div className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'>
+              <div
+                className={`
+              ${
+                theme === 'original'
+                  ? 'bg-Background/Bottom text-white border-2'
+                  : 'bg-[var(--surface)] text-[var(--text)]'
+              } border-Primary/Dark p-8 rounded-3xl max-w-sm w-full justify-center flex-col items-center`}
+                ref={modalProjectConfigRef}
+              >
+                <div className='flex justify-center items-center mb-4 -translate-x-2'>
+                  <IoIosCloseCircleOutline className='text-6xl  text-red-300' />
+                </div>
+                <h3 className='text-xl mb-2 text-center font-semibold'>Delete?</h3>
+                <h3 className='text-base mb-4 text-gray-400 text-center'>
+                  Are you sure you want to delete this project?
+                </h3>
+                <div className='flex justify-between text-base'>
+                  <button
+                    className={`${
+                      theme === 'original'
+                        ? 'bg-white text-Primary/Dark'
+                        : 'bg-[var(--button)] text-[var(--text)]  '
+                    }  ml-7 border-[var(--border)] px-4 py-1 rounded-lg hover:bg-[var(--button-hovered)]`}
+                    onClick={closeModal}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className='mr-7 bg-red-400 px-4 py-1 rounded-lg hover:bg-red-500'
+                    onClick={async () => {
+                      try {
+                        await deleteProject(projectId);
+                        if (project.group) {
+                          navigate(`/group/${project.group}/posts`);
+                        } else {
+                          navigate('/community/posts');
+                        }
+                        toast.success('Project deleted successfully!');
+                        // Optionally, you can navigate away or update state after deletion
+                      } catch (error) {
+                        toast.error('Failed to delete project!');
+                        console.error(error);
+                      }
+                    }}
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -682,7 +732,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                     className={`flex flex-col ${project && project.role == 'leader' ? 'xxsm:mt-4 xsm:max-sm:mt-6' : ''}`}
                   >
                     <p className=' font-semibold mt-6 text-2xl sm:text-3xl lg:text-2xl xl:text-3xl break-words'>
-                      {project?.name.length > 12
+                      {project && project?.name.length > 12
                         ? `${project?.name.slice(0, 9)}...` || 'Project Name'
                         : project?.name || 'Project Name'}
                     </p>
