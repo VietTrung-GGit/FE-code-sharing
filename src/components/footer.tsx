@@ -21,7 +21,7 @@ function Modal({ mode, onClose }: { mode: 'about' | 'privacy' | 'terms'; onClose
     <div className='fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50'>
       <div
         ref={modalRef}
-        className='py-16 w-screen h-screen sm:w-[80vw] sm:h-min lg:w-[50vw] bg-Background/Bottom p-12 sm:rounded-3xl sm:border-2 border-Primary/Dark flex flex-col items-center text-white relative overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'
+        className='py-16 w-screen h-screen sm:w-[80vw] sm:h-min lg:w-[50vw] bg-Background/Bottom p-12 sm:rounded-3xl sm:border-2 border-Primary/Dark flex flex-col items-center text-white relative overflow-y-auto  scrollbar '
       >
         {/* Close Button (X) */}
         <button

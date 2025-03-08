@@ -245,7 +245,11 @@ const PostCreate: React.FC<PostCreateProps> = ({
             className='w-12 h-12 rounded-full object-cover'
           />
           <div>
-            <p className='font-bold text-lg'>{user?.displayname || 'Loading...'}</p>
+            <p className='font-bold text-lg'>
+              {(user?.displayname.length > 18
+                ? `${user?.displayname.slice(0, 18)}...`
+                : user?.displayname) || 'Loading...'}
+            </p>
             {postData && (
               <span className='text-xs text-white'>
                 {formatDate(postData.createdAt)}. Updating:&nbsp;
@@ -298,22 +302,23 @@ const PostCreate: React.FC<PostCreateProps> = ({
             rows={6}
             className='mt-2 w-full p-2 bg-[var(--input)] overflow-hidden resize-none rounded-md focus:outline-none focus:border-transparent'
           />
-          <div ref={pickerRef}><button
-            onClick={() => setShowPicker(!showPicker)}
-            className='absolute top-2 right-2 z-40 text-lg hidden lg:block'
-          >
-            {getRandomEmoji()}
-          </button>
-          {showPicker && (
-            <div className='absolute top-10 right-0 mb-2 z-30 bg-gray-800 rounded-lg shadow-lg'>
-              <EmojiPickerComponent
-                theme={theme}
-                onSelect={(emoji: EmojiClickData) => setContent((prev) => prev + emoji.emoji)}
-                onClose={() => setShowPicker(false)}
-              />
-            </div>
-          )}</div>
-          
+          <div ref={pickerRef}>
+            <button
+              onClick={() => setShowPicker(!showPicker)}
+              className='absolute top-2 right-2 z-40 text-lg hidden lg:block'
+            >
+              {getRandomEmoji()}
+            </button>
+            {showPicker && (
+              <div className='absolute top-10 right-0 mb-2 z-30 bg-gray-800 rounded-lg shadow-lg'>
+                <EmojiPickerComponent
+                  theme={theme}
+                  onSelect={(emoji: EmojiClickData) => setContent((prev) => prev + emoji.emoji)}
+                  onClose={() => setShowPicker(false)}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Dropzone */}

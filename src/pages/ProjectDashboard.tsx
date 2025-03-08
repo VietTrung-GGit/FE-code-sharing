@@ -752,7 +752,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
                 </div>
               </div>
 
-              <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] lg:max-xl:max-h-[230px] xl:max-h-[230px] xsm:h-1/2 sm:h-[190px] lg:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 xxsm:top-48 top-40 inset-x-4 sm:static break-words overflow-hidden overflow-y-auto  scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
+              <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-3/5 max-h-[300px] lg:max-xl:max-h-[230px] xl:max-h-[230px] xsm:h-1/2 sm:h-[190px] lg:h-full rounded-3xl absolute xsm:top-52 xsm:inset-x-8 xxsm:top-48 top-40 inset-x-4 sm:static break-words overflow-hidden overflow-y-auto   scrollbar '>
                 <p className='p-4'>{project?.bio || 'Project Description'}</p>
               </div>
             </div>
@@ -1186,9 +1186,7 @@ const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ viewMember, viewPar
             {project && (
               <div className='flex flex-row justify-center lg:gap-8 xl:gap-10 2xl:gap-16 mb-5'>
                 <div className='flex flex-col'>
-                  <p className=' text-xl flex justify-center'>
-                    {formatNumber(postCount)}
-                  </p>
+                  <p className=' text-xl flex justify-center'>{formatNumber(postCount)}</p>
                   <p className='text-[var(--text-title)] text-base flex justify-center'>Posts</p>
                 </div>
 

@@ -73,7 +73,11 @@ const PostRef: React.FC<PostRefProps> = ({ postId }) => {
               className='w-[40px] h-[40px] rounded-full object-cover'
             />
             <div>
-              <p className='font-bold text-md'>{post.authorname}</p>
+              <p className='font-bold text-md'>
+                {post.authorname.length > 18
+                  ? `${post.authorname.slice(0, 18)}...`
+                  : post.authorname}
+              </p>
               <p
                 className={`${
                   theme === 'original' ? 'text-[var(--green-highlight)]' : 'text-[var(--text)]'

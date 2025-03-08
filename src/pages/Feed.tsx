@@ -41,7 +41,7 @@ const Feed: React.FC<FeedProps> = ({ type }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [firstLoad, setFirstLoad] = useState(true); // To track the initial load
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownConfigOpen, setIsDropdownConfigOpen] = useState(false);
@@ -90,8 +90,6 @@ const Feed: React.FC<FeedProps> = ({ type }) => {
 
   useEffect(() => {
     if (hasMore && !firstLoad) {
-      console.log('2');
-
       fetchAndUpdatePosts();
     }
   }, [page]);
@@ -99,9 +97,7 @@ const Feed: React.FC<FeedProps> = ({ type }) => {
   const handleFilterChange = (querySortParam: string) => {
     navigate(`/feed?${querySortParam}`);
   };
-  const handleCloseEditModal = () => {
-    setShowEditModal(false);
-  };
+
   const [refId, setRefId] = useState<string>('');
   const handleCreate = () => {
     setRefId('');

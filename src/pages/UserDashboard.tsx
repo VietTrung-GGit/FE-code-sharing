@@ -99,7 +99,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
   const [own, setOwn] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [firstLoad, setFirstLoad] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownConfigOpen, setIsDropdownConfigOpen] = useState(false);
@@ -157,12 +157,11 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
           debouncedSearchTerm,
         );
         setHasMore(usersResponse.hasMore);
+        setLoading(false);
+        setFirstLoad(false);
         setUsers((prevUsers) => [...prevUsers, ...usersResponse.users]);
       } catch (error) {
         console.error('Error fetching users:', error);
-      } finally {
-        setLoading(false);
-        setFirstLoad(false);
       }
     }
   };
@@ -179,13 +178,12 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
           (searchParams.get('criteria') as 'dateCreated' | 'members' | 'posts') || 'members',
           debouncedSearchTerm,
         );
+        setLoading(false);
+        setFirstLoad(false);
         setHasMore(groupsResponse.hasMore);
         setGroups((prevGroups) => [...prevGroups, ...groupsResponse.groups]);
       } catch (error) {
         console.error('Error fetching groups:', error);
-      } finally {
-        setLoading(false);
-        setFirstLoad(false);
       }
     }
   };
@@ -204,12 +202,11 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
             debouncedSearchTerm,
           );
           setHasMore(projectsResponse.hasMore);
+          setLoading(false);
+          setFirstLoad(false);
           setProjects((prevProjects) => [...prevProjects, ...projectsResponse.projects]);
         } catch (error) {
           console.error('Error fetching projects:', error);
-        } finally {
-          setLoading(false);
-          setFirstLoad(false);
         }
       }
     }
@@ -218,6 +215,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
   useEffect(() => {
     setPage(1);
     setHasMore(true);
+    setLoading(true);
 
     // Reset the corresponding data array
     if (active === 'Posts') setPosts([]);
@@ -232,12 +230,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
     if (active === 'Projects') fetchAndUpdateProjects();
   }, [active, debouncedSearchTerm, searchParams]);
 
-  // useEffect(() => {
-  //   if (active) {
-  //     navigate(`/user/${userId}/${active.replace(/\s+/g, '')?.toLowerCase()}`);
-  //   }
-  // }, [active, navigate]);
-
   useEffect(() => {
     if (hasMore && !firstLoad) {
       if (active === 'Posts') fetchAndUpdatePosts();
@@ -249,8 +241,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
 
   useEffect(() => {
     if (hasMore && !firstLoad) {
-      console.log('2');
-
       fetchAndUpdatePosts();
     }
   }, []);
@@ -341,6 +331,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
     setPage(1);
     setHasMore(true);
     setFirstLoad(true);
+    setLoading(true);
     if (active === 'Posts') {
       setPosts([]);
       fetchAndUpdatePosts();
@@ -655,7 +646,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                     <div className=' flex items-center mt-1 xsm:mt-1 sm:space-x-2 block sm:hidden text-xs sm:text-lg lg:text-xl '>
                       <IoIosMail className='text-[var(--text-title)] text-xl' />
 
-                      <div className='flex w-32 flex-row overflow-x-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
+                      <div className='flex w-32 flex-row overflow-x-auto  scrollbar '>
                         <a
                           href={host?.email ? `mailto:${host.email}` : '#'}
                           className=' text-sm whitespace-nowrap block'
@@ -688,7 +679,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
                   </div>
                 </div>
 
-                <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-1/2 max-h-[230px] lg:max-h-[210px] xl:max-h-[200px] sm:h-full rounded-xl absolute xsm:top-44 xsm:inset-x-8 top-40 inset-x-4 sm:static break-words overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent overflow-hidden'>
+                <div className='bg-[var(--input)] sm:w-[44vw] lg:w-[22vw] xl:w-[23vw] 2xl:w-[25vw] h-1/2 max-h-[230px] lg:max-h-[210px] xl:max-h-[200px] sm:h-full rounded-xl absolute xsm:top-44 xsm:inset-x-8 top-40 inset-x-4 sm:static break-words overflow-y-auto  scrollbar  overflow-hidden'>
                   <p className=' p-4'>{host?.story || "I'm here to share my code!"}</p>
                 </div>
               </div>
@@ -916,7 +907,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ active }) => {
         <LoadingSpinner />
       ) : (
         <>
-          {/* Show NothingPost only after the first load, no posts, and not loading */}
           {((active === 'Posts' && posts.length === 0) ||
             (active === 'Users' && users.length === 0) ||
             (active === 'Groups' && groups.length === 0) ||

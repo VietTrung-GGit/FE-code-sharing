@@ -206,7 +206,7 @@ const AddMember: React.FC<AddMemberProps> = ({ type, desId, isOpen, closeModal, 
       {users.length > 0 && (
         <div className='flex flex-row w-full items-center justify-between mt-8'>
           {/* Scrollable Container */}
-          <div className='flex overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent space-x-1 max-w-[90%] flex-nowrap'>
+          <div className='flex overflow-x-auto overflow-y-hidden  scrollbar  space-x-1 max-w-[90%] flex-nowrap'>
             {users.map((user) => (
               <UserAvatar key={user._id} user={user} toggleUser={toggleUser} />
             ))}

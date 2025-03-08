@@ -52,7 +52,7 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownConfigOpen, setIsDropdownConfigOpen] = useState(false);
   const dropdownConfigRef = useRef<HTMLDivElement>(null);
@@ -149,7 +149,6 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
     setHasMore(true);
     setLoading(true);
 
-    // Reset relevant state based on active tab
     setPosts([]);
     setUsers([]);
     setGroups([]);
@@ -157,7 +156,7 @@ const Community: React.FC<CommunityProps> = ({ active }) => {
   }, [active, debouncedSearchTerm, searchParams]);
 
   useEffect(() => {
-    if (hasMore == true) {
+    if (hasMore && loading) {
       switch (active) {
         case 'Posts':
           if (posts.length === 0) fetchAndUpdatePosts();

@@ -435,7 +435,7 @@ function TagList({
 
             {/*tags*/}
 
-            <div className='w-full h-72 xxsm:h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent'>
+            <div className='w-full h-72 xxsm:h-64 overflow-y-auto  scrollbar '>
               {tags.map((tag) => (
                 <button key={tag} className='w-24 my-2 mr-6' onClick={() => handleButtonClick(tag)}>
                   <div className='flex flex-col'>

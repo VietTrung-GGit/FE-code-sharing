@@ -19,7 +19,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
     story: user?.story || '',
     avatar: user?.avatar || import.meta.env.VITE_DEFAULT_AVATAR, // Placeholder image URL
   });
-
+  const [waiting, setWaiting] = useState(false);
   const [passwords, setPasswords] = useState({
     currentPassword: '',
     newPassword: '',
@@ -79,6 +79,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
     }
 
     try {
+      setWaiting(true);
       const response = await updateUserPassword({
         oldPassword: passwords.currentPassword,
         newPassword: passwords.newPassword,
@@ -92,6 +93,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
   };
 
   const handleSave = async () => {
+    setWaiting(true);
     if (!isValidEmail(profileData.email)) {
       toast.error('Invalid email address. Please provide a valid email.');
       return;
@@ -106,7 +108,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
         ...profileData,
         avatar: avatarFile ? URL.createObjectURL(avatarFile) : profileData.avatar,
       });
-
+      setWaiting(true);
       await updateUser(profileData, avatarFile as File);
 
       propcloseModal();
@@ -153,9 +155,9 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
       <div
         className={`${
           theme === 'original'
-            ? 'bg-Background/Bottom text-white lg:border-2'
+            ? 'bg-Background/Bottom text-white md:border-2'
             : 'bg-[var(--surface)] text-[var(--text)]'
-        } w-full h-full lg:h-full lg:w-[50vw] bg-center bg-cover px-14 py-10  flex flex-col border-Primary/Dark border-solid box-border rounded-3xl  lg:mt-4  relative`}
+        } w-screen h-screen md:w-[75vw] md:h-full lg:w-[50vw] md:rounded-3xl bg-center bg-cover px-8 xxsm:px-14 py-10  flex flex-col border-Primary/Dark border-solid box-border  lg:mt-4  relative`}
       >
         {/* Close Button */}
         <button
@@ -214,15 +216,15 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
               </>
             ) : (
               <>
-                <div className='flex items-start space-x-6'>
+                <div className='flex flex-col md:flex-row max-md:items-center md:space-x-6'>
                   {/* Profile Image */}
-                  <div className='flex-shrink-0'>
+                  <div className='flex-shrink-0 '>
                     <div className='relative group'>
                       <label htmlFor='avatar-upload' className='cursor-pointer'>
                         <img
                           src={profileData.avatar}
                           alt='Profile'
-                          className={`w-32 h-32 rounded-full object-cover ${
+                          className={`w-32 h-32 rounded-full object-cover flex-shrink-0 ${
                             modeChange === 'editprofile'
                               ? 'cursor-pointer hover:brightness-75'
                               : 'cursor-default'
@@ -250,11 +252,11 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                   </div>
 
                   {/* Profile Inputs */}
-                  <div className='flex-grow grid grid-cols-2 gap-4'>
+                  <div className='flex-grow max-md:w-full md:grid md:grid-cols-2 gap-4'>
                     <div>
                       <label
                         htmlFor='username'
-                        className='block text-sm font-medium text-[var(--text-title)]'
+                        className='block text-xs xxsm:text-sm font-medium text-[var(--text-title)]'
                       >
                         Username
                       </label>
@@ -264,7 +266,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                         value={profileData.username}
                         maxLength={30}
                         onChange={handleInputChange}
-                        className={`w-full mt-1 px-3 py-2 bg-[var(--input)] border-[var(--text-placeholder)]  rounded-md focus:outline-none ${
+                        className={`w-full flex-grow mt-1 px-3 py-2 bg-[var(--input)] border-[var(--text-placeholder)]  rounded-md focus:outline-none ${
                           modeChange === 'editprofile' &&
                           'focus:border focus:ring-2 focus:border-Primary/Dark'
                         }`}
@@ -274,7 +276,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                     <div>
                       <label
                         htmlFor='email'
-                        className='block text-sm font-medium text-[var(--text-title)]'
+                        className='block text-xs xxsm:text-sm font-medium text-[var(--text-title)]'
                       >
                         Email
                       </label>
@@ -295,7 +297,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
                     <div className='col-span-2'>
                       <label
                         htmlFor='displayName'
-                        className='block text-sm font-medium text-[var(--text-title)] border-[var(--text-placeholder)] '
+                        className='block text-xs xxsm:text-sm font-medium text-[var(--text-title)] border-[var(--text-placeholder)] '
                       >
                         Display name
                       </label>
@@ -345,16 +347,32 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ modeChange, closeModal: propc
         <div className='flex justify-end mt-6 space-x-4'>
           {(modeChange === 'editpassword' || modeChange === 'editprofile') && (
             <>
-              <button
-                onClick={modeChange === 'editpassword' ? handlePasswordUpdate : handleSave} // Call handleSave or handlePasswordUpdate based on the mode
-                className={`${
-                  theme === 'original'
-                    ? 'bg-Accent/Target  hover:text-Accent/Target hover:bg-white'
-                    : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border border-[var(--border)]'
-                }  px-4 py-2 rounded-md text-sm font-medium `}
-              >
-                Save
-              </button>
+              {!waiting ? (
+                <button
+                  onClick={modeChange === 'editpassword' ? handlePasswordUpdate : handleSave} // Call handleSave or handlePasswordUpdate based on the mode
+                  className={`${
+                    theme === 'original'
+                      ? 'bg-Accent/Target  hover:text-Accent/Target hover:bg-white'
+                      : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border border-[var(--border)]'
+                  }  px-4 py-2 rounded-md text-sm font-medium `}
+                >
+                  Save
+                </button>
+              ) : (
+                <div
+                  className={`${
+                    theme === 'original'
+                      ? 'bg-Accent/Target  hover:text-Accent/Target hover:bg-white'
+                      : 'bg-[var(--button)] hover:bg-[var(--button-hovered)] border border-[var(--border)]'
+                  }  px-4 py-2 rounded-md text-sm font-medium `}
+                >
+                  <div
+                    className={`${
+                      theme === 'original' ? 'border-white' : 'border-Accent/Target'
+                    } w-6 h-6 border-4 border-t-transparent border-solid rounded-full animate-spin`}
+                  ></div>
+                </div>
+              )}
             </>
           )}
         </div>
